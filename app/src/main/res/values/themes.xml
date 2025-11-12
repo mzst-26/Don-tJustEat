@@ -48,7 +48,7 @@
         <item name="cornerRadius">5dp</item>
     </style>
 
-    <style name="texttitle">
+    <style name="text_title">
         <item name="android:fontFamily">Inter</item>
         <item name="android:textSize">20sp</item>
         <item name="android:textColor">#000000</item>
