@@ -17,15 +17,58 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+
+        <!--customer button-->
+        <Button
+            android:id="@+id/button_Customer_Access"
+            android:text="I'm a customer"
+            style="@style/AppButton.Secondary"
+            />
+
+        <!--Divider in between buttons-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:layout_gravity="center"
+            android:gravity="center">
+
+            <View
+                android:id="@+id/divider"
+                android:layout_width="140dp"
+                android:layout_height="1.5dp"
+                android:background="#E6E6E6"
+
+
+                />
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="or"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:layout_marginRight="5dp"
+                android:layout_marginLeft="5dp"
+                />
+
+
+            <View
+                android:id="@+id/divider"
+                android:layout_width="140dp"
+                android:layout_height="1.5dp"
+                android:background="#E6E6E6"
+
+
+                />
+
+        </LinearLayout>
+        <!--staff button-->
         <Button
             android:id="@+id/button_Staff_Access"
-            android:layout_width="327dp"
-            android:layout_height="40dp"
-            android:layout_alignParentLeft="true"
-            android:layout_marginLeft="0dp"
-            android:layout_alignParentTop="true"
             android:text="I'm a staff member"
-
+            style="@style/AppButton.Secondary"
             />
 
 

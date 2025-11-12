@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".customer_login">
+
+    <!-- Back Button !-->
+    <ImageView
+        android:id="@+id/back_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="20dp"
+        app:srcCompat="@drawable/baseline_arrow_back_ios_24"
+        android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="Back Button" />
+
+    <LinearLayout
+        android:layout_width="409dp"
+        android:layout_height="729dp"
+        android:orientation="vertical"
+        tools:layout_editor_absoluteX="1dp"
+        tools:layout_editor_absoluteY="1dp">
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="match_parent"
+            android:layout_height="234dp"
+            app:srcCompat="@drawable/logo" />
+
+        <TextView
+            android:id="@+id/text.title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Staff Sign in/Sign up"
+            android:gravity="center"
+            style="@style/text_title"/>
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textSize="17sp"
+            android:text="Enter your email to sign up for this app" />
+        <EditText
+            android:id="@+id/customerEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textEmailAddress"
+            android:hint="example@example.com"
+            android:padding="10dp"
+            android:layout_margin="16dp"
+            />
+
+        <Button
+            android:id="@+id/button4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/AppButton.Primary"
+            android:text="Sign in with email"
+            android:layout_margin="5dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+
+
+
+
+        <!--Divider in between buttons-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="79dp"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <View
+                android:id="@+id/divider"
+                android:layout_width="140dp"
+                android:layout_height="1.5dp"
+                android:background="#E6E6E6"
+
+
+                />
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:gravity="center"
+                android:text="or"
+                android:textSize="12sp" />
+
+
+            <View
+                android:id="@+id/divider"
+                android:layout_width="140dp"
+                android:layout_height="1.5dp"
+                android:background="#E6E6E6"
+
+
+                />
+
+        </LinearLayout>
+
+
+        <ImageView
+            android:id="@+id/customer_google_sign_in"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            app:srcCompat="@drawable/google_sign_in"
+            android:contentDescription="Google Sign-In"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="7dp"
+            android:background="?attr/selectableItemBackground" />
+
+
+
+        <ImageView
+            android:id="@+id/customer_apple_sign_in"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            app:srcCompat="@drawable/apple_sign_in"
+            android:contentDescription="Google Sign-In"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="8dp"
+            android:background="?attr/selectableItemBackground" />
+
+
+
+
+    </LinearLayout>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
