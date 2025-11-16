@@ -1,10 +1,12 @@
 package com.example.dontjusteat;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.widget.Button;
 import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -69,6 +71,14 @@ public class customer_booking extends AppCompatActivity {
                 // Set initial state to collapsed (which is now lip to lip)
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
             }
+        });
+
+        // Get select button
+        Button selectButton = findViewById(R.id.select_button);
+        selectButton.setOnClickListener(view -> {
+            Intent intent = new Intent(customer_booking.this, customer_location_detail.class);
+            startActivity(intent);
+
         });
     }
 
