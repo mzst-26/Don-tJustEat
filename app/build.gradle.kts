@@ -46,6 +46,8 @@ dependencies {
     implementation(libs.androidx.cardview)
     implementation(libs.play.services.base)
     implementation("com.google.android.gms:play-services-auth:21.0.0")
+    implementation(libs.play.services.maps)
+    implementation(libs.androidx.core)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
