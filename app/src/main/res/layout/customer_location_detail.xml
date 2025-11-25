@@ -1,6 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!--Header-->
+    <LinearLayout
+        android:id="@+id/header_container"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        >
+
+        <!-- Back Button !-->
+        <ImageView
+            android:id="@+id/back_button"
+            android:layout_width="64dp"
+            android:layout_height="match_parent"
+            android:padding="20dp"
+            app:srcCompat="@drawable/baseline_arrow_back_ios_24"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="Back Button"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="centerInside"
+            />
+        <!--location name-->
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Location Name"
+            android:gravity="center_vertical"
+            />
+
+    </LinearLayout>
+
+
+    <!--divider-->
+     <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1.5dp"
+        android:background="#E6E6E6"
+        app:layout_constraintTop_toBottomOf="@+id/header_container"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
+
+   <!-- search container -->
+    <LinearLayout
+        android:id="@+id/search_container"
+        android:layout_width="match_parent"
+        android:layout_margin="10dp"
+        android:layout_height="40dp"
+        android:background="@drawable/food_search_container"
+        app:layout_constraintTop_toBottomOf="@+id/divider"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:gravity="center_vertical"
+        android:paddingLeft="20dp"
+        >
+        <!--search icon-->
+        <RelativeLayout
+            android:id="@+id/search"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:clipToOutline="true"
+            android:background="@drawable/search"
+            android:layout_marginRight="10dp"
+            />
+        <!--search input-->
+        <EditText
+            android:id="@+id/foodSearchText"
+            android:layout_width="300dp"
+            android:layout_height="50dp"
+            android:inputType="textAutoCorrect"
+            android:hint="Search your favorite food"
+            android:padding="10dp"
+            android:layout_margin="16dp"
+            android:background="@null"
+            />
+
+    </LinearLayout>
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
