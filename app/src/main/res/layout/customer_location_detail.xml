@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:fitsSystemWindows="true"
+    >
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/Upper_container">
 
     <!--Header-->
     <LinearLayout
@@ -88,6 +96,7 @@
 
     <!--location distance-->
     <LinearLayout
+        android:id="@+id/location_distance"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -132,7 +141,411 @@
                 />
 
     </LinearLayout>
-    
 
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <!--Location Availability -->
+    <LinearLayout
+        android:id="@+id/location_availability"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toBottomOf="@+id/location_distance"
+        android:padding="20dp"
+    >
+        <!--Number of tables available-->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="5"
+            android:textSize="20dp"
+            android:textStyle="bold"
+            android:layout_marginEnd="4dp"
+            />
+        <!--Text-->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="/ Tables available"
+            android:textSize="16dp"
+            />
+
+        <Button
+            android:id="@+id/book_table_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/AppButton.Primary"
+            android:text="Book a table now"
+            android:textSize="16dp"
+            android:textColor="@color/white"
+            android:padding="10dp"
+            android:layout_marginLeft="81dp"
+            />
+            
+
+    </LinearLayout>
+
+
+    <!--Restaurant Image -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/location_availability">
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/restaurant_image"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+
+            />
+    </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <!--end of upper elements-->
+
+
+    <!-- Bottom Sheet List -->
+    <LinearLayout
+        android:id="@+id/list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@drawable/list_view_background"
+        android:clipToOutline="true"
+        android:overScrollMode="ifContentScrolls"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        >
+
+        <!--Handle-->
+        <RelativeLayout
+            android:id="@+id/handle_container"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:gravity="center_vertical"
+            >
+
+            <View
+                android:id="@+id/handle"
+                android:layout_width="48dp"
+                android:layout_height="4dp"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:background="@drawable/handle" />
+
+        </RelativeLayout>
+
+        <!--Listings-->
+        <RelativeLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/listing"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="0dp"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            >
+            <androidx.core.widget.NestedScrollView
+                android:id="@+id/nestedScrollView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:fillViewport="true">
+
+                <LinearLayout
+                    android:id="@+id/card_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="0dp"
+                    >
+
+                    <!--card item-->
+                    <LinearLayout
+                        android:id="@+id/card_Item"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/card_background"
+                        android:padding="10dp"
+                        android:layout_marginBottom="10dp"
+                        >
+
+                        <!--card Image-->
+                        <ImageView
+                            android:id="@+id/card_image"
+                            android:layout_width="match_parent"
+                            android:layout_height="150dp"
+                            android:background="@drawable/white_background_round"
+                            android:padding="5dp"
+                            />
+                        <!--card title-->
+                        <TextView
+                            android:id="@+id/card_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+                            android:text="Dish name"
+                            />
+                        <!--card info and button-->
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+
+                            >
+                            <TextView
+                                android:id="@+id/availability"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="5dp"
+                                android:layout_marginBottom="5dp"
+                                android:text="Description of the dish lam behsh cap sinch shab ausf amsic sinv ias s sdsd as lkjnof jsue asueh snnw wbshdw sjsdafasf asuwusnd asfwudan."
+                                />
+                            <Space
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:layout_weight="1" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!--card item-->
+                    <LinearLayout
+                        android:id="@+id/card_Item"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/card_background"
+                        android:padding="10dp"
+                        android:layout_marginBottom="10dp"
+                        >
+
+                        <!--card Image-->
+                        <ImageView
+                            android:id="@+id/card_image"
+                            android:layout_width="match_parent"
+                            android:layout_height="150dp"
+                            android:background="@drawable/white_background_round"
+                            android:padding="5dp"
+                            />
+                        <!--card title-->
+                        <TextView
+                            android:id="@+id/card_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+                            android:text="Dish name"
+                            />
+                        <!--card info and button-->
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+
+                            >
+                            <TextView
+                                android:id="@+id/availability"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="5dp"
+                                android:layout_marginBottom="5dp"
+                                android:text="Description of the dish lam behsh cap sinch shab ausf amsic sinv ias s sdsd as lkjnof jsue asueh snnw wbshdw sjsdafasf asuwusnd asfwudan."
+                                />
+                            <Space
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:layout_weight="1" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!--card item-->
+                    <LinearLayout
+                        android:id="@+id/card_Item"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/card_background"
+                        android:padding="10dp"
+                        android:layout_marginBottom="10dp"
+                        >
+
+                        <!--card Image-->
+                        <ImageView
+                            android:id="@+id/card_image"
+                            android:layout_width="match_parent"
+                            android:layout_height="150dp"
+                            android:background="@drawable/white_background_round"
+                            android:padding="5dp"
+                            />
+                        <!--card title-->
+                        <TextView
+                            android:id="@+id/card_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+                            android:text="Dish name"
+                            />
+                        <!--card info and button-->
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+
+                            >
+                            <TextView
+                                android:id="@+id/availability"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="5dp"
+                                android:layout_marginBottom="5dp"
+                                android:text="Description of the dish lam behsh cap sinch shab ausf amsic sinv ias s sdsd as lkjnof jsue asueh snnw wbshdw sjsdafasf asuwusnd asfwudan."
+                                />
+                            <Space
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:layout_weight="1" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!--card item-->
+                    <LinearLayout
+                        android:id="@+id/card_Item"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/card_background"
+                        android:padding="10dp"
+                        android:layout_marginBottom="10dp"
+                        >
+
+                        <!--card Image-->
+                        <ImageView
+                            android:id="@+id/card_image"
+                            android:layout_width="match_parent"
+                            android:layout_height="150dp"
+                            android:background="@drawable/white_background_round"
+                            android:padding="5dp"
+                            />
+                        <!--card title-->
+                        <TextView
+                            android:id="@+id/card_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+                            android:text="Dish name"
+                            />
+                        <!--card info and button-->
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+
+                            >
+                            <TextView
+                                android:id="@+id/availability"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="5dp"
+                                android:layout_marginBottom="5dp"
+                                android:text="Description of the dish lam behsh cap sinch shab ausf amsic sinv ias s sdsd as lkjnof jsue asueh snnw wbshdw sjsdafasf asuwusnd asfwudan."
+                                />
+                            <Space
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:layout_weight="1" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!--card item-->
+                    <LinearLayout
+                        android:id="@+id/card_Item"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/card_background"
+                        android:padding="10dp"
+                        android:layout_marginBottom="10dp"
+                        >
+
+                        <!--card Image-->
+                        <ImageView
+                            android:id="@+id/card_image"
+                            android:layout_width="match_parent"
+                            android:layout_height="150dp"
+                            android:background="@drawable/white_background_round"
+                            android:padding="5dp"
+                            />
+                        <!--card title-->
+                        <TextView
+                            android:id="@+id/card_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+                            android:text="Dish name"
+                            />
+                        <!--card info and button-->
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+
+                            >
+                            <TextView
+                                android:id="@+id/availability"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="5dp"
+                                android:layout_marginBottom="5dp"
+                                android:text="Description of the dish lam behsh cap sinch shab ausf amsic sinv ias s sdsd as lkjnof jsue asueh snnw wbshdw sjsdafasf asuwusnd asfwudan."
+                                />
+                            <Space
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:layout_weight="1" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+
+
+
+
+
+                </LinearLayout>
+
+            </androidx.core.widget.NestedScrollView>
+        </RelativeLayout>
+
+
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
