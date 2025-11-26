@@ -1,0 +1,616 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    >
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!--Header container-->
+        <LinearLayout
+            android:id="@+id/header_container"
+            style="@style/header_container"
+            android:layout_width="match_parent"
+            android:layout_height="122dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:background="@drawable/header_search_background"
+            app:layout_constraintTop_toTopOf="parent"
+            >
+
+
+
+            <!-- Search container !-->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                style="@style/search_container"
+                android:background="@drawable/white_background_round"
+                >
+
+
+                <!-- Search Icon !-->
+                <ImageView
+                    android:id="@+id/search_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:contentDescription="Search Icon"
+                    android:layout_marginLeft="5dp"
+                    app:srcCompat="@drawable/search" />
+
+                <!-- Search - Container for all texts !-->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:minWidth="290dp"
+                    android:layout_height="70dp"
+                    android:layout_marginLeft="15dp"
+                    android:layout_marginTop="2dp"
+                    android:orientation="vertical">
+
+
+                    <!-- The title !-->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="2dp"
+                        android:gravity="left"
+                        android:text="Plymouth University"
+                        android:textSize="19dp" />
+
+
+                    <!-- Container for the three subtitle texts !-->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="left"
+                        android:orientation="horizontal"
+
+                        >
+
+                        <TextView
+                            style="@style/search_subtitles"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="12dp"
+                            android:gravity="center"
+                            android:text="Nov 2" />
+
+                        <TextView
+                            style="@style/search_subtitles"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="12dp"
+                            android:gravity="center"
+                            android:text="Table 1" />
+
+                        <TextView
+                            style="@style/search_subtitles"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="12dp"
+                            android:gravity="center"
+                            android:text="2 Guests" />
+
+                    </LinearLayout>
+
+
+                </LinearLayout>
+
+
+                <!-- Search Icon !-->
+                <ImageView
+                    android:id="@+id/edit_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:contentDescription="Edit Icon"
+                    android:layout_marginRight="5dp"
+                    app:srcCompat="@drawable/edit" />
+
+            </LinearLayout>
+
+
+        </LinearLayout>
+        <!-- Header Ended!-->
+
+
+        <!-- Map payout !-->
+        <com.google.android.gms.maps.MapView
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="400dp"
+            android:background="@drawable/map"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:layout_editor_absoluteY="122dp"
+            app:layout_constraintTop_toBottomOf="@id/header_container"
+            />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Bottom Sheet List -->
+    <LinearLayout
+        android:id="@+id/list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@drawable/list_view_background"
+        android:clipToOutline="true"
+        android:overScrollMode="ifContentScrolls"
+        android:layout_marginTop="-30dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        >
+
+        <!--Handle-->
+        <RelativeLayout
+            android:id="@+id/handle_container"
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            android:gravity="center_vertical"
+            >
+
+            <View
+                android:id="@+id/handle"
+                android:layout_width="48dp"
+                android:layout_height="4dp"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:background="@drawable/handle" />
+
+        </RelativeLayout>
+
+        <!--Listings-->
+        <RelativeLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/listing"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="0dp"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            >
+            <androidx.core.widget.NestedScrollView
+                android:id="@+id/nestedScrollView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:fillViewport="true">
+
+                <LinearLayout
+                    android:id="@+id/card_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="0dp"
+                    >
+
+                    <!--card item-->
+                    <LinearLayout
+                        android:id="@+id/card_Item"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/card_background"
+                        android:padding="10dp"
+                        android:layout_marginBottom="10dp"
+                        >
+
+                        <!--card Image-->
+                        <ImageView
+                            android:id="@+id/card_image"
+                            android:layout_width="match_parent"
+                            android:layout_height="150dp"
+                            android:background="@drawable/white_background_round"
+                            android:padding="5dp"
+                            />
+                        <!--card title-->
+                        <TextView
+                            android:id="@+id/card_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+                            android:text="Location name"
+                            />
+                        <!--card info and button-->
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+
+                            >
+                            <TextView
+                                android:id="@+id/availability"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="5dp"
+                                android:layout_marginBottom="5dp"
+                                android:text="5/Tables available"
+                                />
+                            <Space
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:layout_weight="1" />
+
+                            <Button
+                                android:id="@+id/select_button"
+                                android:layout_width="100dp"
+                                android:layout_height="40dp"
+                                style="@style/AppButton.Primary"
+                                android:padding="5dp"
+                                android:text="Select"
+                                android:textColor="@color/white"
+                                android:textSize="14dp"
+                                />
+
+                        </LinearLayout>
+
+
+
+                    </LinearLayout>
+
+                    <!--card item-->
+                    <LinearLayout
+                        android:id="@+id/card_Item"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/card_background"
+                        android:padding="10dp"
+                        android:layout_marginBottom="10dp"
+                        >
+
+                        <!--card Image-->
+                        <ImageView
+                            android:id="@+id/card_image"
+                            android:layout_width="match_parent"
+                            android:layout_height="150dp"
+                            android:background="@drawable/white_background_round"
+                            android:padding="5dp"
+                            />
+                        <!--card title-->
+                        <TextView
+                            android:id="@+id/card_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+                            android:text="Location name"
+                            />
+                        <!--card info and button-->
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+
+                            >
+                            <TextView
+                                android:id="@+id/availability"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="5dp"
+                                android:layout_marginBottom="5dp"
+                                android:text="5/Tables available"
+                                />
+                            <Space
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:layout_weight="1" />
+
+                            <Button
+                                android:id="@+id/select_button"
+                                android:layout_width="100dp"
+                                android:layout_height="40dp"
+                                style="@style/AppButton.Primary"
+                                android:padding="5dp"
+                                android:text="Select"
+                                android:textColor="@color/white"
+                                android:textSize="14dp"
+                                />
+
+                        </LinearLayout>
+
+
+
+                    </LinearLayout>
+
+                    <!--card item-->
+                    <LinearLayout
+                        android:id="@+id/card_Item"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/card_background"
+                        android:padding="10dp"
+                        android:layout_marginBottom="10dp"
+                        >
+
+                        <!--card Image-->
+                        <ImageView
+                            android:id="@+id/card_image"
+                            android:layout_width="match_parent"
+                            android:layout_height="150dp"
+                            android:background="@drawable/white_background_round"
+                            android:padding="5dp"
+                            />
+                        <!--card title-->
+                        <TextView
+                            android:id="@+id/card_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+                            android:text="Location name"
+                            />
+                        <!--card info and button-->
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+
+                            >
+                            <TextView
+                                android:id="@+id/availability"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="5dp"
+                                android:layout_marginBottom="5dp"
+                                android:text="5/Tables available"
+                                />
+                            <Space
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:layout_weight="1" />
+
+                            <Button
+                                android:id="@+id/select_button"
+                                android:layout_width="100dp"
+                                android:layout_height="40dp"
+                                style="@style/AppButton.Primary"
+                                android:padding="5dp"
+                                android:text="Select"
+                                android:textColor="@color/white"
+                                android:textSize="14dp"
+                                />
+
+                        </LinearLayout>
+
+
+
+                    </LinearLayout>
+
+                    <!--card item-->
+                    <LinearLayout
+                        android:id="@+id/card_Item"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/card_background"
+                        android:padding="10dp"
+                        android:layout_marginBottom="10dp"
+                        >
+
+                        <!--card Image-->
+                        <ImageView
+                            android:id="@+id/card_image"
+                            android:layout_width="match_parent"
+                            android:layout_height="150dp"
+                            android:background="@drawable/white_background_round"
+                            android:padding="5dp"
+                            />
+                        <!--card title-->
+                        <TextView
+                            android:id="@+id/card_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+                            android:text="Location name"
+                            />
+                        <!--card info and button-->
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+
+                            >
+                            <TextView
+                                android:id="@+id/availability"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="5dp"
+                                android:layout_marginBottom="5dp"
+                                android:text="5/Tables available"
+                                />
+                            <Space
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:layout_weight="1" />
+
+                            <Button
+                                android:id="@+id/select_button"
+                                android:layout_width="100dp"
+                                android:layout_height="40dp"
+                                style="@style/AppButton.Primary"
+                                android:padding="5dp"
+                                android:text="Select"
+                                android:textColor="@color/white"
+                                android:textSize="14dp"
+                                />
+
+                        </LinearLayout>
+
+
+
+                    </LinearLayout>
+
+                    <!--card item-->
+                    <LinearLayout
+                        android:id="@+id/card_Item"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/card_background"
+                        android:padding="10dp"
+                        android:layout_marginBottom="10dp"
+                        >
+
+                        <!--card Image-->
+                        <ImageView
+                            android:id="@+id/card_image"
+                            android:layout_width="match_parent"
+                            android:layout_height="150dp"
+                            android:background="@drawable/white_background_round"
+                            android:padding="5dp"
+                            />
+                        <!--card title-->
+                        <TextView
+                            android:id="@+id/card_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+                            android:text="Location name"
+                            />
+                        <!--card info and button-->
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+
+                            >
+                            <TextView
+                                android:id="@+id/availability"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="5dp"
+                                android:layout_marginBottom="5dp"
+                                android:text="5/Tables available"
+                                />
+                            <Space
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:layout_weight="1" />
+
+                            <Button
+                                android:id="@+id/select_button"
+                                android:layout_width="100dp"
+                                android:layout_height="40dp"
+                                style="@style/AppButton.Primary"
+                                android:padding="5dp"
+                                android:text="Select"
+                                android:textColor="@color/white"
+                                android:textSize="14dp"
+                                />
+
+                        </LinearLayout>
+
+
+
+                    </LinearLayout>
+
+                    <!--card item-->
+                    <LinearLayout
+                        android:id="@+id/card_Item"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/card_background"
+                        android:padding="10dp"
+                        android:layout_marginBottom="10dp"
+                        >
+
+                        <!--card Image-->
+                        <ImageView
+                            android:id="@+id/card_image"
+                            android:layout_width="match_parent"
+                            android:layout_height="150dp"
+                            android:background="@drawable/white_background_round"
+                            android:padding="5dp"
+                            />
+                        <!--card title-->
+                        <TextView
+                            android:id="@+id/card_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+                            android:text="Location name"
+                            />
+                        <!--card info and button-->
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
+
+                            >
+                            <TextView
+                                android:id="@+id/availability"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="5dp"
+                                android:layout_marginBottom="5dp"
+                                android:text="5/Tables available"
+                                />
+                            <Space
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:layout_weight="1" />
+
+                            <Button
+                                android:id="@+id/select_button"
+                                android:layout_width="100dp"
+                                android:layout_height="40dp"
+                                style="@style/AppButton.Primary"
+                                android:padding="5dp"
+                                android:text="Select"
+                                android:textColor="@color/white"
+                                android:textSize="14dp"
+                                />
+
+                        </LinearLayout>
+
+
+
+                    </LinearLayout>
+
+
+                </LinearLayout>
+
+            </androidx.core.widget.NestedScrollView>
+        </RelativeLayout>
+
+
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
