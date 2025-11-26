@@ -22,7 +22,8 @@
         </activity>
         <activity android:name=".customer_login" />
         <activity android:name=".staff_login" />
-
+        <activity android:name=".customer_booking" />
+        <activity android:name=".customer_location_detail" />
 
     </application>
 

@@ -57,7 +57,7 @@
             />
 
         <Button
-            android:id="@+id/button4"
+            android:id="@+id/sign_in_with_email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             style="@style/AppButton.Primary"
