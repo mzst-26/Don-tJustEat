@@ -6,6 +6,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.Slider;
 
 
@@ -31,6 +32,18 @@ public class booking_summary extends AppCompatActivity {
         //set initial value
         //the slider starts at 0.0 by default, so we set the text to the first option
         tvDiningTime.setText(timeOptions[0]);
+
+        // Lable formater to show time instead of numbers
+        sliderDiningTime.setLabelFormatter(new LabelFormatter() {
+            @Override
+            public String getFormattedValue(float value) {
+                int index = (int) value;
+                if (index >= 0 && index < timeOptions.length) {
+                    return timeOptions[index];
+                }
+                return "";
+            }
+        });
 
         //add listener to update text when slider value changes
         sliderDiningTime.addOnChangeListener(new Slider.OnChangeListener() {
