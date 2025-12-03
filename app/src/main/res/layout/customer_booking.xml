@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
+    android:background="@color/white"
     >
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -30,7 +31,7 @@
             <!-- Search container !-->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
+                android:layout_height="80dp"
                 android:gravity="center"
                 android:orientation="horizontal"
                 style="@style/search_container"
@@ -66,7 +67,8 @@
                         android:layout_marginBottom="2dp"
                         android:gravity="left"
                         android:text="Plymouth University"
-                        android:textSize="19dp" />
+                        android:textSize="19dp"
+                        style="@style/text_title"/>
 
 
                     <!-- Container for the three subtitle texts !-->
@@ -117,7 +119,8 @@
                     android:clickable="true"
                     android:contentDescription="Edit Icon"
                     android:layout_marginRight="5dp"
-                    app:srcCompat="@drawable/edit" />
+                    app:srcCompat="@drawable/edit"
+                    />
 
             </LinearLayout>
 
