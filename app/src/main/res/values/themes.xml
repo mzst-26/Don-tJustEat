@@ -33,6 +33,19 @@
         <item name="cornerRadius">5dp</item>
     </style>
 
+    <!-- Primary buttons custom styles (small) -->
+    <style name="AppButton.Primary.Small" parent="Widget.Material3.Button">
+        <item name="android:layout_width">250dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">11sp</item>
+<!--        <item name="android:paddingTop">9dp</item>-->
+<!--        <item name="android:paddingBottom">9dp</item>-->
+        <item name="android:backgroundTint">#000000</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textStyle"> normal</item>
+        <item name="cornerRadius">20dp</item>
+    </style>
+
     <!-- A secondary button style -->
     <style name="AppButton.Secondary" parent="Widget.Material3.Button.OutlinedButton">
         <item name="android:layout_width">327dp</item>
