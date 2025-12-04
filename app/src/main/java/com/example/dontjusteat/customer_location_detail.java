@@ -80,7 +80,7 @@ public class customer_location_detail extends AppCompatActivity {
 
         Button bookTableButton = findViewById(R.id.book_table_button);
         bookTableButton.setOnClickListener(view -> {
-            Intent intent = new Intent(customer_location_detail.this, customer_location_detail.class);
+            Intent intent = new Intent(customer_location_detail.this, booking_summary.class);
             startActivity(intent);
 
         });
