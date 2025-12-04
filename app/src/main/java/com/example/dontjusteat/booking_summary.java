@@ -9,55 +9,68 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.Slider;
 
-
 public class booking_summary extends AppCompatActivity {
+    private final String[] timeOptions = {"18:00", "18:30", "19:00"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        //set layout
         super.onCreate(savedInstanceState);
         setContentView(R.layout.booking_summary);
 
-        //make back button responsive
+        // Orchestrator: Initialize separate functional modules
+        initializeNavigationService();
+        initializeDiningTimeService();
+    }
+
+    /**
+     * Section 1: naivatoin or routing Service
+     * Handles header interactions and navigation logic.
+     */
+    private void initializeNavigationService() {
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> finish());
+    }
 
-        // define the options for the slider
-        final String[] timeOptions = {"18:00", "18:30", "19:00"};
-
-        //bind views
+    /**
+     * Section 2: dining Time Service
+     * This handles the business logic for time selection, UI updates, and slider configuration.
+     */
+    private void initializeDiningTimeService() {
+        // Bind Views
         TextView tvDiningTime = findViewById(R.id.tv_dining_time);
         Slider sliderDiningTime = findViewById(R.id.slider_dining_time);
 
-        //set initial value
-        //the slider starts at 0.0 by default, so we set the text to the first option
+        // 1. Set Initial State
         tvDiningTime.setText(timeOptions[0]);
 
-        // Lable formater to show time instead of numbers
+        // 2. Configure Formatter (UI Presentation)
         sliderDiningTime.setLabelFormatter(new LabelFormatter() {
             @Override
             public String getFormattedValue(float value) {
                 int index = (int) value;
-                if (index >= 0 && index < timeOptions.length) {
+                if (isTimeOptionValidIndex(index)) {
                     return timeOptions[index];
                 }
                 return "";
             }
         });
 
-        //add listener to update text when slider value changes
+        // 3. Configure Listener (Interaction Logic)
         sliderDiningTime.addOnChangeListener(new Slider.OnChangeListener() {
             @Override
             public void onValueChange(Slider slider, float value, boolean fromUser) {
-                //cast the float value to the int index
                 int index = (int) value;
-
-                //Safety check
-                if (index >= 0 && index < timeOptions.length) {
+                if (isTimeOptionValidIndex(index)) {
                     tvDiningTime.setText(timeOptions[index]);
                 }
             }
         });
-
     }
+
+    // Helper method to ensure data integrity
+    private boolean isTimeOptionValidIndex(int index) {
+        return index >= 0 && index < timeOptions.length;
+    }
+
+
 }
