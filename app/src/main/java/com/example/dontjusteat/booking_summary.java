@@ -68,7 +68,7 @@ public class booking_summary extends AppCompatActivity {
 
         Button confirmBookingButton = findViewById(R.id.confirm_booking_button);
         confirmBookingButton.setOnClickListener(view -> {
-            Intent intent = new Intent(booking_summary.this, MainActivity.class);
+            Intent intent = new Intent(booking_summary.this, booking_confirmation.class);
             startActivity(intent);
         });
 
