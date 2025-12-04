@@ -1,6 +1,8 @@
 package com.example.dontjusteat;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -63,6 +65,13 @@ public class booking_summary extends AppCompatActivity {
         initializeNavigationService();
         initializeDiningTimeService(); // Must be init first to setup views
         initializeTableService();      // Depends on Dining Time Service
+
+        Button confirmBookingButton = findViewById(R.id.confirm_booking_button);
+        confirmBookingButton.setOnClickListener(view -> {
+            Intent intent = new Intent(booking_summary.this, MainActivity.class);
+            startActivity(intent);
+        });
+
     }
 
     //I will later replace this with the database data
