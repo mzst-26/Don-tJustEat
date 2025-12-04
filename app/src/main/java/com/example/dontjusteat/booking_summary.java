@@ -26,6 +26,22 @@ public class booking_summary extends AppCompatActivity {
         }
     }
 
+
+    //define user data types and structures
+    private static class UserInfo {
+        String name;
+        String phoneNumber;
+        String email;
+
+        // Constructor
+        UserInfo(String name, String phoneNumber, String email) {
+            this.name = name;
+            this.phoneNumber = phoneNumber;
+            this.email = email;
+        }
+    }
+
+
     // --- states & Data ---
     private TableOptions[] availableTables;
     private String[] currentTimeOptions; // mutable list of times based on selected table
@@ -60,6 +76,13 @@ public class booking_summary extends AppCompatActivity {
         };
         // Default to first table's times
         currentTimeOptions = availableTables[0].availableTimes;
+
+        UserInfo userInfo = new UserInfo(
+                "John Doe",
+                "1234567890", "jhondoe@example.com"
+        );
+
+        fillUserData(userInfo);
     }
 
     //I have put the code in sections to make it clean and easy to navigate when trying to edit.
@@ -178,5 +201,20 @@ public class booking_summary extends AppCompatActivity {
     // helper method to check if the index is valid to avoid out-of-bound
     private boolean isTimeOptionValidIndex(int index) {
         return index >= 0 && index < currentTimeOptions.length;
+    }
+
+    //fill in user data
+    private void fillUserData(UserInfo userInfo) {
+
+        //get layout elements
+        TextView tvName = findViewById(R.id.name);
+        TextView tvPhoneNumber = findViewById(R.id.phone_number);
+        TextView tvEmail = findViewById(R.id.email);
+
+        //set text
+        tvName.setText(userInfo.name);
+        tvPhoneNumber.setText(userInfo.phoneNumber);
+        tvEmail.setText(userInfo.email);
+
     }
 }
