@@ -17,7 +17,7 @@ public class Modules {
 
         Window window = activity.getWindow();
 
-        // Let content extend behind system bars so we can manually adjust it
+        // this allows manual control of insets
         WindowCompat.setDecorFitsSystemWindows(window, false);
 
         View root = activity.findViewById(rootViewId);
@@ -25,11 +25,14 @@ public class Modules {
         ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
             Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
 
-            // Restrict height by using a bottom margin instead of padding
             ViewGroup.LayoutParams lp = v.getLayoutParams();
             if (lp instanceof ViewGroup.MarginLayoutParams) {
                 ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) lp;
-                mlp.bottomMargin = bars.bottom;   // space used by nav bar
+
+                // prevent page from going behind system bars
+                mlp.topMargin = bars.top;      // status bar height
+                mlp.bottomMargin = bars.bottom; // nav bar height
+
                 v.setLayoutParams(mlp);
             }
 
@@ -38,4 +41,5 @@ public class Modules {
 
         ViewCompat.requestApplyInsets(root);
     }
+
 }

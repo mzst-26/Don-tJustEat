@@ -12,7 +12,7 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content">
 
         <!--Header container-->
         <LinearLayout
@@ -24,7 +24,7 @@
             android:orientation="vertical"
             android:paddingLeft="10dp"
             android:paddingRight="10dp"
-            android:background="@drawable/header_search_background"
+            android:background="@drawable/pink_back_no_radius"
             app:layout_constraintTop_toTopOf="parent"
             >
 
@@ -135,7 +135,7 @@
         <com.google.android.gms.maps.MapView
             android:id="@+id/mapView"
             android:layout_width="match_parent"
-            android:layout_height="400dp"
+            android:layout_height="300dp"
             android:background="@drawable/map"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
@@ -151,10 +151,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="@drawable/list_view_background"
+        android:background="@drawable/pink_back_top_radius"
         android:clipToOutline="true"
         android:overScrollMode="ifContentScrolls"
-        android:layout_marginTop="-30dp"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
         >
 
@@ -167,9 +166,8 @@
             >
 
             <View
-                android:id="@+id/handle"
                 android:layout_width="48dp"
-                android:layout_height="4dp"
+                android:layout_height="8dp"
                 android:layout_alignParentBottom="true"
                 android:layout_centerHorizontal="true"
                 android:background="@drawable/handle" />
@@ -628,5 +626,11 @@
     </LinearLayout>
 
 
+    <include
+        android:id="@+id/customer_menu"
+        layout="@layout/customer_menu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
