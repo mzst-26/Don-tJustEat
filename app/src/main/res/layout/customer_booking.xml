@@ -613,15 +613,6 @@
             </androidx.core.widget.NestedScrollView>
         </RelativeLayout>
 
-        <include
-            android:id="@+id/bottom_menu"
-            layout="@layout/customer_menu"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            />
 
     </LinearLayout>
 

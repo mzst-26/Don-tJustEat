@@ -23,7 +23,6 @@
                 android:layout_height="60dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:weightSum="3"
                 android:background="@color/white"
                 >
                 <!--home icon container -->
@@ -32,10 +31,11 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
+                    android:id="@+id/navigate_to_booking"
                     >
                     <!--Home icon -->
                     <View
-                    android:id="@+id/navigate_to_booking"
+                    android:id="@+id/navigate_to_booking_button"
                     android:layout_width="30dp"
                     android:layout_height="30dp"
                     android:background="@drawable/home_icon"
@@ -50,6 +50,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
+                    android:id="@+id/notification"
                     >
                         <!--notification icon -->
                         <View
@@ -69,15 +70,17 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
+                    android:id="@+id/navigate_to_customer_profile"
                     >
                         <!--profile icon -->
                         <View
-                            android:id="@+id/navigate_to_customer_profile"
+                            android:id="@+id/navigate_to_customer_profile_button"
                             android:layout_width="30dp"
                             android:layout_height="30dp"
                             android:background="@drawable/profile_fill_icon"
                             android:clickable="true"
-                            android:focusable="true" />
+                            android:focusable="true"
+                            />
 
                 </LinearLayout>
 

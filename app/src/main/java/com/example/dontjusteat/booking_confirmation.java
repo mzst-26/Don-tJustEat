@@ -12,6 +12,9 @@ public class booking_confirmation extends AppCompatActivity {
         setContentView(R.layout.booking_confirmation);
         Modules.applyWindowInsets(this, R.id.rootView);
 
+        // Handle menu navigation
+        Modules.handleMenuNavigation(this);
+
     }
 
 
