@@ -88,6 +88,9 @@ public class customer_location_detail extends AppCompatActivity {
         // Apply window insets
         Modules.applyWindowInsets(this, R.id.rootView);
 
+        // Handle menu navigation
+        Modules.handleMenuNavigation(this);
+
     }
 
     // Helper method: convert dp to pixels
