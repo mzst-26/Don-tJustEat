@@ -67,7 +67,7 @@ public class customer_location_detail extends AppCompatActivity {
                 // Minimum visible height: lip to lip with map bottom
                 int mapBottom = Upper_container.getBottom();
                 int peekHeight = parentHeight - mapBottom;
-                bottomSheetBehavior.setPeekHeight(peekHeight);
+                bottomSheetBehavior.setPeekHeight(peekHeight + + dpToPx(28));
 
                 // Maximum expansion: up to below the header (covers map but keeps header visible)
                 int headerHeight = header.getHeight();
@@ -84,6 +84,9 @@ public class customer_location_detail extends AppCompatActivity {
             startActivity(intent);
 
         });
+
+        // Apply window insets
+        Modules.applyWindowInsets(this, R.id.rootView);
 
     }
 
