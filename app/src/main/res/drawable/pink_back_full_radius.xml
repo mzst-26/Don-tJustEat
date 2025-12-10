@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- BASE BACKGROUND -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#FFF7F4F9" />
+            <corners android:radius="32dp" />
+        </shape>
+    </item>
+
+    <!-- GLOSS HIGHLIGHT -->
+    <item android:top="0dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#FFFFFFFF"
+                android:centerColor="#FFFFF3FA"
+                android:endColor="#00FFFFFF"
+                android:angle="180" />
+            <corners android:radius="32dp" />
+        </shape>
+    </item>
+
+    <!-- 3D PINK SHADOW -->
+    <item android:top="2dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#33F4C9D9"
+                android:centerColor="#20F4C9D9"
+                android:endColor="#00000000"
+                android:angle="180" />
+            <corners android:radius="32dp" />
+        </shape>
+    </item>
+
+</layer-list>
