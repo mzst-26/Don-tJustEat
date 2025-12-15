@@ -12,7 +12,7 @@ public class customer_login extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // This line loads your XML layout and displays it on the screen
+        // This line loads the XML layout and displays it on the screen
         setContentView(R.layout.customer_login);
 
         //Back button
