@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- outer glow / halo -->
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="80dp"
+                android:centerX="50%"
+                android:centerY="50%"
+                android:startColor="#55AABBFF"
+            android:endColor="@android:color/transparent"/>
+        </shape>
+    </item>
+
+    <item android:left="6dp" android:top="6dp" android:right="6dp" android:bottom="6dp">
+        <shape android:shape="oval">
+            <solid android:color="#44000000"/>  <!-- stronger shadow -->
+        </shape>
+    </item>
+
+    <!-- Thin outline so the disc edge is visible -->
+    <item android:left="1dp" android:top="1dp" android:right="1dp" android:bottom="1dp">
+        <shape android:shape="oval">
+            <stroke android:width="2dp" android:color="#33000000"/>
+        </shape>
+    </item>
+
+    <!-- Main disc with gradient -->
+    <item android:left="4dp" android:top="4dp" android:right="4dp" android:bottom="4dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:centerX="50%"
+                android:centerY="35%"
+                android:startColor="#FFFFFFFF"
+            android:endColor="#FFBBBBBB"/>
+        </shape>
+    </item>
+
+</layer-list>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="80dp"
+    android:height="80dp"
+    android:viewportWidth="80"
+    android:viewportHeight="80">
+
+    <!-- soft shadow under the disc -->
+    <path
+        android:fillColor="#33000000"
+        android:pathData="M16,64c0,4.4 10.7,8 24,8s24,-3.6 24,-8 -10.7,-8 -24,-8 -24,3.6 -24,8z" />
+
+    <!-- glow ring around the disc -->
+    <path
+        android:strokeWidth="4"
+        android:strokeColor="#40FFFFFF"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M40,8c-17.7,0 -32,14.3 -32,32s14.3,32 32,32 32,-14.3 32,-32 -14.3,-32 -32,-32z" />
+
+    <!--main circular disc with gradient -->
+    <path
+        android:pathData="M40,10c-16.6,0 -30,13.4 -30,30s13.4,30 30,30 30,-13.4 30,-30 -13.4,-30 -30,-30z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="40"
+                android:centerY="28"
+                android:gradientRadius="40">
+                <item android:offset="0" android:color="#FF62A5FF"/>
+                <item android:offset="1" android:color="#FF3F51B5"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!--highlight arc-->
+    <path
+        android:strokeWidth="3"
+        android:strokeColor="#80FFFFFF"
+        android:strokeLineCap="round"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M18,36a22,22 0 0,1 22,-18" />
+
+    <!-- Placeholder head -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M40,24a8,8 0 1,1 0,16a8,8 0 1,1 0,-16z" />
+
+    <!-- Placeholder shoulders -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M26,50c0,-6 5,-11 14,-11s14,5 14,11v4c0,1.7 -1.3,3 -3,3H29c-1.7,0 -3,-1.3 -3,-3z" />
+
+</vector>

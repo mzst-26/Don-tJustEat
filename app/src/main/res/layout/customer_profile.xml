@@ -68,12 +68,62 @@
         app:layout_constraintTop_toBottomOf="@+id/divider_header"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="@color/white">
         <!--All the content will be added under this container to be scrollable-->
         <LinearLayout
             android:id="@+id/content_container"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:paddingRight="20dp"
+            android:paddingLeft="20dp"
+            app:layout_constraintTop_toBottomOf="@+id/divider_header"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            >
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:paddingTop="24dp"
+                android:paddingBottom="16dp"
+                >
+
+
+                <FrameLayout
+                    android:id="@+id/profile_image_container"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:layout_gravity="center"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackgroundBorderless"
+                    >
+
+                    <!-- Circular Image with placeholder -->
+                    <ImageView
+                        android:id="@+id/profile_image_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:background="@drawable/profile_circle_mask"
+                        android:padding="4dp" />
+
+                    <!-- Small edit icon overlay -->
+                    <ImageView
+                        android:id="@+id/editIcon"
+                        android:layout_width="35dp"
+                        android:layout_height="35dp"
+                        android:layout_gravity="bottom|end"
+                        android:layout_margin="10dp"
+                        android:background="@drawable/edit"
+                        android:backgroundTint="@color/white"/>
+
+                </FrameLayout>
+
+            </LinearLayout>
 
 
 
