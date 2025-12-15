@@ -3,7 +3,9 @@ package com.example.dontjusteat;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
@@ -17,6 +19,9 @@ public class customer_profile extends AppCompatActivity {
 
     private ImageView profileImageView;
     private ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
+
+    private boolean isEditingName = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +63,56 @@ public class customer_profile extends AppCompatActivity {
         if (profileImageContainer != null) {
             editIcon.setOnClickListener(v -> openImagePicker());
         }
+
+        setupNameEditing();
+    }
+    private void setupNameEditing() {
+        TextView tvCustomerName = findViewById(R.id.tv_customer_name);
+        EditText etCustomerName = findViewById(R.id.et_customer_name);
+        ImageView editNameButton = findViewById(R.id.customer_name_edit_button);
+
+        // Load saved name
+        loadSavedName(tvCustomerName);
+
+        editNameButton.setOnClickListener(v -> {
+            if (isEditingName) {
+                // switch between save mode to the view mode
+                String newName = etCustomerName.getText().toString().trim();
+                if (!newName.isEmpty()) {
+                    tvCustomerName.setText(newName);
+                    saveName(newName);
+                }
+
+                tvCustomerName.setVisibility(View.VISIBLE);
+                etCustomerName.setVisibility(View.GONE);
+                editNameButton.setImageResource(R.drawable.edit_note); // Change icon back to edit
+                isEditingName = false;
+
+            } else {
+                // view mode to edit mode
+                etCustomerName.setText(tvCustomerName.getText());
+                tvCustomerName.setVisibility(View.GONE);
+                etCustomerName.setVisibility(View.VISIBLE);
+                etCustomerName.requestFocus();
+                // Optionally show keyboard here if needed
+
+                editNameButton.setImageResource(R.drawable.save_icon); // Change icon to save/check
+                isEditingName = true;
+            }
+        });
+    }
+
+    private void saveName(String name) {
+        SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("customer_name", name);
+        editor.apply();
+    }
+
+    private void loadSavedName(TextView tvCustomerName) {
+        SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        String savedName = sharedPreferences.getString("customer_name", "Jack Smith"); // Default name
+        tvCustomerName.setText(savedName);
     }
 
     //launch the android photo picker
