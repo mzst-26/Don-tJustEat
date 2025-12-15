@@ -201,7 +201,7 @@
 
                     <!--card item-->
                     <LinearLayout
-                        android:id="@+id/card_Item"
+
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
@@ -212,7 +212,7 @@
 
                         <!--card Image-->
                         <ImageView
-                            android:id="@+id/card_image"
+
                             android:layout_width="match_parent"
                             android:layout_height="150dp"
                             android:background="@drawable/white_background_round"
@@ -220,7 +220,7 @@
                             />
                         <!--card title-->
                         <TextView
-                            android:id="@+id/card_title"
+
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="5dp"
@@ -238,7 +238,7 @@
 
                             >
                             <TextView
-                                android:id="@+id/availability"
+
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="5dp"
@@ -269,7 +269,7 @@
 
                     <!--card item-->
                     <LinearLayout
-                        android:id="@+id/card_Item"
+
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
@@ -280,7 +280,7 @@
 
                         <!--card Image-->
                         <ImageView
-                            android:id="@+id/card_image"
+
                             android:layout_width="match_parent"
                             android:layout_height="150dp"
                             android:background="@drawable/white_background_round"
@@ -288,7 +288,7 @@
                             />
                         <!--card title-->
                         <TextView
-                            android:id="@+id/card_title"
+
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="5dp"
@@ -306,7 +306,7 @@
 
                             >
                             <TextView
-                                android:id="@+id/availability"
+
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="5dp"
@@ -319,7 +319,7 @@
                                 android:layout_weight="1" />
 
                             <Button
-                                android:id="@+id/select_button"
+
                                 android:layout_width="100dp"
                                 android:layout_height="40dp"
                                 style="@style/AppButton.Primary"
@@ -337,7 +337,7 @@
 
                     <!--card item-->
                     <LinearLayout
-                        android:id="@+id/card_Item"
+
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
@@ -348,7 +348,7 @@
 
                         <!--card Image-->
                         <ImageView
-                            android:id="@+id/card_image"
+
                             android:layout_width="match_parent"
                             android:layout_height="150dp"
                             android:background="@drawable/white_background_round"
@@ -356,7 +356,7 @@
                             />
                         <!--card title-->
                         <TextView
-                            android:id="@+id/card_title"
+
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="5dp"
@@ -374,7 +374,7 @@
 
                             >
                             <TextView
-                                android:id="@+id/availability"
+
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="5dp"
@@ -387,7 +387,7 @@
                                 android:layout_weight="1" />
 
                             <Button
-                                android:id="@+id/select_button"
+
                                 android:layout_width="100dp"
                                 android:layout_height="40dp"
                                 style="@style/AppButton.Primary"
@@ -405,7 +405,7 @@
 
                     <!--card item-->
                     <LinearLayout
-                        android:id="@+id/card_Item"
+
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
@@ -416,7 +416,7 @@
 
                         <!--card Image-->
                         <ImageView
-                            android:id="@+id/card_image"
+
                             android:layout_width="match_parent"
                             android:layout_height="150dp"
                             android:background="@drawable/white_background_round"
@@ -424,7 +424,7 @@
                             />
                         <!--card title-->
                         <TextView
-                            android:id="@+id/card_title"
+
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="5dp"
@@ -442,7 +442,7 @@
 
                             >
                             <TextView
-                                android:id="@+id/availability"
+
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="5dp"
@@ -455,7 +455,7 @@
                                 android:layout_weight="1" />
 
                             <Button
-                                android:id="@+id/select_button"
+
                                 android:layout_width="100dp"
                                 android:layout_height="40dp"
                                 style="@style/AppButton.Primary"
@@ -473,7 +473,7 @@
 
                     <!--card item-->
                     <LinearLayout
-                        android:id="@+id/card_Item"
+
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
@@ -484,7 +484,7 @@
 
                         <!--card Image-->
                         <ImageView
-                            android:id="@+id/card_image"
+
                             android:layout_width="match_parent"
                             android:layout_height="150dp"
                             android:background="@drawable/white_background_round"
@@ -492,7 +492,7 @@
                             />
                         <!--card title-->
                         <TextView
-                            android:id="@+id/card_title"
+
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="5dp"
@@ -510,7 +510,7 @@
 
                             >
                             <TextView
-                                android:id="@+id/availability"
+
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="5dp"
@@ -523,7 +523,7 @@
                                 android:layout_weight="1" />
 
                             <Button
-                                android:id="@+id/select_button"
+
                                 android:layout_width="100dp"
                                 android:layout_height="40dp"
                                 style="@style/AppButton.Primary"
@@ -541,7 +541,7 @@
 
                     <!--card item-->
                     <LinearLayout
-                        android:id="@+id/card_Item"
+
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
@@ -552,7 +552,7 @@
 
                         <!--card Image-->
                         <ImageView
-                            android:id="@+id/card_image"
+
                             android:layout_width="match_parent"
                             android:layout_height="150dp"
                             android:background="@drawable/white_background_round"
@@ -560,7 +560,7 @@
                             />
                         <!--card title-->
                         <TextView
-                            android:id="@+id/card_title"
+
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="5dp"
@@ -578,7 +578,7 @@
 
                             >
                             <TextView
-                                android:id="@+id/availability"
+
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="5dp"
@@ -591,7 +591,7 @@
                                 android:layout_weight="1" />
 
                             <Button
-                                android:id="@+id/select_button"
+
                                 android:layout_width="100dp"
                                 android:layout_height="40dp"
                                 style="@style/AppButton.Primary"

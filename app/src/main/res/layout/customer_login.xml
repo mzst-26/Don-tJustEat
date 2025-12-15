@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".customer_login">
+    tools:context=".customer_login"
+    android:background="@color/white">
 
     <!-- Back Button !-->
     <ImageView
@@ -79,7 +80,7 @@
             android:orientation="horizontal">
 
             <View
-                android:id="@+id/divider"
+
                 android:layout_width="140dp"
                 android:layout_height="1.5dp"
                 android:background="#E6E6E6"
@@ -99,7 +100,7 @@
 
 
             <View
-                android:id="@+id/divider"
+
                 android:layout_width="140dp"
                 android:layout_height="1.5dp"
                 android:background="#E6E6E6"
