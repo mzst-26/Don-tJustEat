@@ -62,7 +62,7 @@ public class customer_booking extends AppCompatActivity {
                 // Minimum visible height: lip to lip with map bottom
                 int mapBottom = mapView.getBottom();
                 int peekHeight = parentHeight - mapBottom;
-                bottomSheetBehavior.setPeekHeight(peekHeight);
+                bottomSheetBehavior.setPeekHeight(peekHeight + dpToPx(100));
 
                 // Maximum expansion: up to below the header (covers map but keeps header visible)
                 int headerHeight = header.getHeight();
@@ -80,6 +80,11 @@ public class customer_booking extends AppCompatActivity {
             startActivity(intent);
 
         });
+        // Apply window insets
+        Modules.applyWindowInsets(this, R.id.rootView);
+
+        // Handle menu navigation
+        Modules.handleMenuNavigation(this);
     }
 
     // Helper method: convert dp to pixels

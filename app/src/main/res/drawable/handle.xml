@@ -1,18 +1,25 @@
-<vector
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="48dp"
-    android:height="4dp"
+    android:height="14dp"
     android:viewportWidth="48"
-    android:viewportHeight="4"
-    >
-    <group>
+    android:viewportHeight="14">
+
+    <!-- Top Bar (6dp height) -->
+    <group android:translateY="0">
         <clip-path
-            android:pathData="M2 0H46C47.1046 0 48 0.895431 48 2C48 3.10457 47.1046 4 46 4H2C0.895431 4 0 3.10457 0 2C0 0.895431 0.895431 0 2 0Z"
-            />
+            android:pathData="M2 0H46C47.1 0 48 1.1 48 3C48 4.9 47.1 6 46 6H2C0.9 6 0 4.9 0 3C0 1.1 0.9 0 2 0Z" />
         <path
-            android:pathData="M0 0V4H48V0"
-            android:fillColor="#33000000"
-            />
+            android:pathData="M0 0V6H48V0"
+            android:fillColor="#33000000" />
     </group>
+
+    <!-- Bottom Bar (6dp tall, shifted down by 8dp → 6dp bar + 2dp gap) -->
+    <group android:translateY="8">
+        <clip-path
+            android:pathData="M2 0H46C47.1 0 48 1.1 48 3C48 4.9 47.1 6 46 6H2C0.9 6 0 4.9 0 3C0 1.1 0.9 0 2 0Z" />
+        <path
+            android:pathData="M0 0V6H48V0"
+            android:fillColor="#33000000" />
+    </group>
+
 </vector>
