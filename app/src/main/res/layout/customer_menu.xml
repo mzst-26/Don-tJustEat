@@ -1,0 +1,89 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_gravity="bottom">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        >
+            <!-- Divider under header -->
+            <View
+                android:id="@+id/divider_header"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/black" />
+
+            <!--menu container -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@color/white"
+                >
+                <!--home icon container -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:id="@+id/navigate_to_booking"
+                    >
+                    <!--Home icon -->
+                    <View
+                    android:id="@+id/navigate_to_booking_button"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:background="@drawable/home_icon"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                </LinearLayout>
+
+                <!--notification icon container -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:id="@+id/notification"
+                    >
+                        <!--notification icon -->
+                        <View
+                            android:id="@+id/navigate_to_notification_button"
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:background="@drawable/notification_fill_icon"
+                            android:clickable="true"
+                            android:focusable="true" />
+
+                </LinearLayout>
+
+
+                <!--profile icon container -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:id="@+id/navigate_to_customer_profile"
+                    >
+                        <!--profile icon -->
+                        <View
+                            android:id="@+id/navigate_to_customer_profile_button"
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:background="@drawable/profile_fill_icon"
+                            android:clickable="true"
+                            android:focusable="true"
+                            />
+
+                </LinearLayout>
+
+            </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

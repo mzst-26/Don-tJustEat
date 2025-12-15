@@ -72,6 +72,7 @@ public class booking_summary extends AppCompatActivity {
             startActivity(intent);
         });
 
+        Modules.applyWindowInsets(this, R.id.rootView);
     }
 
     //I will later replace this with the database data
