@@ -123,6 +123,60 @@
 
                 </FrameLayout>
 
+                <!-- Name Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:minHeight="40dp"
+                    >
+                    <!--the displayed name -->
+                    <TextView
+                        android:id="@+id/tv_customer_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Jack Smith"
+                        android:gravity="center"
+                        style="@style/text_normal"
+                        android:layout_marginRight="4dp"
+                        />
+
+                    <!--hidden editText for editing-->
+                    <EditText
+                        android:id="@+id/et_customer_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Jack Smith"
+                        android:gravity="center"
+                        android:visibility="gone"
+                        android:inputType="textPersonName"
+                        android:layout_marginRight="4dp"
+                        />
+                    <!--edit button for customer name -->
+                    <ImageView
+                        android:id="@+id/customer_name_edit_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:scaleType="centerCrop"
+                        android:layout_gravity="center"
+                        app:srcCompat="@drawable/edit_note"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        />
+
+                </LinearLayout>
+
+                <!--customer reference number -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="#12312"
+                    android:gravity="center"
+                    style="@style/text_normal"
+                    android:textColor="#80000000"
+                    />
             </LinearLayout>
 
 
