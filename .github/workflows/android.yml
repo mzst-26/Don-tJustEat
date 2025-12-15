@@ -25,5 +25,8 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
       
+    - name: Check for Duplicate IDs
+      run: python3 id_checker.py
+
     - name: Build with Gradle
       run: ./gradlew build
