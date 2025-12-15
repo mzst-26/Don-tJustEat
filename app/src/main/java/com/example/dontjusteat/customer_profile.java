@@ -17,6 +17,12 @@ public class customer_profile extends AppCompatActivity {
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> finish());
 
+        // Apply window insets
+        Modules.applyWindowInsets(this, R.id.rootView);
+
+        // Handle menu navigation
+        Modules.handleMenuNavigation(this);
+
 
     }
 }
