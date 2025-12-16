@@ -2,13 +2,11 @@ package com.example.dontjusteat;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.res.ColorStateList;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.ImageView;
 
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -52,69 +50,69 @@ public class Modules {
         String activityName = activity.getClass().getSimpleName();
     //        Log.d("ACTIVITY_CHECK", "Current Activity: " + activityName); I use this for debugging
 
-        //get all containers for the menu icon buttons
-        View menuHome = activity.findViewById(R.id.navigate_to_booking);
-        View notifications = activity.findViewById(R.id.notification);
-        View profile = activity.findViewById(R.id.navigate_to_customer_profile);
+        View home_icon_container = activity.findViewById(R.id.navigate_to_booking);
+        View notifications_icon_container = activity.findViewById(R.id.notification);
+        View profile_icon_container = activity.findViewById(R.id.navigate_to_customer_profile);
 
         //get the buttons themselves
-        View menuHomeButton = activity.findViewById(R.id.navigate_to_booking_button);
-        View notificationsButton = activity.findViewById(R.id.navigate_to_notification_button);
-        View profileButton = activity.findViewById(R.id.navigate_to_customer_profile_button);
+        ImageView menuHomeButton = activity.findViewById(R.id.navigate_to_booking_button);
+        ImageView notificationsButton = activity.findViewById(R.id.navigate_to_notification_button);
+        ImageView profileButton = activity.findViewById(R.id.navigate_to_customer_profile_button);
 
         //Safety check so it doesn't crash if a layout doesn't have the menu
-        if (menuHome == null || notifications == null || profile == null) {
+        if (menuHomeButton == null || notificationsButton == null || profileButton == null) {
             Log.e("ACTIVITY_CHECK_ERROR", "This activity was not found : " + activityName);
             return;
         }
 
         // show all by default
-        menuHome.setVisibility(View.VISIBLE);
-        notifications.setVisibility(View.VISIBLE);
-        profile.setVisibility(View.VISIBLE);
+        menuHomeButton.setImageResource(R.drawable.home_inactive);
+        notificationsButton.setImageResource(R.drawable.notification_inactive);
+        profileButton.setImageResource(R.drawable.profile_inactive);
+
 
         // hide the icon for the current screen by hiding the container of the button
         switch (activityName) {
             case "customer_booking":
-                menuHome.setVisibility(View.GONE);
+                menuHomeButton.setImageResource(R.drawable.home_active);
                 break;
 
             case "customer_location_detail":
-                notifications.setVisibility(View.GONE);
+                notificationsButton.setImageResource(R.drawable.notification_active);
                 break;
 
             case "customer_profile":
-                profile.setVisibility(View.GONE);
+                profileButton.setImageResource(R.drawable.profile_active);
                 break;
 
         }
 
         // Set the navigation of the buttons
+        setMenuItemClick(home_icon_container, menuHomeButton, activityName, activity, customer_booking.class);
+        setMenuItemClick(notifications_icon_container, notificationsButton, activityName, activity, customer_location_detail.class);
+        setMenuItemClick(profile_icon_container, profileButton, activityName, activity, customer_profile.class);
 
-        menuHomeButton.setOnClickListener(v -> {
-            if (!activityName.equals("customer_booking")) {
-                //create an Intent to start the new activity, this is used to navigate
-                Intent intent = new Intent(activity, customer_booking.class);
-                activity.startActivity(intent);
-            }
-        });
-
-        notificationsButton.setOnClickListener(v -> {
-            if (!activityName.equals("customer_location_detail")) {
-                //create an Intent to start the new activity, this is used to navigate
-                Intent intent = new Intent(activity, customer_location_detail.class);
-                activity.startActivity(intent);
-            }
-        });
-
-        profileButton.setOnClickListener(v -> {
-            if (!activityName.equals("customer_profile")) {
-                //create an Intent to start the new activity, this is used to navigate
-                Intent intent = new Intent(activity, customer_profile.class);
-                activity.startActivity(intent);
-            }
-        });
     }
+    private static void setMenuItemClick(
+            View container,
+            ImageView button,
+            String activityName,
+            Activity activity,
+            Class<?> targetActivity
+    ) {
+        View.OnClickListener listener = v -> {
+            if (!activityName.equals(targetActivity.getSimpleName())) {
+                Intent intent = new Intent(activity, targetActivity);
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                activity.startActivity(intent);
+                activity.overridePendingTransition(0, 0);
+            }
+        };
+
+        container.setOnClickListener(listener);
+        button.setOnClickListener(listener);
+    }
+
 
 
 
