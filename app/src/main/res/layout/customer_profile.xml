@@ -68,7 +68,7 @@
         app:layout_constraintTop_toBottomOf="@+id/divider_header"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/customer_menu"
         android:background="@color/white">
         <!--All the content will be added under this container to be scrollable-->
         <LinearLayout
@@ -154,6 +154,7 @@
                         android:visibility="gone"
                         android:inputType="textPersonName"
                         android:layout_marginRight="4dp"
+                        style="@style/text_normal"
                         />
                     <!--edit button for customer name -->
                     <ImageView
