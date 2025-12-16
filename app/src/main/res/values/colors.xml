@@ -2,4 +2,9 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="active_grey">#FF808080</color>
+    <color name="inactive_grey">#FFFFFFFF</color>
+    <!-- dark colour -->
+    <color name="pink_dark">#FF800080</color>
+    "
 </resources>
