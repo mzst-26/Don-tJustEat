@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.play.services.maps)
     implementation(libs.androidx.core)
     implementation(libs.androidx.recyclerview)
+    implementation("com.github.bumptech.glide:glide:4.16.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
