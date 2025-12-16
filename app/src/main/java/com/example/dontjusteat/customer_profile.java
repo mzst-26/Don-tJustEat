@@ -23,6 +23,8 @@ public class customer_profile extends AppCompatActivity {
     private ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
 
     private boolean isEditingName = false;
+    private boolean isEditingPhone = false;
+
 
 
     @Override
@@ -67,6 +69,7 @@ public class customer_profile extends AppCompatActivity {
         }
 
         setupNameEditing();
+        setupPhoneEditing();
         handleLogout();
 
     }
@@ -106,6 +109,42 @@ public class customer_profile extends AppCompatActivity {
         });
     }
 
+    private void setupPhoneEditing() {
+        TextView tvPhoneNumber = findViewById(R.id.tv_customer_phone);
+        EditText etPhoneNumber = findViewById(R.id.et_customer_phone);
+        ImageView editPhoneButton = findViewById(R.id.customer_phone_edit_button);
+
+        // Load the saved phone number
+        loadSavedPhoneNumber(tvPhoneNumber);
+
+        editPhoneButton.setOnClickListener(v -> {
+            if (isEditingPhone) {
+                // switch between save mode to the view mode
+                String newPhoneNumber = etPhoneNumber.getText().toString().trim();
+                if (!newPhoneNumber.isEmpty()) {
+                    tvPhoneNumber.setText(newPhoneNumber);
+                    savePhoneNumber(newPhoneNumber);
+                }
+
+                tvPhoneNumber.setVisibility(View.VISIBLE);
+                etPhoneNumber.setVisibility(View.GONE);
+                editPhoneButton.setImageResource(R.drawable.edit_note); // Change icon back to edit
+                isEditingPhone = false;
+
+            } else {
+                // view mode to edit mode
+                etPhoneNumber.setText(tvPhoneNumber.getText());
+                tvPhoneNumber.setVisibility(View.GONE);
+                etPhoneNumber.setVisibility(View.VISIBLE);
+                etPhoneNumber.requestFocus();
+                // Optionally show keyboard here if needed
+
+                editPhoneButton.setImageResource(R.drawable.save_icon); // Change icon to save/check
+                isEditingPhone = true;
+            }
+        });
+    }
+
     private void handleLogout() {
         // Handle logout button click
         View logoutButton = findViewById(R.id.logout_button);
@@ -120,10 +159,27 @@ public class customer_profile extends AppCompatActivity {
         editor.apply();
     }
 
+    private void savePhoneNumber(String phoneNumber){
+        //this will later be replaced with a network call to the server
+        SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("customer_phone", phoneNumber);
+        editor.apply();
+
+    }
+
     private void loadSavedName(TextView tvCustomerName) {
+        //this will later be replaced with a network call to the server
         SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         String savedName = sharedPreferences.getString("customer_name", "Jack Smith"); // Default name
         tvCustomerName.setText(savedName);
+    }
+
+
+    private void loadSavedPhoneNumber(TextView tvPhoneNumber){
+        SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        String savedPhoneNumber = sharedPreferences.getString("customer_phone", "1234567890"); // Default phone number
+        tvPhoneNumber.setText(savedPhoneNumber);
     }
 
     //launch the android photo picker

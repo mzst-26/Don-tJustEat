@@ -208,6 +208,7 @@
                    />
                <!--phone number country code-->
                <TextView
+                   android:id="@+id/tv_customer_phone"
                    android:layout_width="wrap_content"
                    android:layout_height="wrap_content"
                    android:text="7864312808"
@@ -225,6 +226,7 @@
                    android:visibility="gone"
                    android:inputType="phone"
                    android:layout_marginRight="4dp"
+                   style="@style/text_normal"
                    />
 
                <!--edit button for customer name -->
@@ -238,7 +240,8 @@
                    android:focusable="true"
                    android:scaleType="centerCrop"
                    app:srcCompat="@drawable/edit_note"
-                   android:layout_marginLeft="10dp"/>
+                   android:layout_marginLeft="10dp"
+                   android:padding="2dp"/>
 
            </LinearLayout>
 
