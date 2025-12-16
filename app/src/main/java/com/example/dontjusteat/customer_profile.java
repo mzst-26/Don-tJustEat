@@ -1,5 +1,7 @@
 package com.example.dontjusteat;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
@@ -65,6 +67,8 @@ public class customer_profile extends AppCompatActivity {
         }
 
         setupNameEditing();
+        handleLogout();
+
     }
     private void setupNameEditing() {
         TextView tvCustomerName = findViewById(R.id.tv_customer_name);
@@ -100,6 +104,13 @@ public class customer_profile extends AppCompatActivity {
                 isEditingName = true;
             }
         });
+    }
+
+    private void handleLogout() {
+        // Handle logout button click
+        View logoutButton = findViewById(R.id.logout_button);
+        // Set click listener on the logout button and handle the logout action
+        logoutButton.setOnClickListener(v -> logoutAction(this));
     }
 
     private void saveName(String name) {
@@ -155,5 +166,13 @@ public class customer_profile extends AppCompatActivity {
             // Load the saved image into the view
             setUserImage(savedUri);
         }
+    }
+
+    private void logoutAction(Activity activity){
+        // for now we just navigate to the mainActivity then later will add the logout logic
+        Intent intent = new Intent(activity, MainActivity.class);
+        startActivities(new Intent[]{intent});
+
+
     }
 }

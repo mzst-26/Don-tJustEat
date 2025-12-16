@@ -80,6 +80,8 @@
             app:layout_constraintTop_toBottomOf="@+id/divider_header"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
             >
 
             <LinearLayout
@@ -179,7 +181,179 @@
                     />
             </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:paddingTop="24dp"
+            android:paddingBottom="16dp"
+            android:background="@drawable/pink_back_full_radius"
+            >
+            <!--phone number container-->
+           <LinearLayout
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:orientation="horizontal"
+               android:gravity="center"
 
+               >
+               <!--phone number country code-->
+               <TextView
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:text="+44"
+                   android:gravity="center"
+                   style="@style/text_normal"
+                   />
+               <!--phone number country code-->
+               <TextView
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:text="7864312808"
+                   android:gravity="center"
+                   style="@style/text_normal"
+                   />
+
+
+               <!--hidden editText for editing the phone number-->
+               <EditText
+                   android:id="@+id/et_customer_phone"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:gravity="center"
+                   android:visibility="gone"
+                   android:inputType="phone"
+                   android:layout_marginRight="4dp"
+                   />
+
+               <!--edit button for customer name -->
+               <ImageView
+                   android:id="@+id/customer_phone_edit_button"
+                   android:layout_width="wrap_content"
+                   android:layout_height="19dp"
+                   android:layout_gravity="center"
+                   android:background="?attr/selectableItemBackgroundBorderless"
+                   android:clickable="true"
+                   android:focusable="true"
+                   android:scaleType="centerCrop"
+                   app:srcCompat="@drawable/edit_note"
+                   android:layout_marginLeft="10dp"/>
+
+           </LinearLayout>
+
+            <!--notification preference -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:paddingTop="40dp"
+                android:paddingBottom="16dp"
+                >
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Notification Preferences"
+                    android:gravity="center"
+                    style="@style/text_title"
+                    android:layout_marginBottom="20dp"
+                    />
+
+
+                <!--Preference item container -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+                    <!--text and toggle -->
+                    <Switch
+                        android:id="@+id/switch_offers_discount"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Offers and discounts"
+                        android:padding="20dp"
+                        android:textColor="@color/black"
+                        />
+
+                    <!--devider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1.5dp"
+                        android:background="#E6E6E6"
+                        />
+
+                </LinearLayout>
+
+                <!--Preference item container -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+                    <!--text and toggle -->
+                    <Switch
+                        android:id="@+id/secondary_updates_toggle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Secondary Updates"
+                        android:padding="20dp"
+                        android:textColor="@color/black"
+                        android:backgroundTint="@color/black"
+                        />
+
+                    <!--devider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1.5dp"
+                        android:background="#E6E6E6"
+                        />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!--logout container-->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="left"
+                android:paddingTop="24dp"
+                android:paddingLeft="20dp"
+                android:layout_marginTop="80dp"
+                >
+                <LinearLayout
+                    android:id="@+id/logout_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true"
+                    >
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:background="@drawable/logout_icon"
+
+                       />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/black"
+                        android:text="Log Out"
+                        android:paddingLeft="10dp"
+                        style="@style/text_normal"
+                        />
+                </LinearLayout>
+
+
+            </LinearLayout>
+
+
+        </LinearLayout>
 
 
 
