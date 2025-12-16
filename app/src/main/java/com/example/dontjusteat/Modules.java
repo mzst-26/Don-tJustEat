@@ -73,7 +73,7 @@ public class Modules {
         notifications.setVisibility(View.VISIBLE);
         profile.setVisibility(View.VISIBLE);
 
-        // hide the icon for the current screen
+        // hide the icon for the current screen by hiding the container of the button
         switch (activityName) {
             case "customer_booking":
                 menuHome.setVisibility(View.GONE);
@@ -81,6 +81,10 @@ public class Modules {
 
             case "customer_location_detail":
                 notifications.setVisibility(View.GONE);
+                break;
+
+            case "customer_profile":
+                profile.setVisibility(View.GONE);
                 break;
 
         }
@@ -106,7 +110,7 @@ public class Modules {
         profileButton.setOnClickListener(v -> {
             if (!activityName.equals("customer_profile")) {
                 //create an Intent to start the new activity, this is used to navigate
-                Intent intent = new Intent(activity, customer_location_detail.class);
+                Intent intent = new Intent(activity, customer_profile.class);
                 activity.startActivity(intent);
             }
         });
