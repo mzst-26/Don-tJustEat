@@ -30,7 +30,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/active_grey"
-                android:text="#112345678"
                 style="@style/text_normal"
                 />
 
@@ -48,7 +47,6 @@
                 android:id="@+id/popUp_booking_location"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Upcoming booking location"
                 style="@style/text_normal"
                 android:gravity="start"
                 android:layout_marginBottom="20dp"
@@ -100,7 +98,6 @@
                     android:id="@+id/popUp_booking_guest_number"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Guests: 5"
                     android:layout_weight="1"
                     style="@style/text_normal"
                     android:textStyle="bold"
@@ -112,7 +109,6 @@
                     android:id="@+id/popUp_booking_status"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Status: Pending"
                     android:layout_weight="1"
                     style="@style/text_normal"
                     android:textStyle="bold"
@@ -127,7 +123,6 @@
                 android:id="@+id/popUp_booking_location_address"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="14 Testinghom Ave, Plymouth PL1 1PL"
                 android:textColor="@color/active_grey"
                 android:layout_marginTop="20dp"
                 />
