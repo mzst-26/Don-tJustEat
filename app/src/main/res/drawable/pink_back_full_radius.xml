@@ -1,35 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- BASE BACKGROUND -->
+    <!-- Black border around the card -->
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="#FFF7F4F9" />
-            <corners android:radius="32dp" />
+            <solid android:color="@android:color/transparent" />
+            <corners android:radius="30dp" />
+            <stroke
+                android:width="4dp"
+                android:color="@color/card_border_shadow" />
         </shape>
     </item>
 
-    <!-- GLOSS HIGHLIGHT -->
-    <item android:top="0dp">
+    <!-- base background -->
+    <item
+        android:left="1dp"
+        android:top="1dp"
+        android:right="1dp"
+        android:bottom="1dp">
         <shape android:shape="rectangle">
-            <gradient
-                android:startColor="#FFFFFFFF"
-                android:centerColor="#FFFFF3FA"
-                android:endColor="#00FFFFFF"
-                android:angle="180" />
-            <corners android:radius="32dp" />
+            <solid android:color="@color/card_background" />
+            <corners android:radius="31dp" />
         </shape>
     </item>
 
-    <!-- 3D PINK SHADOW -->
-    <item android:top="2dp">
+    <!-- the gloss highlight over the background -->
+    <item
+        android:left="1dp"
+        android:top="1dp"
+        android:right="1dp"
+        android:bottom="1dp">
         <shape android:shape="rectangle">
             <gradient
-                android:startColor="#33F4C9D9"
-                android:centerColor="#20F4C9D9"
-                android:endColor="#00000000"
+                android:startColor="@color/card_gloss_start"
+                android:centerColor="@color/card_gloss_center"
+                android:endColor="@color/card_gloss_end"
                 android:angle="180" />
-            <corners android:radius="32dp" />
+            <corners android:radius="31dp" />
+        </shape>
+    </item>
+
+    <!-- pink effect overlay -->
+    <item
+        android:left="1dp"
+        android:top="3dp"
+        android:right="1dp"
+        android:bottom="1dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="@color/card_pink_shadow_start"
+                android:centerColor="@color/card_pink_shadow_center"
+                android:endColor="@color/card_pink_shadow_end"
+                android:angle="180" />
+            <corners android:radius="31dp" />
         </shape>
     </item>
 
