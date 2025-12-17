@@ -53,14 +53,16 @@ public class Modules {
         View home_icon_container = activity.findViewById(R.id.navigate_to_booking);
         View notifications_icon_container = activity.findViewById(R.id.notification);
         View profile_icon_container = activity.findViewById(R.id.navigate_to_customer_profile);
+        View my_booking_container = activity.findViewById(R.id.my_bookings_container);
 
         //get the buttons themselves
         ImageView menuHomeButton = activity.findViewById(R.id.navigate_to_booking_button);
         ImageView notificationsButton = activity.findViewById(R.id.navigate_to_notification_button);
         ImageView profileButton = activity.findViewById(R.id.navigate_to_customer_profile_button);
+        ImageView myBookingButton = activity.findViewById(R.id.navigate_to_my_booking_button);
 
         //Safety check so it doesn't crash if a layout doesn't have the menu
-        if (menuHomeButton == null || notificationsButton == null || profileButton == null) {
+        if (menuHomeButton == null || notificationsButton == null || profileButton == null || myBookingButton == null) {
             Log.e("ACTIVITY_CHECK_ERROR", "This activity was not found : " + activityName);
             return;
         }
@@ -69,6 +71,7 @@ public class Modules {
         menuHomeButton.setImageResource(R.drawable.home_inactive);
         notificationsButton.setImageResource(R.drawable.notification_inactive);
         profileButton.setImageResource(R.drawable.profile_inactive);
+        myBookingButton.setImageResource(R.drawable.my_booking_inactive);
 
 
         // hide the icon for the current screen by hiding the container of the button
@@ -84,13 +87,16 @@ public class Modules {
             case "customer_profile":
                 profileButton.setImageResource(R.drawable.profile_active);
                 break;
-
+            case "my_bookings":
+                myBookingButton.setImageResource(R.drawable.my_booking_active);
+                break;
         }
 
         // Set the navigation of the buttons
         setMenuItemClick(home_icon_container, menuHomeButton, activityName, activity, customer_booking.class);
         setMenuItemClick(notifications_icon_container, notificationsButton, activityName, activity, customer_location_detail.class);
         setMenuItemClick(profile_icon_container, profileButton, activityName, activity, customer_profile.class);
+        setMenuItemClick(my_booking_container, myBookingButton, activityName, activity, my_bookings.class);
 
     }
     private static void setMenuItemClick(

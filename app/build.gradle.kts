@@ -1,13 +1,13 @@
+import org.gradle.testing.jacoco.tasks.JacocoReport
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    jacoco
 }
 
 android {
     namespace = "com.example.dontjusteat"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.dontjusteat"
@@ -35,6 +35,15 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
+    lint {
+        abortOnError = true
+        checkReleaseBuilds = true
+    }
+
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
 }
 
 dependencies {
@@ -50,7 +59,35 @@ dependencies {
     implementation(libs.androidx.core)
     implementation(libs.androidx.recyclerview)
     implementation("com.github.bumptech.glide:glide:4.16.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+}
+
+jacoco.toolVersion = "0.8.10"
+
+
+tasks.register<JacocoReport>("jacocoTestReport") {
+
+    dependsOn("testDebugUnitTest")
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+
+    classDirectories.setFrom(
+        fileTree("${buildDir}/intermediates/javac/debug") {
+            exclude("**/R.class")
+        }
+    )
+
+    sourceDirectories.setFrom(files("src/main/java"))
+
+    executionData.setFrom(
+        fileTree(buildDir) {
+            include("**/*.exec", "**/*.ec")
+        }
+    )
 }
