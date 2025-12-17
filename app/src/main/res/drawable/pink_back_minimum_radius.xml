@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- the border -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+            <corners android:radius="10dp" />
+            <stroke
+                android:width="2dp"
+                android:color="@color/card_border_shadow" />
+        </shape>
+    </item>
+
+    <!-- Base background -->
+    <item
+        android:left="1dp"
+        android:top="1dp"
+        android:right="1dp"
+        android:bottom="1dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/card_background" />
+            <corners android:radius="10dp" />
+        </shape>
+    </item>
+
+    <!--The glossy highlight -->
+    <item
+        android:left="1dp"
+        android:top="1dp"
+        android:right="1dp"
+        android:bottom="1dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="@color/card_gloss_start"
+                android:centerColor="@color/card_gloss_center"
+                android:endColor="@color/card_gloss_end"
+                android:angle="180" />
+            <corners android:radius="10dp" />
+        </shape>
+    </item>
+
+    <!-- pink overlay -->
+    <item
+        android:left="1dp"
+        android:top="3dp"
+        android:right="1dp"
+        android:bottom="1dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="@color/card_pink_shadow_start"
+                android:centerColor="@color/card_pink_shadow_center"
+                android:endColor="@color/card_pink_shadow_end"
+                android:angle="180" />
+            <corners android:radius="10dp" />
+        </shape>
+    </item>
+
+</layer-list>
