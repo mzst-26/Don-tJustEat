@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:id="@+id/latest_booking_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:padding="20dp"
+    android:layout_marginTop="10dp"
+    android:background="@drawable/pink_back_full_radius"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--logout container-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="10dp"
+        >
+        <TextView
+            android:id="@+id/latest_booking_reference_number"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/active_grey"
+            android:text="#112345678"
+            style="@style/text_normal"
+            />
+
+    </LinearLayout>
+
+    <!--Image Slide container-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        >
+        <!--Image  -->
+        <ImageView
+            android:id="@+id/latest_booking_location_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:scaleType="centerCrop"
+            android:background="@drawable/restaurant_image"
+            />
+
+    </LinearLayout>
+
+    <!--Active Booking / last booking -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_marginTop="10dp"
+        >
+        <TextView
+            android:id="@+id/latest_booking_location_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Upcoming booking location"
+            style="@style/text_normal"
+            android:gravity="start"
+            android:layout_marginBottom="20dp"
+            />
+
+        <!--Time, Date and guest number container -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_weight="3"
+            >
+            <TextView
+                android:id="@+id/latest_booking_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="18:30"
+                android:layout_weight="1"
+                style="@style/text_normal"
+                android:textStyle="bold"
+                android:layout_marginRight="5dp"
+                android:gravity="start"
+
+
+                />
+            <TextView
+                android:id="@+id/latest_booking_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="14/08"
+                android:layout_weight="1"
+                style="@style/text_normal"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_marginRight="5dp"
+
+                />
+            <TextView
+                android:id="@+id/latest_booking_guest_number"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="5 Guest(s)"
+                android:layout_weight="1"
+                style="@style/text_normal"
+                android:textStyle="bold"
+                android:gravity="end"
+
+                />
+
+
+        </LinearLayout>
+
+
+        <TextView
+            android:id="@+id/latest_location_address"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="14 Testinghom Ave, Plymouth PL1 1PL"
+            android:textColor="@color/active_grey"
+            android:layout_marginTop="20dp"
+            />
+
+    </LinearLayout>
+
+
+</LinearLayout>
