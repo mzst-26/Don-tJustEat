@@ -28,6 +28,7 @@
         <activity android:name=".booking_summary" />
         <activity android:name=".booking_confirmation" />
         <activity android:name=".customer_profile" />
+        <activity android:name=".my_bookings" />
     </application>
 
 </manifest>

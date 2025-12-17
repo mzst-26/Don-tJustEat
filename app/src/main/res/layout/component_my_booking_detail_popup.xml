@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:orientation="vertical"
+    android:gravity="center">
+    <LinearLayout android:id="@+id/popUp_booking_detail_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="20dp"
+        android:layout_margin="20dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/pink_back_full_radius"
+        >
+
+        <!--logout container-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="10dp"
+            >
+            <TextView
+                android:id="@+id/popUp_booking_reference_number"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/active_grey"
+                style="@style/text_normal"
+                />
+
+        </LinearLayout>
+
+        <!--clicked on container -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginTop="10dp"
+            >
+            <TextView
+                android:id="@+id/popUp_booking_location"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/text_normal"
+                android:gravity="start"
+                android:layout_marginBottom="20dp"
+                />
+
+            <!--Time, Date container -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_weight="2"
+                >
+                <TextView
+                    android:id="@+id/popUp_booking_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    style="@style/text_normal"
+                    android:textStyle="bold"
+                    android:layout_marginRight="5dp"
+                    android:gravity="start"
+
+
+                    />
+                <TextView
+                    android:id="@+id/popUp_booking_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    style="@style/text_normal"
+                    android:textStyle="bold"
+                    android:gravity="start"
+                    android:layout_marginRight="5dp"
+
+                    />
+
+            </LinearLayout>
+            <!--Guest number and Status container -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_weight="2"
+                android:layout_marginTop="10dp"
+                >
+                <TextView
+                    android:id="@+id/popUp_booking_guest_number"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    style="@style/text_normal"
+                    android:textStyle="bold"
+                    android:gravity="start"
+                    android:layout_marginRight="5dp"
+
+                    />
+                <TextView
+                    android:id="@+id/popUp_booking_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    style="@style/text_normal"
+                    android:textStyle="bold"
+                    android:gravity="start"
+                    android:layout_marginRight="5dp"
+
+                    />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/popUp_booking_location_address"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/active_grey"
+                android:layout_marginTop="20dp"
+                />
+
+        </LinearLayout>
+
+        <!--button container-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginTop="10dp"
+            >
+            <!--horizantal button container-->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginTop="10dp"
+                android:layout_weight="2"
+                >
+                <Button
+                    android:id="@+id/StatusUpdateButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Status Updates"
+                    android:layout_weight="1.9"
+                    android:layout_marginRight="4dp"
+                    style="@style/AppButton.Primary.Small.black"/>
+
+                <Button
+                    android:id="@+id/LeaveAReviewButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Leave a Review"
+                    android:layout_weight="2"
+                    android:layout_marginLeft="5dp"
+                    style="@style/AppButton.Primary.Small.Positive"/>
+            </LinearLayout>
+            <Button
+                android:id="@+id/RequestEditButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Request an Edit"
+                android:layout_weight="2"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:layout_margin="5dp"
+                style="@style/AppButton.Primary.Small.black"/>
+
+
+            <Button
+                android:id="@+id/RequestCancelButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Request Cancellation"
+                android:layout_weight="2"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:layout_margin="5dp"
+                style="@style/AppButton.Primary.Small.Negative"/>
+
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+</LinearLayout>

@@ -2,7 +2,9 @@ name: Android CI
 
 on:
   push:
-    branches: [ "main" ]
+    #On every push and on any branch
+    branches:
+      - '**'
   pull_request:
     branches: [ "main" ]
 
@@ -24,9 +26,26 @@ jobs:
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-      
+
     - name: Check for Duplicate IDs
       run: python3 id_checker.py
+
+    - name: Run Android Lint
+      run: ./gradlew lint
+
+    - name: Run Unit Tests
+      run: ./gradlew testDebugUnitTest
+
+    - name: Generate Jacoco Coverage Report
+      run: ./gradlew jacocoTestReport
+
+    - name: Upload Coverage Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: |
+          app/build/reports/jacoco/jacocoTestReport/html/
+          app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
 
     - name: Build with Gradle
       run: ./gradlew build

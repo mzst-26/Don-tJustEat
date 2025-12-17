@@ -1,0 +1,95 @@
+<!--card item -->
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center"
+    android:layout_marginTop="10dp"
+    android:layout_weight="3"
+    android:background="@drawable/pink_back_minimum_radius"
+    android:clipChildren="true"
+    android:clipToOutline="true"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--content with padding-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="10dp"
+        android:layout_weight="1"
+    >
+
+        <!--locaiton Image container-->
+        <LinearLayout
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_weight="0"
+            android:background="@drawable/profile_circle_mask"
+            android:clipToOutline="true"
+            android:clipToPadding="true">
+
+            <!--Location Image-->
+            <ImageView
+                android:id="@+id/img_small"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:padding="4dp"
+                android:layout_weight="1"/>
+
+        </LinearLayout>
+
+        <!--Card details (location & date)-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_weight="1"
+            android:paddingLeft="10dp"
+        >
+
+            <!--Location TextView-->
+            <TextView
+                android:id="@+id/text_location"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Location Name"
+                android:gravity="start"
+                style="@style/text_normal"
+                android:layout_marginBottom="5dp"
+                android:layout_weight="1"/>
+
+            <!--Date TextView-->
+            <TextView
+                android:id="@+id/text_date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="14/08"
+                android:gravity="start"
+                android:textColor="@color/active_grey"
+                android:layout_weight="2"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!--Location Most popular Dish Image-->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="right"
+        android:layout_weight="2"
+        android:layout_marginRight="-10dp"
+    >
+        <ImageView
+            android:id="@+id/img_big"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+        />
+
+    </LinearLayout>
+
+</LinearLayout>
