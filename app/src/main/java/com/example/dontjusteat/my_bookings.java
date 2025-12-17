@@ -21,6 +21,9 @@ public class my_bookings extends AppCompatActivity {
     private LinearLayout bookingsContainer;
     private LinearLayout latestBookingContainer;
 
+    TextView pastBookingTitle;
+
+
 
     // Simple data holder for the cards
     private static class BookingCard {
@@ -32,7 +35,6 @@ public class my_bookings extends AppCompatActivity {
         String reference_number;
 
         String location_address;
-
         int bigImageResId;
         int smallImageResId;
 
@@ -62,6 +64,8 @@ public class my_bookings extends AppCompatActivity {
         // Initialize the container
         bookingsContainer = findViewById(R.id.past_booking_card_container);
         latestBookingContainer = findViewById(R.id.latest_booking_container);
+        pastBookingTitle = findViewById(R.id.past_booking_title);
+
 
         // Get the data
         // Fake data for now than later I will replace it with the real data from the DB
@@ -104,12 +108,36 @@ public class my_bookings extends AppCompatActivity {
         ));
 
 
-            if (cards.size() > 0){
-//                BookingCard fisrtCard = cards.get(0);
-                int numberOfCards = cards.size();
-                renderCards(cards.subList(1, numberOfCards));
-            }
+        if (cards.isEmpty()) {
+
+            // Empty state
+            cards.add(new BookingCard(
+                    "Your bookings will appear here!",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    0,
+                    0
+            ));
+            renderCards(cards, true);
+
+        } else {
+
+            // Always render most recent booking
             renderMostRecentCard(cards.subList(0, 1));
+
+            // Render past bookings only if more exist
+            if (cards.size() > 1) {
+                pastBookingTitle.setVisibility(View.VISIBLE);
+                renderCards(cards.subList(1, cards.size()), false);
+            } else {
+                bookingsContainer.removeAllViews();
+            }
+        }
+
 
 
 
@@ -121,7 +149,7 @@ public class my_bookings extends AppCompatActivity {
     }
 
     // Render the cards in the container
-    private void renderCards(List<BookingCard> cards) {
+    private void renderCards(List<BookingCard> cards, Boolean isListEmpty) {
         LayoutInflater inflater = LayoutInflater.from(this);
         bookingsContainer.removeAllViews(); // clear old ones if any
 
@@ -140,7 +168,10 @@ public class my_bookings extends AppCompatActivity {
             imgBig.setImageResource(cardData.bigImageResId);
             txtLocation.setText(cardData.location);
             txtTime.setText(cardData.date);
-            cardView.setOnClickListener(v -> popUpHandler(cardData));
+            if (!isListEmpty) {
+                cardView.setOnClickListener(v -> popUpHandler(cardData));
+            }
+
 
             // add this card to the container to be displayed
             bookingsContainer.addView(cardView);

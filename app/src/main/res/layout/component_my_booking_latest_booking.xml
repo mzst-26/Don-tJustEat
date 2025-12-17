@@ -23,7 +23,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/active_grey"
-            android:text="#112345678"
             style="@style/text_normal"
             />
 
@@ -43,7 +42,6 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:scaleType="centerCrop"
-            android:background="@drawable/restaurant_image"
             />
 
     </LinearLayout>
@@ -60,7 +58,6 @@
             android:id="@+id/latest_booking_location_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Upcoming booking location"
             style="@style/text_normal"
             android:gravity="start"
             android:layout_marginBottom="20dp"
@@ -78,7 +75,6 @@
                 android:id="@+id/latest_booking_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="18:30"
                 android:layout_weight="1"
                 style="@style/text_normal"
                 android:textStyle="bold"
@@ -91,7 +87,6 @@
                 android:id="@+id/latest_booking_date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="14/08"
                 android:layout_weight="1"
                 style="@style/text_normal"
                 android:textStyle="bold"
@@ -103,7 +98,6 @@
                 android:id="@+id/latest_booking_guest_number"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="5 Guest(s)"
                 android:layout_weight="1"
                 style="@style/text_normal"
                 android:textStyle="bold"
@@ -119,7 +113,6 @@
             android:id="@+id/latest_location_address"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="14 Testinghom Ave, Plymouth PL1 1PL"
             android:textColor="@color/active_grey"
             android:layout_marginTop="20dp"
             />
