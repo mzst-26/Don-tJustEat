@@ -63,6 +63,7 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    testImplementation(libs.robolectric)
 }
 
 jacoco.toolVersion = "0.8.10"
