@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">DontJustEat</string>
+    <string name="notification_no_notification_text">Currently you have no notifications!</string>
 </resources>

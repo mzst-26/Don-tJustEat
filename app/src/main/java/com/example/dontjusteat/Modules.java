@@ -80,7 +80,7 @@ public class Modules {
                 menuHomeButton.setImageResource(R.drawable.home_active);
                 break;
 
-            case "customer_location_detail":
+            case "customer_my_notifications":
                 notificationsButton.setImageResource(R.drawable.notification_active);
                 break;
 
@@ -94,7 +94,7 @@ public class Modules {
 
         // Set the navigation of the buttons
         setMenuItemClick(home_icon_container, menuHomeButton, activityName, activity, customer_booking.class);
-        setMenuItemClick(notifications_icon_container, notificationsButton, activityName, activity, customer_location_detail.class);
+        setMenuItemClick(notifications_icon_container, notificationsButton, activityName, activity, customer_my_notifications.class);
         setMenuItemClick(profile_icon_container, profileButton, activityName, activity, customer_profile.class);
         setMenuItemClick(my_booking_container, myBookingButton, activityName, activity, my_bookings.class);
 
@@ -119,6 +119,10 @@ public class Modules {
         button.setOnClickListener(listener);
     }
 
+    public static void handleSimpleHeaderNavigation(Activity activity){
+        ImageView backButton = activity.findViewById(R.id.back_button);
+        backButton.setOnClickListener(v -> activity.finish());
+    }
 
 
 
