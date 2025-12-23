@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+    <!--Header-->
+<LinearLayout android:id="@+id/header_container"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    app:layout_constraintTop_toTopOf="parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+        <!-- Back Button !-->
+        <ImageView
+            android:id="@+id/back_button"
+            android:layout_width="64dp"
+            android:layout_height="match_parent"
+            android:padding="20dp"
+            app:srcCompat="@drawable/baseline_arrow_back_ios_24"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="Back Button"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="centerInside"
+            />
+        <!--location name-->
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Location Name"
+            android:gravity="center_vertical"
+            style="@style/text_title"
+            />
+
+</LinearLayout>
