@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">DontJustEat</string>
+    <string name="notification_no_notification_text">Currently you have no notifications!</string>
+    <!-- Notification card strings -->
+    <string name="notification_mark_as_read">Mark as read</string>
+    <string name="notification_title_sample">New Booking</string>
+    <string name="notification_message_sample">You have a new booking!</string>
+    <string name="notification_date_sample">08/05/2025</string>
+    <string name="notification_time_sample">19:30</string>
+    <string name="notification_dot"> • </string>
+    <string name="notification_ref_format">Ref: %1$s</string>
 </resources>
