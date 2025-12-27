@@ -13,12 +13,17 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.EditText;
 import android.widget.Toast;
+import android.widget.DatePicker;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.material.slider.LabelFormatter;
+import com.google.android.material.slider.Slider;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class my_bookings extends AppCompatActivity {
@@ -382,9 +387,82 @@ public class my_bookings extends AppCompatActivity {
     }
 
     private void requestAnEditHandler() {
+        // open dialog for requesting an edit (frontend-only)
+        Dialog editDialog = new Dialog(this);
+        editDialog.setContentView(R.layout.component_customer_request_edit_booking);
+        editDialog.setCancelable(true);
 
+        if (editDialog.getWindow() != null) {
+            editDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        DatePicker dp = editDialog.findViewById(R.id.dp_edit_date);
+        Slider timeSlider = editDialog.findViewById(R.id.slider_edit_time);
+        TextView timeTitle = editDialog.findViewById(R.id.tv_edit_time_display);
+        Slider guestsSlider = editDialog.findViewById(R.id.slider_edit_guests);
+        TextView tvGuests = editDialog.findViewById(R.id.tv_edit_guests_display);
+        Button submitButton = editDialog.findViewById(R.id.btn_edit_submit);
+        Button cancelButton = editDialog.findViewById(R.id.btn_edit_cancel);
+
+        // initialize DatePicker to today and set minimum date to today
+        Calendar cal = Calendar.getInstance();
+        dp.setMinDate(cal.getTimeInMillis());
+        dp.init(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH), null);
+
+        // time mapping: slider values -> time strings (example slots)
+        final String[] timeSlots = new String[] { "17:00", "18:00", "19:00", "20:00", "21:00" };
+        // set initial display according to slider default
+        int initialTimeIndex = Math.min(timeSlots.length - 1, Math.max(0, (int) timeSlider.getValue()));
+        timeTitle.setText(timeSlots[initialTimeIndex]);
+
+        // Add label formatter to show time on the thumb
+        timeSlider.setLabelFormatter(value -> {
+            int idx = Math.min(timeSlots.length - 1, Math.max(0, (int) value));
+            return timeSlots[idx];
+        });
+
+        timeSlider.addOnChangeListener((slider, value, fromUser) -> {
+            int idx = Math.min(timeSlots.length - 1, Math.max(0, (int) value));
+            timeTitle.setText(timeSlots[idx]);
+        });
+
+        // guests slider
+        tvGuests.setText(String.valueOf((int) guestsSlider.getValue()));
+
+        // Add label formatter to show "Table for X" on the thumb
+        guestsSlider.setLabelFormatter(value -> {
+            return "Table for " + (int) value;
+        });
+
+        guestsSlider.addOnChangeListener((slider, value, fromUser) -> {
+            tvGuests.setText(String.valueOf((int) value));
+        });
+
+        cancelButtonw.setOnClickListener(v -> editDialog.dismiss());
+
+        submitButton.setOnClickListener(v -> {
+            int day = dp.getDayOfMonth();
+            int month = dp.getMonth() + 1; // month is 0-based
+            int year = dp.getYear();
+            String selectedDate = String.format("%04d-%02d-%02d", year, month, day);
+
+            int timeIdx = Math.min(timeSlots.length - 1, (int) timeSlider.getValue());
+            String selectedTime = timeSlots[timeIdx];
+
+            int selectedGuests = (int) guestsSlider.getValue();
+
+            String msg = "Requested edit — Date: " + selectedDate + " Time: " + selectedTime + " Guests: " + selectedGuests;
+            Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+
+            // frontend-only: dismiss after showing confirmation
+            editDialog.dismiss();
+        });
+
+        editDialog.show();
     }
+
     private void requestCancellationHandler() {
+
 
     }
 
