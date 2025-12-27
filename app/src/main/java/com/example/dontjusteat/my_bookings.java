@@ -438,7 +438,7 @@ public class my_bookings extends AppCompatActivity {
             tvGuests.setText(String.valueOf((int) value));
         });
 
-        cancelButtonw.setOnClickListener(v -> editDialog.dismiss());
+        cancelButton.setOnClickListener(v -> editDialog.dismiss());
 
         submitButton.setOnClickListener(v -> {
             int day = dp.getDayOfMonth();
