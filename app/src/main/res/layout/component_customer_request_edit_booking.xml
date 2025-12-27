@@ -47,7 +47,11 @@
             android:calendarViewShown="false"
             android:spinnersShown="true"
             android:theme="@style/CustomDatePicker"
-            android:datePickerMode="spinner" />
+            android:datePickerMode="spinner"
+            android:contentDescription="@string/select_date"
+            app:layout_constraintTop_toBottomOf="@id/tv_edit_date_label"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <!-- Time label and selected display -->
         <TextView
@@ -80,6 +84,7 @@
             android:valueTo="4.0"
             android:stepSize="1.0"
             android:value="1.0"
+            android:contentDescription="@string/select_dining_time"
             app:layout_constraintTop_toBottomOf="@id/tv_edit_time_label"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -116,6 +121,7 @@
             android:valueTo="10.0"
             android:stepSize="1.0"
             android:value="2.0"
+            android:contentDescription="@string/select_number_of_guests"
             app:layout_constraintTop_toBottomOf="@id/tv_edit_guests_label"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
