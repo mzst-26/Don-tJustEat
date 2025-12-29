@@ -48,6 +48,47 @@
                 style="@style/AppButton.Primary"
                 android:padding="10dp"
                 android:layout_marginBottom="40dp" />
+            <!-- Actions to take parent container -->
+            <LinearLayout
+                android:id="@+id/parent_actions_to_take_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="20dp"
+                android:padding="10dp"
+                android:background="@drawable/pink_back_minimum_radius"
+                >
+
+                <TextView
+                    android:id="@+id/actions_to_take_tv_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Urgent Actions to Take"
+                    style="@style/text_normal"
+                    android:gravity="start"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Click on a booking to view more details or update its status."
+                    style="@style/text_normal"
+                    android:textSize="11sp"
+                    android:gravity="start"
+                    android:textColor="@color/active_grey"
+                    />
+
+                <!-- Actions to take card container -->
+                <LinearLayout
+                    android:id="@+id/actions_to_take_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_gravity="center_horizontal"
+                    >
+
+                </LinearLayout>
+            </LinearLayout>
 
             <!-- Today's bookings parent container -->
             <LinearLayout
