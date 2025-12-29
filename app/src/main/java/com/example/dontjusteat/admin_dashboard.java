@@ -27,6 +27,9 @@ public class admin_dashboard extends AppCompatActivity {
         // Build sample data and render cards
         List<Booking> todaysBookings = buildSampleBookings();
         populateBookings(todaysBookings);
+
+        // handle menu navigation
+        admin_modules.handleMenuNavigation(this);
     }
 
     // Data model for a booking
