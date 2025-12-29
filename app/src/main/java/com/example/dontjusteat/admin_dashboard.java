@@ -140,14 +140,14 @@ public class admin_dashboard extends AppCompatActivity {
 
     // Handle click on today's booking cards (regular bookings)
     private void handleBookingDetailsClick(Booking booking) {
-        // to do later: navigate to booking details screen
+        showBookingDetailsPopup(booking);
     }
 
     // Show popup dialog for booking actions
     private void showActionPopup(Booking booking) {
         // Create dialog
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
-        View popupView = LayoutInflater.from(this).inflate(R.layout.admin_component_urgent_action_popup, null);
+        View popupView = LayoutInflater.from(this).inflate(R.layout.admin_component_booking_detail_popup, null);
         builder.setView(popupView);
 
         android.app.AlertDialog dialog = builder.create();
@@ -244,5 +244,56 @@ public class admin_dashboard extends AppCompatActivity {
         //For now we just refresh the UI
         List<Booking> updatedBookings = buildSampleBookings();
         populateBookings(updatedBookings);
+    }
+
+    // show booking details popup
+    //This is used for regular bookings that are already confirmed
+    private void showBookingDetailsPopup(Booking booking) {
+        //create a dialog popup
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        View popupView = LayoutInflater.from(this).inflate(R.layout.admin_component_booking_detail_popup, null);
+        builder.setView(popupView);
+
+        android.app.AlertDialog dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
+        //get all the text fields from the popup
+        TextView requestType = popupView.findViewById(R.id.popup_request_type);
+        ImageView avatar = popupView.findViewById(R.id.popup_customer_avatar);
+        TextView customerName = popupView.findViewById(R.id.popup_customer_name);
+        TextView customerInfo = popupView.findViewById(R.id.popup_customer_info);
+        TextView tableNumber = popupView.findViewById(R.id.popup_table_number);
+        TextView time = popupView.findViewById(R.id.popup_time);
+        TextView date = popupView.findViewById(R.id.popup_date);
+        TextView partySize = popupView.findViewById(R.id.popup_party_size);
+        LinearLayout notesContainer = popupView.findViewById(R.id.popup_notes_container);
+        LinearLayout actionButtonsContainer = popupView.findViewById(R.id.popup_action_buttons_container);
+
+        //Set the title to show this is just viewing details
+        requestType.setText("Booking Details");
+
+        // Fiill in all the booking information
+        avatar.setImageResource(booking.avatarResId);
+        customerName.setText(booking.name);
+        customerInfo.setText("Booking ID: #" + booking.bookingId);
+        tableNumber.setText(booking.tableLabel);
+        time.setText(booking.time);
+        date.setText(booking.date);
+        partySize.setText(booking.guests + " guests");
+
+
+        //Hide notes section (not needed for now)
+        notesContainer.setVisibility(View.GONE);
+
+
+
+        // hide the action buttons so users can only view, not modify
+        if (actionButtonsContainer != null) {
+            actionButtonsContainer.setVisibility(View.GONE);
+        }
+
+        // let users close the popup by tapping outside of it
+        dialog.setCanceledOnTouchOutside(true);
+        dialog.show();
     }
 }
