@@ -33,6 +33,7 @@
         <activity android:name=".admin_dashboard" />
         <activity android:name=".admin_notifications" />
         <activity android:name=".admin_profile" />
+        <activity android:name=".admin_manage_menu" />
     </application>
 
 </manifest>
