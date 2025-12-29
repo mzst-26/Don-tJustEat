@@ -5,15 +5,135 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/white"
     android:id="@+id/rootView">
+
     <include
         android:id="@+id/admin_header"
         layout="@layout/admin_component_header"
         android:layout_width="0dp"
+        android:layout_marginTop="20dp"
+        android:padding="10dp"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         />
+
+    <!-- Scrollable content -->
+    <ScrollView
+        android:id="@+id/admin_scroll_container"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/admin_header"
+        app:layout_constraintBottom_toTopOf="@id/admin_menu"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:fillViewport="true"
+        android:layout_marginTop="20dp">
+
+        <!-- Content container -->
+        <LinearLayout
+            android:id="@+id/admin_scroll_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- manage menu button -->
+            <Button
+                android:id="@+id/manage_menu_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Manage Menu"
+                android:textColor="@color/white"
+                style="@style/AppButton.Primary"
+                android:padding="10dp"
+                android:layout_marginBottom="40dp" />
+            <!-- Actions to take parent container -->
+            <LinearLayout
+                android:id="@+id/parent_actions_to_take_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="20dp"
+                android:padding="10dp"
+                android:background="@drawable/pink_back_minimum_radius"
+                >
+
+                <TextView
+                    android:id="@+id/actions_to_take_tv_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Urgent Actions to Take"
+                    style="@style/text_normal"
+                    android:gravity="start"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Click on a booking to view more details or update its status."
+                    style="@style/text_normal"
+                    android:textSize="11sp"
+                    android:gravity="start"
+                    android:textColor="@color/active_grey"
+                    />
+
+                <!-- Actions to take card container -->
+                <LinearLayout
+                    android:id="@+id/actions_to_take_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_gravity="center_horizontal"
+                    >
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Today's bookings parent container -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="20dp"
+                android:padding="10dp"
+                android:background="@drawable/pink_back_minimum_radius"
+                >
+
+                <TextView
+                    android:id="@+id/today_booking_tv_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Today's Bookings"
+                    style="@style/text_normal"
+                    android:gravity="start"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Click on a booking to view more details or update its status."
+                    style="@style/text_normal"
+                    android:textSize="11sp"
+                    android:gravity="start"
+                    android:textColor="@color/active_grey"
+                    />
+
+                <!-- today's bookings -->
+                <LinearLayout
+                    android:id="@+id/todays_bookings_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_gravity="center_horizontal"
+                    >
+
+                </LinearLayout>
+            </LinearLayout>
+
+
+        </LinearLayout>
+    </ScrollView>
 
     <include
         android:id="@+id/admin_menu"
@@ -24,5 +144,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
