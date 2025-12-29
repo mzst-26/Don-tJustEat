@@ -32,6 +32,7 @@
         <activity android:name=".customer_my_notifications"/>
         <activity android:name=".admin_dashboard" />
         <activity android:name=".admin_notifications" />
+        <activity android:name=".admin_profile" />
     </application>
 
 </manifest>
