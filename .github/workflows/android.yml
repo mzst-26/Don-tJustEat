@@ -5,8 +5,6 @@ on:
     #On every push and on any branch
     branches:
       - '**'
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
   build:
