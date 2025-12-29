@@ -53,7 +53,7 @@ public class admin_modules {
         // Set up navigation for each menu button
         setupMenuClickListener(home_icon_container, menuHomeButton, activityName, activity, admin_dashboard.class);
         setupMenuClickListener(notifications_icon_container, notificationsButton, activityName, activity, admin_notifications.class);
-        setupMenuClickListener(profile_icon_container, profileButton, activityName, activity, null);
+        setupMenuClickListener(profile_icon_container, profileButton, activityName, activity, admin_profile.class);
     }
 
     // Helper method to set up click listeners for menu items
