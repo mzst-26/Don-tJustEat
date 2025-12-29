@@ -44,7 +44,7 @@ public class admin_modules {
                 menuHomeButton.setImageResource(R.drawable.home_active);
                 break;
 
-            case "admin_my_notifications":
+            case "admin_notifications":
                 notificationsButton.setImageResource(R.drawable.notification_active);
                 break;
 
@@ -59,7 +59,7 @@ public class admin_modules {
 
         // Set up navigation for each menu button
         setupMenuClickListener(home_icon_container, menuHomeButton, activityName, activity, admin_dashboard.class);
-        setupMenuClickListener(notifications_icon_container, notificationsButton, activityName, activity, null);
+        setupMenuClickListener(notifications_icon_container, notificationsButton, activityName, activity, admin_notifications.class);
         setupMenuClickListener(profile_icon_container, profileButton, activityName, activity, null);
         setupMenuClickListener(my_booking_container, myBookingButton, activityName, activity, null);
     }
