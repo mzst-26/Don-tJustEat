@@ -15,4 +15,5 @@
     <string name="select_date">Select date</string>
     <string name="select_dining_time">Select dining time</string>
     <string name="select_number_of_guests">Select number of guests</string>
+    <string name="admin_menu_item_image">Menu item image</string>
 </resources>
