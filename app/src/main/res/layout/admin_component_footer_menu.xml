@@ -56,36 +56,6 @@
 
             </LinearLayout>
 
-            <!--my bookings icon container -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:id="@+id/my_bookings_container"
-                >
-                <!--my booking icon -->
-                <ImageView
-                    android:id="@+id/navigate_to_my_booking_button"
-                    android:layout_width="26dp"
-                    android:layout_height="26dp"
-                    android:background="@drawable/my_booking_inactive"
-                    android:clickable="true"
-                    android:focusable="true" />
-
-                <!--menu guid -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="All Bookings"
-                    android:textColor="@color/black"
-                    android:textSize="10sp"
-                    android:gravity="center"
-                    android:layout_gravity="center"
-                    />
-
-            </LinearLayout>
 
             <!--notification icon container -->
             <LinearLayout
