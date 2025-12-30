@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@drawable/pink_back_minimum_radius">
 
     <!-- menu item image -->
     <com.google.android.material.card.MaterialCardView
@@ -57,7 +58,8 @@
             android:layout_weight="1"
             android:visibility="gone"
             android:background="@android:color/transparent"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            android:textColor="@color/black" />
 
         <ImageView
             android:id="@+id/editNameIcon"
@@ -97,7 +99,8 @@
             android:layout_weight="1"
             android:visibility="gone"
             android:background="@android:color/transparent"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            android:textColor="@color/black" />
 
         <ImageView
             android:id="@+id/editDescriptionIcon"
@@ -175,7 +178,8 @@
             android:visibility="gone"
             android:background="@android:color/transparent"
             android:inputType="numberDecimal"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            android:textColor="@color/black" />
 
         <ImageView
             android:id="@+id/editPriceIcon"
