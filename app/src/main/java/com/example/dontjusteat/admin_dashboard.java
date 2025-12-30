@@ -3,6 +3,7 @@ package com.example.dontjusteat;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -30,6 +31,9 @@ public class admin_dashboard extends AppCompatActivity {
 
         // handle menu navigation
         admin_modules.handleMenuNavigation(this);
+
+        //handle manage menu button
+        manageMenueButtonHandler();
     }
 
     // Data model for a booking
@@ -298,5 +302,16 @@ public class admin_dashboard extends AppCompatActivity {
         // let users close the popup by tapping outside of it
         dialog.setCanceledOnTouchOutside(true);
         dialog.show();
+    }
+
+
+    //handle manage menu button
+    private void manageMenueButtonHandler(){
+        Button manageMenuButton = findViewById(R.id.manage_menu_button);
+        manageMenuButton.setOnClickListener(v -> {
+            // navigate to the admin menu management page
+            android.content.Intent intent = new android.content.Intent(this, admin_manage_menu.class);
+            startActivity(intent);
+        });
     }
 }
