@@ -24,18 +24,25 @@ import java.util.List;
 
 public class admin_manage_menu extends AppCompatActivity {
 
-    // Image picker launcher
+    // image picker stuff
     private ActivityResultLauncher<Intent> imagePickerLauncher;
     private ImageView currentEditingImageView;
     private Uri selectedImageUri;
 
-    static class MenuItem {
-        String itemId;
-        String title;
-        String description;
-        double price;
-        int imageResource;
-        String imageUrl;
+    // menu items list
+    private final List<MenuItem> menuItemsData = new ArrayList<>();
+
+    // menu item class
+    public static class MenuItem {
+        public String itemId;
+        public String title;
+        public String description;
+        public double price;
+        public int imageResource;
+        public String imageUrl;
+
+        // empty constructor for Firebase
+        public MenuItem() {}
 
         MenuItem(String itemId, String title, String description, double price, int imageResource) {
             this.itemId = itemId;
@@ -73,9 +80,16 @@ public class admin_manage_menu extends AppCompatActivity {
         admin_modules.handleMenuNavigation(this);
         Modules.handleSimpleHeaderNavigation(this);
 
-        // Load and display menu items
-        List<MenuItem> menuItems = getFakeMenuData();
-        displayMenuItems(menuItems);
+        // add button
+        ImageView addButton = findViewById(R.id.button_add_new_menu_item);
+        if (addButton != null) {
+            addButton.setOnClickListener(v -> handleAddNewMenuItem()); // open add popup
+        }
+
+        // load fake data once
+        menuItemsData.clear();
+        menuItemsData.addAll(getFakeMenuData());
+        displayMenuItems(menuItemsData);
     }
 
     // Generate fake menu data (replace with Firebase fetch later)
@@ -107,8 +121,6 @@ public class admin_manage_menu extends AppCompatActivity {
 
         container.removeAllViews();
         LayoutInflater inflater = LayoutInflater.from(this);
-
-
 
         try {
             for (MenuItem item : menuItems) {
@@ -153,11 +165,30 @@ public class admin_manage_menu extends AppCompatActivity {
     // handle menu item click for editing/deleting
     private void handleMenuItemClick(MenuItem item) {
         Dialog dialog = createMenuItemDialog();
-        bindDialogViews(dialog, item);
+        bindDialogViews(dialog, item, false); // edit mode
         dialog.show();
     }
 
-    //create and configure the dialog (in this file I seperated the dialog configuration to make the code more clear. later I will apply this to every file)
+    // handle the add new menu item button
+    private void handleAddNewMenuItem() {
+        MenuItem newItem = new MenuItem(
+                generateNewItemId(), // temporary id (later: Firebase id)
+                "",
+                "",
+                0.0,
+                R.drawable.pink_back_minimum_radius // placeholder
+        );
+        Dialog dialog = createMenuItemDialog();
+        bindDialogViews(dialog, newItem, true); // add mode
+        dialog.show();
+    }
+
+    // generate new item id (this is temporary, later I will use Firebase generated ids)
+    private String generateNewItemId() {
+        return "ITEM" + String.format("%03d", (int)(Math.random() * 1000));
+    }
+
+    // build dialog (simple)
     private Dialog createMenuItemDialog() {
         Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -169,7 +200,7 @@ public class admin_manage_menu extends AppCompatActivity {
     }
 
     //Bind all dialg views and set up interactions
-    private void bindDialogViews(Dialog dialog, MenuItem item) {
+    private void bindDialogViews(Dialog dialog, MenuItem item, boolean isAddMode) {
         // find all views
         ImageView itemImage = dialog.findViewById(R.id.itemImageView);
         TextView nameTv = dialog.findViewById(R.id.nameTv);
@@ -192,15 +223,49 @@ public class admin_manage_menu extends AppCompatActivity {
         currentEditingImageView = itemImage;
         selectedImageUri = null;
 
-        // set up the edit toggles
-        setupEditToggle(nameTv, nameEt, editNameIcon);
-        setupEditToggle(descriptionTv, descriptionEt, editDescriptionIcon);
-        setupPriceEditToggle(priceTv, priceEt, editPriceIcon, item);
+        if (isAddMode) {
+            // add: show edits, hide icons
+            configureAddMode(nameTv, nameEt, editNameIcon, descriptionTv, descriptionEt,
+                    editDescriptionIcon, priceTv, priceEt, editPriceIcon, deleteButton);
+        } else {
+            // edit: toggle by icon
+            setupEditToggle(nameTv, nameEt, editNameIcon);
+            setupEditToggle(descriptionTv, descriptionEt, editDescriptionIcon);
+            setupPriceEditToggle(priceTv, priceEt, editPriceIcon, item);
+            if (deleteButton != null) deleteButton.setText("Delete"); // simple
+        }
 
-        //Setup action buttons
+        // buttons
         setupReplaceImageButton(replaceImageButton);
-        setupSaveButton(saveButton, dialog, item, nameEt, descriptionEt, priceEt);
-        setupDeleteButton(deleteButton, dialog, item);
+        setupSaveButton(saveButton, dialog, item, nameEt, descriptionEt, priceEt, isAddMode);
+        setupDeleteOrCancelButton(deleteButton, dialog, item, isAddMode);
+    }
+
+    // add mode: make fields editable
+    private void configureAddMode(
+            TextView nameTv, EditText nameEt, ImageView editNameIcon,
+          TextView descriptionTv, EditText descriptionEt, ImageView editDescriptionIcon,
+          TextView priceTv, EditText priceEt, ImageView editPriceIcon,
+          Button deleteButton) {
+
+        // hide textviews, show edits, hide icons
+        if (nameTv != null) nameTv.setVisibility(View.GONE);
+        if (nameEt != null) { nameEt.setVisibility(View.VISIBLE); nameEt.setHint("Enter item name"); }
+        if (editNameIcon != null) editNameIcon.setVisibility(View.GONE);
+
+
+        // description
+        if (descriptionTv != null) descriptionTv.setVisibility(View.GONE);
+        if (descriptionEt != null) { descriptionEt.setVisibility(View.VISIBLE); descriptionEt.setHint("Enter description"); }
+        if (editDescriptionIcon != null) editDescriptionIcon.setVisibility(View.GONE);
+
+        // price
+        if (priceTv != null) priceTv.setVisibility(View.GONE);
+        if (priceEt != null) { priceEt.setVisibility(View.VISIBLE); priceEt.setHint("Enter price"); }
+        if (editPriceIcon != null) editPriceIcon.setVisibility(View.GONE);
+
+        // delete button acts as cancel
+        if (deleteButton != null) deleteButton.setText("Cancel"); // no delete on new
     }
 
     // fill the dialog with current item data
@@ -278,7 +343,6 @@ public class admin_manage_menu extends AppCompatActivity {
     // Setup replace image button
     private void setupReplaceImageButton(View replaceImageButton) {
         if (replaceImageButton == null) return;
-
         replaceImageButton.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK);
             intent.setType("image/*");
@@ -289,16 +353,16 @@ public class admin_manage_menu extends AppCompatActivity {
     // setup save button with validation and data update
     private void setupSaveButton(
             Button saveButton, Dialog dialog, MenuItem item,
-            EditText nameEt, EditText descriptionEt, EditText priceEt
+            EditText nameEt, EditText descriptionEt, EditText priceEt, boolean isAddMode
     ) {
         if (saveButton == null) return;
-
         saveButton.setOnClickListener(v -> {
               // Validate and collect data
             String newTitle = nameEt != null ? nameEt.getText().toString().trim() : item.title;
             String newDescription = descriptionEt != null ? descriptionEt.getText().toString().trim() : item.description;
             double newPrice;
 
+            //toasts for price input
             try {
                 newPrice = priceEt != null ? Double.parseDouble(priceEt.getText().toString()) : item.price;
                 if (newPrice < 0) {
@@ -310,10 +374,18 @@ public class admin_manage_menu extends AppCompatActivity {
                 return;
             }
 
-            // validate required fields
-            if (newTitle.isEmpty()) {
-                Toast.makeText(this, "Title cannot be empty", Toast.LENGTH_SHORT).show();
-                return;
+
+            //some toasts for empty fields
+            if (newTitle.isEmpty()) { Toast.makeText(this, "Title cannot be empty", Toast.LENGTH_SHORT).show(); return; }
+            if (newDescription.isEmpty()) { Toast.makeText(this, "Description cannot be empty", Toast.LENGTH_SHORT).show(); return; }
+            if (newPrice == 0.0 && isAddMode) { Toast.makeText(this, "Please enter a valid price", Toast.LENGTH_SHORT).show(); return; }
+
+            // apply to object
+            updateMenuItem(item, newTitle, newDescription, newPrice);
+
+            // add to list if new
+            if (isAddMode) {
+                menuItemsData.add(item); // later: push to Firebase
             }
 
             //Update item
@@ -322,38 +394,34 @@ public class admin_manage_menu extends AppCompatActivity {
             // Save to database
             saveMenuItemChanges(item);
 
-            Toast.makeText(this, "Changes saved (local only - Firebase not connected)", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Changes saved", Toast.LENGTH_SHORT).show();
 
             refreshMenuDisplay();
             dialog.dismiss();
         });
     }
 
-    // setup delete button
-    private void setupDeleteButton(Button deleteButton, Dialog dialog, MenuItem item) {
+    // delete / cancel
+    private void setupDeleteOrCancelButton(Button deleteButton, Dialog dialog, MenuItem item, boolean isAddMode) {
         if (deleteButton == null) return;
-
         deleteButton.setOnClickListener(v -> {
-            // delete from database
-            deleteMenuItem(item);
-
-            Toast.makeText(this, "Item deleted (local only - Firebase not connected)", Toast.LENGTH_SHORT).show();
-
-            refreshMenuDisplay();
-            dialog.dismiss();
+            if (isAddMode) { dialog.dismiss(); }
+            else {
+                deleteMenuItem(item); // use helper
+                Toast.makeText(this, "Item deleted ", Toast.LENGTH_SHORT).show();
+                refreshMenuDisplay();
+                dialog.dismiss();
+            }
         });
     }
 
-    // update menu item data
+    // update item data
     private void updateMenuItem(MenuItem item, String title, String description, double price) {
         item.title = title;
         item.description = description;
         item.price = price;
-
-        // If new image was selected, prepare for upload
         if (selectedImageUri != null) {
-            // TODO: Upload to Firebase Storage
-            // item.imageUrl = uploadedUrl;
+            // Will do for  firebase: upload selectedImageUri then set item imageUrl
         }
     }
 
@@ -364,14 +432,17 @@ public class admin_manage_menu extends AppCompatActivity {
 
     // delete menu item
     private void deleteMenuItem(MenuItem item) {
-        // I will do later: implement Firebase delete
+        for (int i = 0; i < menuItemsData.size(); i++) {
+            if (menuItemsData.get(i).itemId.equals(item.itemId)) {
+                menuItemsData.remove(i);
+                break;
+            }
+        }
+        // will do for firebase connection: deleteMenuItemFromFirebase(item.itemId)
     }
 
-     // refresh menu display
-    private void refreshMenuDisplay() {
-        List<MenuItem> menuItems = getFakeMenuData();
-        displayMenuItems(menuItems);
-    }
+    // redraw the menu display
+    private void refreshMenuDisplay() { displayMenuItems(menuItemsData); }
 
     // Will do later: database (firebase) methods to do later
 
