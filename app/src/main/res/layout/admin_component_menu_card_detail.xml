@@ -59,7 +59,8 @@
             android:visibility="gone"
             android:background="@android:color/transparent"
             android:textSize="16sp"
-            android:textColor="@color/black" />
+            android:textColor="@color/black"
+            android:textColorHint="@color/black" />
 
         <ImageView
             android:id="@+id/editNameIcon"
@@ -100,7 +101,8 @@
             android:visibility="gone"
             android:background="@android:color/transparent"
             android:textSize="16sp"
-            android:textColor="@color/black" />
+            android:textColor="@color/black"
+            android:textColorHint="@color/black" />
 
         <ImageView
             android:id="@+id/editDescriptionIcon"
@@ -179,7 +181,8 @@
             android:background="@android:color/transparent"
             android:inputType="numberDecimal"
             android:textSize="16sp"
-            android:textColor="@color/black" />
+            android:textColor="@color/black"
+            android:textColorHint="@color/black" />
 
         <ImageView
             android:id="@+id/editPriceIcon"
