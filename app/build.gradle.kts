@@ -2,6 +2,7 @@ import org.gradle.testing.jacoco.tasks.JacocoReport
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("com.google.gms.google-services")
     jacoco
 }
 
@@ -44,6 +45,15 @@ android {
     testOptions {
         unitTests.isIncludeAndroidResources = true
     }
+
+    packaging {
+        resources {
+            excludes += setOf(
+                "**/* *",
+                "**/* 2.*"
+            )
+        }
+    }
 }
 
 dependencies {
@@ -59,6 +69,13 @@ dependencies {
     implementation(libs.androidx.core)
     implementation(libs.androidx.recyclerview)
     implementation("com.github.bumptech.glide:glide:4.16.0")
+    // Firebase BoM
+    implementation(platform("com.google.firebase:firebase-bom:33.3.0"))
+
+    // Firebase services
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-storage")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -92,3 +109,5 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         }
     )
 }
+
+apply(plugin = "com.google.gms.google-services")

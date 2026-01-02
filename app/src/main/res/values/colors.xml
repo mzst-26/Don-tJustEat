@@ -18,4 +18,7 @@
     <color name="card_border_shadow">#33000000</color>  <!-- semi-transparent black -->
     <color name="green_button" >#5DBB63</color>
     <color name="red_button" >#FF605C</color>
+    <!-- Blue Link color -->
+    <color name="blue_link">#0000FF</color>
+
 </resources>

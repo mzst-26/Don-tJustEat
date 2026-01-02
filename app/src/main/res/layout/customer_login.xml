@@ -42,7 +42,7 @@
             />
 
         <TextView
-            android:id="@+id/text.title"
+            android:id="@+id/pageTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Customer Sign in/Sign up"
@@ -50,18 +50,62 @@
             style="@style/text_title"/>
 
         <TextView
-            android:id="@+id/textView3"
+            android:id="@+id/page_description"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:textSize="17sp"
-            android:text="Enter your email to sign up for this app" />
+            android:text="Enter your email and password to sign in." />
+
+        <EditText
+            android:id="@+id/customerName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textAutoCorrect"
+            android:hint="Jack Smith"
+            android:textColor="@color/black"
+            android:textColorHint="@color/active_grey"
+            android:padding="10dp"
+            android:layout_margin="16dp"
+            android:minHeight="48dp"
+            android:visibility="gone"
+            />
+
+        <EditText
+            android:id="@+id/customer_phone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="phone"
+            android:hint="07812345678"
+            android:textColor="@color/black"
+            android:textColorHint="@color/active_grey"
+            android:padding="10dp"
+            android:layout_margin="16dp"
+            android:minHeight="48dp"
+            android:visibility="gone"
+            />
+
         <EditText
             android:id="@+id/customerEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textEmailAddress"
             android:hint="example@example.com"
+            android:textColor="@color/black"
+            android:textColorHint="@color/active_grey"
+            android:padding="10dp"
+            android:layout_margin="16dp"
+            android:minHeight="48dp"
+            />
+
+        <EditText
+            android:id="@+id/customer_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+            android:hint="•••••••••"
+            android:textColor="@color/black"
+            android:textColorHint="@color/active_grey"
             android:padding="10dp"
             android:layout_margin="16dp"
             android:minHeight="48dp"
@@ -75,6 +119,21 @@
             android:text="Sign in with email"
             android:layout_margin="5dp"
              />
+
+        <TextView
+            android:id="@+id/create_an_account"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:gravity="center"
+            android:textColor="@color/blue_link"
+            android:text="@string/create_an_account_string"
+            android:textSize="10sp"
+            android:clickable="true"
+            android:focusable="true"
+            />
+
 
 
 

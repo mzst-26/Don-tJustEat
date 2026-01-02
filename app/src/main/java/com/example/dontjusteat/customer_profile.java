@@ -15,6 +15,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import com.google.firebase.auth.FirebaseAuth;
 
 
 public class customer_profile extends AppCompatActivity {
@@ -225,9 +226,21 @@ public class customer_profile extends AppCompatActivity {
     }
 
     private void logoutAction(Activity activity){
-        // for now we just navigate to the mainActivity then later will add the logout logic
+
         Intent intent = new Intent(activity, MainActivity.class);
-        startActivities(new Intent[]{intent});
+
+        // sign out from Firebase
+        FirebaseAuth.getInstance().signOut();
+
+        // clear SharedPreferences
+        SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        sharedPreferences.edit().clear().apply();
+
+        // redirect to login page
+        intent = new Intent(activity, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
 
 
     }
