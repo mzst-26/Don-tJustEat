@@ -6,7 +6,9 @@ import android.widget.Toast;
 import com.example.dontjusteat.customer_booking;
 import com.example.dontjusteat.security.InputValidator;
 import com.example.dontjusteat.security.SessionManager;
+import com.example.dontjusteat.security.email_verification;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Objects;
@@ -41,40 +43,71 @@ public class LoginRepository {
                 .addOnCompleteListener(result -> {
                     // Check if authentication was successful
                     if (result.isSuccessful()) {
-                        // check user role from database
-                        String userId = Objects.requireNonNull(auth.getCurrentUser()).getUid();
-                        // Retrieve user document
-                        db.collection("users").document(userId).get()
-                                // check if the document retrieval was successful
-                                .addOnCompleteListener(document -> {
-                                    if (document.isSuccessful() && document.getResult() != null) {
-                                        // Check if the user is a customer
-                                        if (Boolean.TRUE.equals(document.getResult().getBoolean("roleCustomer"))) {
-                                            SessionManager sessionManager = new SessionManager(activity);
-                                            sessionManager.saveSession(
-                                                    userId,
-                                                    sanitizedEmail,
-                                                    true
-                                            );
-                                            // navigate to customer booking activity and give them a notification message
-                                            Toast.makeText(activity, "Login successful", Toast.LENGTH_SHORT).show();
-                                            Intent intent = new Intent(activity, customer_booking.class);
-                                            activity.startActivity(intent);
-                                            activity.finish();
-                                        } else {
-                                            // notify user of incorrect role and sign them out
-                                            Toast.makeText(activity, "This account is not a customer account", Toast.LENGTH_LONG).show();
+                        FirebaseUser firebaseUser = auth.getCurrentUser();
+                        if (firebaseUser == null) {
+                            Toast.makeText(activity, "Login failed. Please try again.", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        // Reload to ensure latest emailVerified
+                        firebaseUser.reload().addOnCompleteListener(reloadTask -> {
+                            if (reloadTask.isSuccessful()) {
+                                // check if email is verified
+                                if (!firebaseUser.isEmailVerified()) {
+                                    Toast.makeText(activity, "Please verify your email before logging in.", Toast.LENGTH_LONG).show();
+                                    Intent intent = new Intent(activity, email_verification.class);
+                                    activity.startActivity(intent);
+                                    return;
+                                }
+
+
+                                // check user role from database
+                                String userId = Objects.requireNonNull(firebaseUser.getUid());
+                                // Retrieve user document
+                                db.collection("users").document(userId).get()
+                                        // check if the document retrieval was successful
+                                        .addOnCompleteListener(document -> {
+                                            if (document.isSuccessful() && document.getResult() != null) {
+                                                // Check verified flag in Firestore; if missing, treat as verified when Firebase says verified
+                                                Boolean isVerified = document.getResult().getBoolean("isVerified");
+
+                                                if (isVerified == null || !isVerified) {
+                                                    // update Firestore isVerified if Firebase says verified
+                                                    db.collection("users").document(userId).update("isVerified", true);
+                                                }
+
+                                                // Check if the user is a customer
+                                                Boolean roleCustomer = document.getResult().getBoolean("roleCustomer");
+                                                if (Boolean.TRUE.equals(roleCustomer)) {
+                                                    SessionManager sessionManager = new SessionManager(activity);
+                                                    sessionManager.saveSession(
+                                                            userId,
+                                                            sanitizedEmail,
+                                                            true
+                                                    );
+                                                    // navigate to customer booking activity and give them a notification message
+                                                    Toast.makeText(activity, "Login successful", Toast.LENGTH_SHORT).show();
+                                                    Intent intent = new Intent(activity, customer_booking.class);
+                                                    activity.startActivity(intent);
+                                                    activity.finish();
+                                                } else {
+                                                    // notify user of incorrect role and sign them out
+                                                    Toast.makeText(activity, "This account is not a customer account", Toast.LENGTH_LONG).show();
+                                                    auth.signOut();
+                                                }
+                                            } else {
+                                                Toast.makeText(activity, "Login failed. Please try again.", Toast.LENGTH_SHORT).show();
+                                                auth.signOut();
+                                            }
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Toast.makeText(activity, "Login failed. Please try again.", Toast.LENGTH_LONG).show();
                                             auth.signOut();
-                                        }
-                                    } else {
-                                        Toast.makeText(activity, "Login failed. Please try again.", Toast.LENGTH_SHORT).show();
-                                        auth.signOut();
-                                    }
-                                })
-                                .addOnFailureListener(e -> {
-                                    Toast.makeText(activity, "Login failed. Please try again.", Toast.LENGTH_LONG).show();
-                                    auth.signOut();
-                                });
+                                        });
+                            } else {
+                                Toast.makeText(activity, "Login failed. Please try again.", Toast.LENGTH_LONG).show();
+                                auth.signOut();
+                            }
+                        });
                     } else {
                         // generic error message for security - don't expose Firebase error details
                         Toast.makeText(activity, "Login failed. Please check your email and password.", Toast.LENGTH_LONG).show();

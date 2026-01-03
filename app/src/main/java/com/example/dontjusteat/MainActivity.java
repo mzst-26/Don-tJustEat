@@ -12,15 +12,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Check session first (faster than Firebase check)
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_main);
         SessionManager sessionManager = new SessionManager(this);
         if (sessionManager.isLoggedIn()) {
             // User has active session, skip login
             startActivity(new Intent(this, customer_booking.class));
             finish();
             return;
-        }else {
-            super.onCreate(savedInstanceState);
-            setContentView(R.layout.activity_main);
         }
 
 

@@ -15,6 +15,9 @@ public class User {
 
     private boolean isActive;
 
+    // add isVerified flag for email verification status
+    private boolean isVerified;
+
     public User(String uid, String email, String name, String phone, Timestamp createdAt, boolean isRoleCustomer, boolean isActive, String photoUrl) {
         this.uid = uid;
         this.email = email;
@@ -24,6 +27,8 @@ public class User {
         this.isRoleCustomer = isRoleCustomer;
         this.isActive = isActive;
         this.photoUrl = photoUrl;
+        // default to false until email is verified
+        this.isVerified = false;
 
 
     }
@@ -88,5 +93,8 @@ public class User {
     public void setRoleCustomer(boolean isRoleCustomer) {
         this.isRoleCustomer = isRoleCustomer;
     }
-}
 
+    // isVerified getter/setter
+    public boolean getIsVerified() { return isVerified; }
+    public void setIsVerified(boolean verified) { this.isVerified = verified; }
+}

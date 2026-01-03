@@ -1,12 +1,15 @@
 package com.example.dontjusteat.repositories;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.widget.Toast;
 
 import com.example.dontjusteat.models.User;
 import com.example.dontjusteat.security.InputValidator;
+import com.example.dontjusteat.security.email_verification;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class CreateAccountRepository {
@@ -63,18 +66,37 @@ public class CreateAccountRepository {
                 .addOnCompleteListener(result -> {
                     // Check if account creation was successful
                     if (result.isSuccessful()) {
-                        String userId = auth.getCurrentUser().getUid();
+                        FirebaseUser firebaseUser = auth.getCurrentUser();
+                        if (firebaseUser == null) {
+                            Toast.makeText(activity, "Account creation failed. Please try again.", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        String userId = firebaseUser.getUid();
                         // create user without password - Firebase Auth handles password security
                         User user = new User(userId, sanitizedEmail, sanitizedName, sanitizedPhone, Timestamp.now(), true, false, "");
-
+                        // ensure isVerified saved as false initially
+                        user.setIsVerified(false);
 
                         // save the user data in Firestore
                         db.collection("users").document(userId).set(user)
                                 .addOnCompleteListener(task -> {
                                     // check if saving user data was successful
                                     if (task.isSuccessful()) {
-                                        Toast.makeText(activity, "Account created successfully", Toast.LENGTH_SHORT).show();
-                                        activity.finish();
+                                        // send verification email
+                                        firebaseUser.sendEmailVerification()
+                                                .addOnCompleteListener(sendTask -> {
+                                                    if (sendTask.isSuccessful()) {
+                                                        Toast.makeText(activity, "Verification email sent. Please check your inbox.", Toast.LENGTH_LONG).show();
+                                                        // navigate to email verification screen
+                                                        Intent intent = new Intent(activity, email_verification.class);
+                                                        intent.putExtra("email", sanitizedEmail);
+                                                        activity.startActivity(intent);
+                                                        activity.finish();
+                                                    } else {
+                                                        Toast.makeText(activity, "Failed to send verification email.", Toast.LENGTH_LONG).show();
+                                                    }
+                                                })
+                                                .addOnFailureListener(e -> Toast.makeText(activity, "Failed to send verification email.", Toast.LENGTH_LONG).show());
                                     } else {
                                         Toast.makeText(activity, "Error saving user data", Toast.LENGTH_LONG).show();
                                     }
@@ -89,7 +111,6 @@ public class CreateAccountRepository {
 
 
                 })
-
 
                 .addOnFailureListener(e -> {
                     Toast.makeText(activity, "An error occurred. Please try again.", Toast.LENGTH_LONG).show();

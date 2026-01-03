@@ -70,7 +70,7 @@ dependencies {
     implementation(libs.androidx.recyclerview)
     implementation("com.github.bumptech.glide:glide:4.16.0")
     // Firebase BoM
-    implementation(platform("com.google.firebase:firebase-bom:33.3.0"))
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
 
     // Firebase services
     implementation("com.google.firebase:firebase-auth")

@@ -38,8 +38,6 @@ public class customer_login extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-
         // Check session first (faster than Firebase check)
         SessionManager sessionManager = new SessionManager(this);
         if (sessionManager.isLoggedIn()) {
