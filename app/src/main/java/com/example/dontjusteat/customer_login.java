@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.dontjusteat.model.User;
 import com.example.dontjusteat.repository.LoginRepository;
 import com.example.dontjusteat.repository.CreateAccountRepository;
+import com.example.dontjusteat.security.PasswordValidator;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -106,6 +107,21 @@ public class customer_login extends AppCompatActivity {
             Toast.makeText(this, "Please enter email and password", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        if (!PasswordValidator.isPasswordStrong(password)) {
+            String feedback = PasswordValidator.getPasswordFeedback(password);
+            customerPassword.setError(feedback);
+            Toast.makeText(this, feedback, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (PasswordValidator.isPasswordCompromised(password)) {
+            String feedback = "That password is commonly used. Please choose another.";
+            customerPassword.setError(feedback);
+            Toast.makeText(this, feedback, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         // call signIn method from LoginRepository
         loginRepository.signIn(email, password, this);
     }
@@ -121,6 +137,21 @@ public class customer_login extends AppCompatActivity {
             Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        if (!PasswordValidator.isPasswordStrong(password)) {
+            String feedback = PasswordValidator.getPasswordFeedback(password);
+            customerPassword.setError(feedback);
+            Toast.makeText(this, feedback, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (PasswordValidator.isPasswordCompromised(password)) {
+            String feedback = "That password is commonly used. Please choose another.";
+            customerPassword.setError(feedback);
+            Toast.makeText(this, feedback, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         // call createAccount method from CreateAccountRepository
         createAccountRepository.createAccount(email, password, name, phone, this);
     }
