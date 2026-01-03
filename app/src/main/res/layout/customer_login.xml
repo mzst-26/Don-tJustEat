@@ -201,6 +201,7 @@
             android:clickable="true"
             android:focusable="true"
             android:padding="8dp"
+            android:visibility="gone"
             android:background="?attr/selectableItemBackground" />
 
 
