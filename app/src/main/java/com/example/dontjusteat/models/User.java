@@ -1,4 +1,4 @@
-package com.example.dontjusteat.model;
+package com.example.dontjusteat.models;
 
 
 import com.google.firebase.Timestamp;

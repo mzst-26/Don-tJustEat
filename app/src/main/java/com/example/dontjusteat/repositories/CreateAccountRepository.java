@@ -1,9 +1,9 @@
-package com.example.dontjusteat.repository;
+package com.example.dontjusteat.repositories;
 
 import android.app.Activity;
 import android.widget.Toast;
 
-import com.example.dontjusteat.model.User;
+import com.example.dontjusteat.models.User;
 import com.example.dontjusteat.security.InputValidator;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;

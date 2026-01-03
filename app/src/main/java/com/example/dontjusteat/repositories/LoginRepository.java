@@ -1,4 +1,4 @@
-package com.example.dontjusteat.repository;
+package com.example.dontjusteat.repositories;
 
 import android.content.Intent;
 import android.widget.Toast;
