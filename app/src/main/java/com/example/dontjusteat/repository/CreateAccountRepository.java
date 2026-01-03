@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.widget.Toast;
 
 import com.example.dontjusteat.model.User;
+import com.example.dontjusteat.security.InputValidator;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -20,31 +21,51 @@ public class CreateAccountRepository {
     }
 
     public void createAccount(String email, String password, String name, String phone, Activity activity) {
-        // basic input validation
-        if (email.isEmpty() || password.isEmpty() || name.isEmpty() || phone.isEmpty()) {
+        //sanitize inputs first
+        final String sanitizedEmail = InputValidator.sanitize(email);
+        final String sanitizedName = InputValidator.sanitize(name);
+        final String sanitizedPhone = InputValidator.sanitize(phone);
+
+        // Check for empty fields
+        if (sanitizedEmail.isEmpty() || password.isEmpty() || sanitizedName.isEmpty() || sanitizedPhone.isEmpty()) {
             Toast.makeText(activity, "Please fill in all fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // validate the email format
-        if (!isValidEmail(email)) {
-            Toast.makeText(activity, "Please enter a valid email", Toast.LENGTH_SHORT).show();
+        // Validate email using InputValidator
+        if (!InputValidator.isValidEmail(sanitizedEmail)) {
+            String error = InputValidator.getValidationError("email", sanitizedEmail);
+            Toast.makeText(activity, error, Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // basic password validation
+        // Validate name using InputValidator
+        if (!InputValidator.isValidName(sanitizedName)) {
+            String error = InputValidator.getValidationError("name", sanitizedName);
+            Toast.makeText(activity, error, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Validate phone using InputValidator
+        if (!InputValidator.isValidPhone(sanitizedPhone)) {
+            String error = InputValidator.getValidationError("phone", sanitizedPhone);
+            Toast.makeText(activity, error, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Password validation (minimum 6 characters)
         if (password.length() < 6) {
             Toast.makeText(activity, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        auth.createUserWithEmailAndPassword(email, password)
+        auth.createUserWithEmailAndPassword(sanitizedEmail, password)
                 .addOnCompleteListener(result -> {
                     // Check if account creation was successful
                     if (result.isSuccessful()) {
                         String userId = auth.getCurrentUser().getUid();
                         // create user without password - Firebase Auth handles password security
-                        User user = new User(userId, email, name, phone, Timestamp.now(), true, false, "");
+                        User user = new User(userId, sanitizedEmail, sanitizedName, sanitizedPhone, Timestamp.now(), true, false, "");
 
 
                         // save the user data in Firestore
@@ -75,8 +96,4 @@ public class CreateAccountRepository {
                 });
     }
 
-    private boolean isValidEmail(String email) {
-        return email.matches("^[A-Za-z0-9+_.-]+@(.+)$");
-    }
 }
-

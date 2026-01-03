@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.widget.Toast;
 
 import com.example.dontjusteat.customer_booking;
+import com.example.dontjusteat.security.InputValidator;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -19,13 +20,23 @@ public class LoginRepository {
     }
 
     public void signIn(String email, String password, android.app.Activity activity) {
-        // Validate inputs
-        if (email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(activity, "Please enter email and password", Toast.LENGTH_SHORT).show();
+        //sanitize email input
+        final String sanitizedEmail = InputValidator.sanitize(email);
+
+        // Check for empty input
+        if (password.isEmpty()) {
+            Toast.makeText(activity, "Please enter password", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        auth.signInWithEmailAndPassword(email, password)
+        // validate email format
+        if (!InputValidator.isValidEmail(sanitizedEmail)) {
+            String error = InputValidator.getValidationError("email", sanitizedEmail);
+            Toast.makeText(activity, error, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        auth.signInWithEmailAndPassword(sanitizedEmail, password)
                 .addOnCompleteListener(result -> {
                     // Check if authentication was successful
                     if (result.isSuccessful()) {
@@ -68,4 +79,5 @@ public class LoginRepository {
                 });
     }
 }
+
 
