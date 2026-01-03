@@ -15,6 +15,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import com.example.dontjusteat.security.SessionManager;
 import com.google.firebase.auth.FirebaseAuth;
 
 
@@ -229,8 +230,13 @@ public class customer_profile extends AppCompatActivity {
 
         Intent intent = new Intent(activity, MainActivity.class);
 
-        // sign out from Firebase
-        FirebaseAuth.getInstance().signOut();
+        SessionManager sessionManager = new SessionManager(activity);
+        if (sessionManager.isLoggedIn()) {
+            // clear session data
+            sessionManager.clearSession();
+            // sign out from Firebase
+            FirebaseAuth.getInstance().signOut();
+        }
 
         // clear SharedPreferences
         SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);

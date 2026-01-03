@@ -10,10 +10,11 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.dontjusteat.model.User;
-import com.example.dontjusteat.repository.LoginRepository;
-import com.example.dontjusteat.repository.CreateAccountRepository;
+import com.example.dontjusteat.models.User;
+import com.example.dontjusteat.repositories.LoginRepository;
+import com.example.dontjusteat.repositories.CreateAccountRepository;
 import com.example.dontjusteat.security.PasswordValidator;
+import com.example.dontjusteat.security.SessionManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -39,9 +40,11 @@ public class customer_login extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
 
-        if (firebaseUser != null) {
-            // User is logged in, go to main activity
-            startActivity(new Intent(this, customer_booking.class)); // Replace with your main activity
+        // Check session first (faster than Firebase check)
+        SessionManager sessionManager = new SessionManager(this);
+        if (sessionManager.isLoggedIn()) {
+            // User has active session, skip login
+            startActivity(new Intent(this, customer_booking.class));
             finish();
             return;
         }

@@ -5,6 +5,7 @@ import android.widget.Toast;
 
 import com.example.dontjusteat.customer_booking;
 import com.example.dontjusteat.security.InputValidator;
+import com.example.dontjusteat.security.SessionManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -49,6 +50,12 @@ public class LoginRepository {
                                     if (document.isSuccessful() && document.getResult() != null) {
                                         // Check if the user is a customer
                                         if (Boolean.TRUE.equals(document.getResult().getBoolean("roleCustomer"))) {
+                                            SessionManager sessionManager = new SessionManager(activity);
+                                            sessionManager.saveSession(
+                                                    userId,
+                                                    sanitizedEmail,
+                                                    true
+                                            );
                                             // navigate to customer booking activity and give them a notification message
                                             Toast.makeText(activity, "Login successful", Toast.LENGTH_SHORT).show();
                                             Intent intent = new Intent(activity, customer_booking.class);
