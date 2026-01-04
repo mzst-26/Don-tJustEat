@@ -23,6 +23,15 @@ public class PasswordValidator {
     // Maximum 128 characters
     private static final int MAX_PASSWORD_LENGTH = 128;
 
+    // to avoid crashes in local unit tests
+    private static void logWarning(String message) {
+        try {
+            Log.w(TAG, message);
+        } catch (Throwable ignored) {
+            //ignore logging errors during unit tests
+        }
+    }
+
 
     //check the strength
 
@@ -41,7 +50,7 @@ public class PasswordValidator {
     public static boolean isPasswordStrong(String password) {
         // is password empty or null?
         if (password == null || password.isEmpty()) {
-            Log.w(TAG, "Password is null or empty");
+            logWarning("Password is null or empty");
             return false;
         }
 
@@ -49,33 +58,33 @@ public class PasswordValidator {
         // password must be between 8 and 128 characters
 
         if (password.length() < MIN_PASSWORD_LENGTH || password.length() > MAX_PASSWORD_LENGTH) {
-            Log.w(TAG, "Password length invalid: " + password.length());
+            logWarning("Password length invalid: " + password.length());
             return false;
         }
 
         // check if there is at least one uppercase letter
         if (!password.matches(".*[A-Z].*")) {
-            Log.w(TAG, "Password missing uppercase letter");
+            logWarning("Password missing uppercase letter");
             return false;
         }
 
         // check for one lower case
 
         if (!password.matches(".*[a-z].*")) {
-            Log.w(TAG, "Password missing lowercase letter");
+            logWarning("Password missing lowercase letter");
             return false;
         }
 
         //check for one digit
         if (!password.matches(".*\\d.*")) {
-            Log.w(TAG, "Password missing digit");
+            logWarning("Password missing digit");
             return false;
         }
 
         // Check for at least one special character
         if (!password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};:'\",.<>?/\\\\|`~].*")) {
 
-            Log.w(TAG, "Password missing special character");
+            logWarning("Password missing special character");
             return false;
         }
 
@@ -350,7 +359,7 @@ public class PasswordValidator {
         // Check each common password
         for (String commonPassword : commonPasswords) {
             if (password.equalsIgnoreCase(commonPassword)) {
-                Log.w(TAG, "Password is commonly used");
+                logWarning("Password is commonly used");
                 return true; // This password is compromised!
             }
         }
