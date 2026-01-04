@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@color/white">
+
+    <TextView
+        android:id="@+id/verification_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="A verification link was sent to your email."
+        android:padding="12dp"
+        android:gravity="center"
+        style="@style/text_normal"
+        android:textColor="@color/black"
+        />
+
+    <TextView
+        android:id="@+id/email_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Please check your spam folder if you don't see the email."
+        android:textSize="12sp"
+        android:padding="12dp"
+        android:gravity="center"
+        android:textColor="@color/red_button"
+        android:layout_marginBottom="30dp"/>
+
+    <Button
+        android:id="@+id/resend_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Resend verification email"
+        style="@style/AppButton.Secondary"
+        android:textColor="@color/black"/>
+
+    <Button
+        android:id="@+id/check_verified_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="I've verified, continue"
+        android:layout_marginTop="12dp"
+        style="@style/AppButton.Primary"
+        android:textColor="@color/white"/>
+
+
+
+
+</LinearLayout>
+

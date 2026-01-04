@@ -42,26 +42,88 @@
             />
 
         <TextView
+<<<<<<< HEAD
+            android:id="@+id/pageTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sign in to your Account."
+=======
             android:id="@+id/text.title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Customer Sign in/Sign up"
+>>>>>>> origin/main
             android:gravity="center"
             style="@style/text_title"/>
 
         <TextView
+<<<<<<< HEAD
+            android:id="@+id/page_description"
+=======
             android:id="@+id/textView3"
+>>>>>>> origin/main
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:textSize="17sp"
+<<<<<<< HEAD
+            android:text="Enter your email and password to sign in or create a new account using the blue link." />
+
+        <EditText
+            android:id="@+id/customerName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textAutoCorrect"
+            android:hint="Jack Smith"
+            android:textColor="@color/black"
+            android:textColorHint="@color/active_grey"
+            android:padding="10dp"
+            android:layout_margin="16dp"
+            android:minHeight="48dp"
+            android:visibility="gone"
+            />
+
+        <EditText
+            android:id="@+id/customer_phone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="phone"
+            android:hint="07812345678"
+            android:textColor="@color/black"
+            android:textColorHint="@color/active_grey"
+            android:padding="10dp"
+            android:layout_margin="16dp"
+            android:minHeight="48dp"
+            android:visibility="gone"
+            />
+
+=======
             android:text="Enter your email to sign up for this app" />
+>>>>>>> origin/main
         <EditText
             android:id="@+id/customerEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textEmailAddress"
             android:hint="example@example.com"
+<<<<<<< HEAD
+            android:textColor="@color/black"
+            android:textColorHint="@color/active_grey"
+            android:padding="10dp"
+            android:layout_margin="16dp"
+            android:minHeight="48dp"
+            />
+
+        <EditText
+            android:id="@+id/customer_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+            android:hint="•••••••••"
+            android:textColor="@color/black"
+            android:textColorHint="@color/active_grey"
+=======
+>>>>>>> origin/main
             android:padding="10dp"
             android:layout_margin="16dp"
             android:minHeight="48dp"
@@ -76,6 +138,38 @@
             android:layout_margin="5dp"
              />
 
+<<<<<<< HEAD
+        <TextView
+            android:id="@+id/create_an_account"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:gravity="center"
+            android:textColor="@color/blue_link"
+            android:text="@string/create_an_account_string"
+            android:textSize="10sp"
+            android:clickable="true"
+            android:focusable="true"
+            />
+
+        <TextView
+            android:id="@+id/forgot_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:gravity="center"
+            android:textColor="@color/blue_link"
+            android:text="Forgot Password?"
+            android:textSize="10sp"
+            android:clickable="true"
+            android:focusable="true"
+            />
+
+
+=======
+>>>>>>> origin/main
 
 
 
@@ -124,7 +218,11 @@
             android:id="@+id/customer_google_sign_in"
             android:layout_width="match_parent"
             android:layout_height="60dp"
+<<<<<<< HEAD
+            app:srcCompat="@drawable/continue_with_google_dark"
+=======
             app:srcCompat="@drawable/google_sign_in"
+>>>>>>> origin/main
             android:contentDescription="Google Sign-In"
             android:clickable="true"
             android:focusable="true"
@@ -142,6 +240,10 @@
             android:clickable="true"
             android:focusable="true"
             android:padding="8dp"
+<<<<<<< HEAD
+            android:visibility="gone"
+=======
+>>>>>>> origin/main
             android:background="?attr/selectableItemBackground" />
 
 

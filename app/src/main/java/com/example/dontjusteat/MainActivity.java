@@ -6,11 +6,36 @@ import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
 
+<<<<<<< HEAD
+import com.example.dontjusteat.security.SessionManager;
+
+public class MainActivity extends AppCompatActivity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        // Check session first (faster than Firebase check)
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_main);
+        SessionManager sessionManager = new SessionManager(this);
+        if (sessionManager.isLoggedIn() && sessionManager.getSession().isCustomer) {
+            // User has active session, skip login
+            startActivity(new Intent(this, customer_booking.class));
+            finish();
+            return;
+        }else if (sessionManager.isLoggedIn() && sessionManager.getSession().isStaff) {
+            // User has active session, skip login
+            startActivity(new Intent(this, admin_dashboard.class));
+            finish();
+            return;
+        }
+
+
+=======
 public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+>>>>>>> origin/main
 
         // Customer access button
         Button customerButton = findViewById(R.id.button_Customer_Access);

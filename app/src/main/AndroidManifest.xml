@@ -2,6 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" >
 
+<<<<<<< HEAD
+    <uses-permission android:name="android.permission.INTERNET" />
+
+=======
+>>>>>>> origin/main
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -23,6 +28,10 @@
         </activity>
         <activity android:name=".customer_login" />
         <activity android:name=".staff_login" />
+<<<<<<< HEAD
+        <activity android:name=".security.email_verification" />
+=======
+>>>>>>> origin/main
         <activity android:name=".customer_booking" />
         <activity android:name=".customer_location_detail" />
         <activity android:name=".booking_summary" />

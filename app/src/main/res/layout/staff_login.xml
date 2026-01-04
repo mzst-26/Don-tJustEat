@@ -45,7 +45,11 @@
             android:id="@+id/text.title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+<<<<<<< HEAD
+            android:text="Sign in to your Staff Account."
+=======
             android:text="Staff Sign in/Sign up"
+>>>>>>> origin/main
             android:gravity="center"
             style="@style/text_title"/>
 
@@ -55,7 +59,11 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:textSize="17sp"
+<<<<<<< HEAD
+            android:text="Enter your email and password to sign in." />
+=======
             android:text="Enter your email to sign up for this app" />
+>>>>>>> origin/main
         <EditText
             android:id="@+id/customerEmail"
             android:layout_width="match_parent"
@@ -67,6 +75,23 @@
             android:minHeight="48dp"
             />
 
+<<<<<<< HEAD
+        <EditText
+            android:id="@+id/admin_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+            android:hint="•••••••••"
+            android:textColor="@color/black"
+            android:textColorHint="@color/active_grey"
+            android:padding="10dp"
+            android:layout_margin="16dp"
+            android:minHeight="48dp"
+            />
+
+
+=======
+>>>>>>> origin/main
         <Button
             android:id="@+id/admin_sign_in_with_email"
             android:layout_width="match_parent"
@@ -77,6 +102,24 @@
              />
 
 
+<<<<<<< HEAD
+        <TextView
+            android:id="@+id/forgot_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:gravity="center"
+            android:textColor="@color/blue_link"
+            android:text="Forgot Password?"
+            android:textSize="10sp"
+            android:clickable="true"
+            android:focusable="true"
+            />
+
+
+=======
+>>>>>>> origin/main
 
 
 
@@ -124,7 +167,11 @@
             android:id="@+id/customer_google_sign_in"
             android:layout_width="match_parent"
             android:layout_height="60dp"
+<<<<<<< HEAD
+            app:srcCompat="@drawable/continue_with_google_dark"
+=======
             app:srcCompat="@drawable/google_sign_in"
+>>>>>>> origin/main
             android:contentDescription="Google Sign-In"
             android:clickable="true"
             android:focusable="true"
@@ -142,7 +189,12 @@
             android:clickable="true"
             android:focusable="true"
             android:padding="8dp"
+<<<<<<< HEAD
+            android:background="?attr/selectableItemBackground"
+            android:visibility="gone"/>
+=======
             android:background="?attr/selectableItemBackground" />
+>>>>>>> origin/main
 
 
 

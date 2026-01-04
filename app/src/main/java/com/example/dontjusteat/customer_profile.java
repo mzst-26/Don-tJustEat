@@ -15,6 +15,11 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+<<<<<<< HEAD
+import com.example.dontjusteat.security.SessionManager;
+import com.google.firebase.auth.FirebaseAuth;
+=======
+>>>>>>> origin/main
 
 
 public class customer_profile extends AppCompatActivity {
@@ -149,7 +154,11 @@ public class customer_profile extends AppCompatActivity {
         // Handle logout button click
         View logoutButton = findViewById(R.id.logout_button);
         // Set click listener on the logout button and handle the logout action
+<<<<<<< HEAD
+        logoutButton.setOnClickListener(v -> Modules.logoutAction(this));
+=======
         logoutButton.setOnClickListener(v -> logoutAction(this));
+>>>>>>> origin/main
     }
 
     private void saveName(String name) {
@@ -225,9 +234,32 @@ public class customer_profile extends AppCompatActivity {
     }
 
     private void logoutAction(Activity activity){
+<<<<<<< HEAD
+
+        Intent intent = new Intent(activity, MainActivity.class);
+
+        SessionManager sessionManager = new SessionManager(activity);
+        if (sessionManager.isLoggedIn()) {
+            // clear session data
+            sessionManager.clearSession();
+            // sign out from Firebase
+            FirebaseAuth.getInstance().signOut();
+        }
+
+        // clear SharedPreferences
+        SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        sharedPreferences.edit().clear().apply();
+
+        // redirect to login page
+        intent = new Intent(activity, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+=======
         // for now we just navigate to the mainActivity then later will add the logout logic
         Intent intent = new Intent(activity, MainActivity.class);
         startActivities(new Intent[]{intent});
+>>>>>>> origin/main
 
 
     }
