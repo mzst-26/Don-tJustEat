@@ -1,11 +1,15 @@
 import org.gradle.testing.jacoco.tasks.JacocoReport
+<<<<<<< HEAD
 import java.io.File
+=======
+>>>>>>> origin/main
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     jacoco
 }
 
+<<<<<<< HEAD
 // apply the google services plugin conditionally
 val googleServicesFile = File(project.projectDir, "app/google-services.json")
 
@@ -13,6 +17,8 @@ if (googleServicesFile.exists()) {
     plugins.apply("com.google.gms.google-services")
 }
 
+=======
+>>>>>>> origin/main
 android {
     namespace = "com.example.dontjusteat"
     compileSdk = 36
@@ -37,11 +43,19 @@ android {
         }
     }
     compileOptions {
+<<<<<<< HEAD
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
         jvmTarget = "17"
+=======
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = "11"
+>>>>>>> origin/main
     }
 
     lint {
@@ -52,6 +66,7 @@ android {
     testOptions {
         unitTests.isIncludeAndroidResources = true
     }
+<<<<<<< HEAD
 
     packaging {
         resources {
@@ -61,6 +76,8 @@ android {
             )
         }
     }
+=======
+>>>>>>> origin/main
 }
 
 dependencies {
@@ -76,6 +93,7 @@ dependencies {
     implementation(libs.androidx.core)
     implementation(libs.androidx.recyclerview)
     implementation("com.github.bumptech.glide:glide:4.16.0")
+<<<<<<< HEAD
     // Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
 
@@ -83,6 +101,8 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-storage")
+=======
+>>>>>>> origin/main
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -13,6 +13,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+<<<<<<< HEAD
 import com.example.dontjusteat.security.SessionManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -21,6 +22,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.firebase.firestore.DocumentSnapshot;
 
+=======
+>>>>>>> origin/main
 public class Modules {
 
     // Call this AFTER setContentView(...), pass your actual root view id
@@ -133,6 +136,7 @@ public class Modules {
     }
 
 
+<<<<<<< HEAD
     public static void logoutAction(Activity activity){
         // Clear local session
         try {
@@ -163,5 +167,7 @@ public class Modules {
 
 
 
+=======
+>>>>>>> origin/main
 
 }
