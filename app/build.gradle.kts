@@ -1,9 +1,16 @@
 import org.gradle.testing.jacoco.tasks.JacocoReport
+import java.io.File
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    id("com.google.gms.google-services")
     jacoco
+}
+
+// apply the google services plugin conditionally
+val googleServicesFile = File(project.projectDir, "app/google-services.json")
+
+if (googleServicesFile.exists()) {
+    plugins.apply("com.google.gms.google-services")
 }
 
 android {
