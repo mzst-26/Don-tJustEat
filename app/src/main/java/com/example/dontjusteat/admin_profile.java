@@ -15,11 +15,8 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
-<<<<<<< HEAD
 import com.example.dontjusteat.security.SessionManager;
 import com.google.firebase.auth.FirebaseAuth;
-=======
->>>>>>> origin/main
 
 
 public class admin_profile extends AppCompatActivity {
@@ -159,11 +156,7 @@ public class admin_profile extends AppCompatActivity {
         // Handle logout button click
         View logoutButton = findViewById(R.id.logout_button);
         // Set click listener on the logout button and handle the logout action
-<<<<<<< HEAD
         logoutButton.setOnClickListener(v -> Modules.logoutAction(this));
-=======
-        logoutButton.setOnClickListener(v -> logoutAction(this));
->>>>>>> origin/main
     }
 
     private void saveName(String name) {
@@ -238,9 +231,6 @@ public class admin_profile extends AppCompatActivity {
         }
     }
 
-<<<<<<< HEAD
-
-=======
     private void logoutAction(Activity activity){
         // for now we just navigate to the mainActivity then later will add the logout logic
         Intent intent = new Intent(activity, MainActivity.class);
@@ -248,5 +238,4 @@ public class admin_profile extends AppCompatActivity {
 
 
     }
->>>>>>> origin/main
 }

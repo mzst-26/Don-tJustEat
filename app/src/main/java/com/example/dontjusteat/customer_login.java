@@ -3,7 +3,6 @@ package com.example.dontjusteat;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
-<<<<<<< HEAD
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -88,33 +87,19 @@ public class customer_login extends AppCompatActivity {
             return;
         }
 
-=======
-import android.widget.ImageView;
-
-import androidx.appcompat.app.AppCompatActivity;
-
-public class customer_login extends AppCompatActivity {
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
->>>>>>> origin/main
         super.onCreate(savedInstanceState);
         // This line loads the XML layout and displays it on the screen
         setContentView(R.layout.customer_login);
 
-<<<<<<< HEAD
         // initialize repositories
         loginRepository = new LoginRepository();
         createAccountRepository = new CreateAccountRepository();
 
-=======
->>>>>>> origin/main
         //Back button
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> finish());
 
         //Sign in with email button (for testing only)
-<<<<<<< HEAD
         signInWithEmailButton = findViewById(R.id.sign_in_with_email);
         forgotPasswordLinkButton = findViewById(R.id.forgot_password);
         emailEditText = findViewById(R.id.customerEmail);
@@ -374,14 +359,5 @@ public class customer_login extends AppCompatActivity {
         customerPassword.setText("");
         customerNameEditText.setText("");
         customerPhoneEditText.setText("");
-=======
-        Button signInWithEmailButton = findViewById(R.id.sign_in_with_email);
-
-        signInWithEmailButton.setOnClickListener(v -> {
-            Intent intent = new Intent(customer_login.this, customer_booking.class);
-            startActivity(intent);
-        });
-
->>>>>>> origin/main
     }
 }
