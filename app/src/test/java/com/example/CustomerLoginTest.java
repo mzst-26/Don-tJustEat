@@ -161,7 +161,51 @@ public class CustomerLoginTest {
         assertFalse("Email with spaces should fail", isValidEmail("test @example.com"));
     }
 
-    
+    // phone number validation tests
+
+
+    @Test
+    public void testPhoneValidation_ValidPhone() {
+        // Test valid phone numbers
+        assertTrue("Valid 10-digit phone should pass", isValidPhone("1234567890"));
+        assertTrue("Valid phone with dashes should pass", isValidPhone("123-456-7890"));
+        assertTrue("Valid phone with spaces should pass", isValidPhone("123 456 7890"));
+        assertTrue("Valid phone with parentheses should pass", isValidPhone("(123) 456-7890"));
+    }
+
+
+    @Test
+    public void testPhoneValidation_InvalidPhone() {
+        // Test invalid phone numbers
+        assertFalse("Phone with letters should fail", isValidPhone("12345abcde"));
+        assertFalse("Phone too short should fail", isValidPhone("12345"));
+        assertFalse("Empty phone should fail", isValidPhone(""));
+        assertFalse("Null phone should fail", isValidPhone(null));
+    }
+
+
+    // name validation tests
+
+    @Test
+    public void testNameValidation_ValidName() {
+        // Test valid names
+        assertTrue("Simple name should pass", isValidName("John"));
+        assertTrue("Full name should pass", isValidName("John Doe"));
+        assertTrue("Name with hyphens should pass", isValidName("Mary-Jane"));
+        assertTrue("Name with apostrophe should pass", isValidName("O'Connor"));
+    }
+
+
+    @Test
+    public void testNameValidation_InvalidName() {
+        // Test invalid names
+        assertFalse("Name with numbers should fail", isValidName("John123"));
+        assertFalse("Name with special characters should fail", isValidName("John@Doe"));
+        assertFalse("Empty name should fail", isValidName(""));
+        assertFalse("Null name should fail", isValidName(null));
+        assertFalse("Name too short should fail", isValidName("A"));
+    }
+
     //Helper methods
 
     // validate email format
@@ -173,4 +217,23 @@ public class CustomerLoginTest {
         return email.matches(emailPattern);
     }
 
+   // validate phone format
+    private boolean isValidPhone(String phone) {
+        if (phone == null || phone.isEmpty()) {
+            return false;
+        }
+        // remove formatting characters and check if remaining is 10 digits
+        String digitsOnly = phone.replaceAll("[^0-9]", "");
+        return digitsOnly.length() == 10;
+    }
+
+    //validate name format
+    private boolean isValidName(String name) {
+        if (name == null || name.isEmpty() || name.length() < 2) {
+            return false;
+        }
+        // this allows letters, spaces, hyphens, and apostrophes
+        String namePattern = "^[A-Za-z\\s'-]+$";
+        return name.matches(namePattern);
+    }
 }
