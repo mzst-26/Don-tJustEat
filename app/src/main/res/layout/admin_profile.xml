@@ -138,7 +138,7 @@
                         android:id="@+id/tv_admin_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Jack Smith"
+                        android:text=""
                         android:gravity="center"
                         style="@style/text_normal"
                         android:layout_marginRight="4dp"
@@ -149,7 +149,7 @@
                         android:id="@+id/et_admin_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Jack Smith"
+                        android:text=""
                         android:gravity="center"
                         android:visibility="gone"
                         android:inputType="textPersonName"
@@ -173,9 +173,10 @@
 
                 <!--admin reference number -->
                 <TextView
+                    android:id="@+id/tv_admin_id"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Admin ID: #12312"
+                    android:text="Admin ID: #----"
                     android:gravity="center"
                     style="@style/text_normal"
                     android:textColor="#80000000"
@@ -183,7 +184,7 @@
 
                 <!-- Location Name (where they work) -->
                 <TextView
-                    android:id="@+id/tv_location_name"
+                    android:id="@+id/tv_admin_location"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text=""
@@ -192,16 +193,6 @@
                     android:textColor="@color/black"
                     android:layout_marginTop="6dp" />
 
-                <!-- Location Name (where admin works) -->
-                <TextView
-                    android:id="@+id/tv_admin_location"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Location: Bristol - Soho"
-                    android:gravity="center"
-                    style="@style/text_normal"
-                    android:textColor="@color/black"
-                    android:layout_marginTop="6dp" />
             </LinearLayout>
 
             <LinearLayout
@@ -234,7 +225,7 @@
                         android:id="@+id/tv_admin_phone"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="7864312808"
+                        android:text=""
                         android:gravity="center"
                         style="@style/text_normal"
                         />
