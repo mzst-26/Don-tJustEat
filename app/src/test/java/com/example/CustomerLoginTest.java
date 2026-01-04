@@ -107,4 +107,70 @@ public class CustomerLoginTest {
                     PasswordValidator.isPasswordStrong(password));
         }
     }
+
+    //Password feedback tests
+
+    @Test
+    public void testPasswordFeedback_NullPassword() {
+        // test feedback for null password
+        String feedback = PasswordValidator.getPasswordFeedback(null);
+        assertEquals("Should return 'Password is required' for null",
+                "Password is required", feedback);
+    }
+
+
+    @Test
+    public void testPasswordFeedback_EmptyPassword() {
+        // test feedback for empty password
+        String feedback = PasswordValidator.getPasswordFeedback("");
+        assertEquals("Should return 'Password is required' for empty string",
+                "Password is required", feedback);
+    }
+
+
+    @Test
+    public void testPasswordFeedback_ShortPassword() {
+        // test feedback for password that's too short
+        String feedback = PasswordValidator.getPasswordFeedback("Pass1!");
+        assertTrue("Should mention minimum length",
+                feedback.contains("8"));
+    }
+
+
+    //email validation tests
+
+
+    @Test
+    public void testEmailValidation_ValidEmail() {
+        // Test valid email formats
+        assertTrue("Valid email should pass", isValidEmail("test@example.com"));
+        assertTrue("Valid email with subdomain should pass", isValidEmail("test@mail.example.com"));
+        assertTrue("Valid email with numbers should pass", isValidEmail("test123@example.com"));
+        assertTrue("Valid email with dots should pass", isValidEmail("test.user@example.com"));
+    }
+
+
+    @Test
+    public void testEmailValidation_InvalidEmail() {
+        // Test invalid email formats
+        assertFalse("Email without @ should fail", isValidEmail("testexample.com"));
+        assertFalse("Email without domain should fail", isValidEmail("test@"));
+        assertFalse("Email without username should fail", isValidEmail("@example.com"));
+        assertFalse("Empty email should fail", isValidEmail(""));
+        assertFalse("Null email should fail", isValidEmail(null));
+        assertFalse("Email with spaces should fail", isValidEmail("test @example.com"));
+    }
+
+    
+    //Helper methods
+
+    // validate email format
+    private boolean isValidEmail(String email) {
+        if (email == null || email.isEmpty()) {
+            return false;
+        }
+        String emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+        return email.matches(emailPattern);
+    }
+
 }
