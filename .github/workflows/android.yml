@@ -28,14 +28,14 @@ jobs:
     - name: Check for Duplicate IDs
       run: python3 id_checker.py
 
-    - name: Run Android Lint
-      run: ./gradlew lint
+    - name: Run Android Lint (app debug)
+      run: ./gradlew :app:lintDebug --stacktrace --warning-mode all
 
-    - name: Run Unit Tests
-      run: ./gradlew testDebugUnitTest
+    - name: Run Unit Tests (app debug)
+      run: ./gradlew :app:testDebugUnitTest --stacktrace --warning-mode all
 
     - name: Generate Jacoco Coverage Report
-      run: ./gradlew jacocoTestReport
+      run: ./gradlew :app:jacocoTestReport --stacktrace --warning-mode all
 
     - name: Upload Coverage Report
       uses: actions/upload-artifact@v4
@@ -46,4 +46,4 @@ jobs:
           app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
 
     - name: Build with Gradle
-      run: ./gradlew build
+      run: ./gradlew :app:build --stacktrace --warning-mode all
