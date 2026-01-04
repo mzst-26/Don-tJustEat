@@ -37,37 +37,27 @@ public class admin_profile extends AppCompatActivity {
 
         editHelper = new ProfileEditHelper(this);
         preferencesRepository = new PreferencesRepository(this);
-        //Back button
+
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> finish());
 
-        // Apply window insets
         Modules.applyWindowInsets(this, R.id.rootView);
-
-        // Handle admin menu navigation
         admin_modules.handleMenuNavigation(this);
 
-        //logic that handles the user profile
-        // initialize the UI components
         View profileImageContainer = findViewById(R.id.profile_image_container);
         profileImageView = findViewById(R.id.profile_image_view);
         ImageView editIcon = findViewById(R.id.editIcon);
-        // load the initial photo
+
         editHelper.loadInitialPhoto(profileImageView);
 
-        // register the photo picker activity result launcher
         pickMedia = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
             if (uri != null) {
-                // User selected a new image
                 String uriString = uri.toString();
-                setUserImage(uriString); // Update UI immediately
-
-            } else {
-                // The user ignored the picker
+                setUserImage(uriString);
+                editHelper.savePhoto(uriString);
             }
         });
 
-        // Set click listener on the container to open the picker
         if (profileImageContainer != null) {
             editIcon.setOnClickListener(v -> openImagePicker());
         }
@@ -83,13 +73,14 @@ public class admin_profile extends AppCompatActivity {
         }
     }
 
-
     private void setupNameEditing() {
         TextView tvAdminName = findViewById(R.id.tv_admin_name);
         EditText etAdminName = findViewById(R.id.et_admin_name);
         ImageView editNameButton = findViewById(R.id.admin_name_edit_button);
 
-
+        boolean[] isEditing = {isEditingName};
+        editHelper.setupNameEditing(tvAdminName, etAdminName, editNameButton, isEditing);
+        isEditingName = isEditing[0];
     }
 
     private void setupPhoneEditing() {
@@ -97,7 +88,9 @@ public class admin_profile extends AppCompatActivity {
         EditText etAdminPhone = findViewById(R.id.et_admin_phone);
         ImageView editPhoneButton = findViewById(R.id.admin_phone_edit_button);
 
-
+        boolean[] isEditing = {isEditingPhone};
+        editHelper.setupPhoneEditing(tvAdminPhone, etAdminPhone, editPhoneButton, isEditing);
+        isEditingPhone = isEditing[0];
     }
 
     private void handleLogout() {

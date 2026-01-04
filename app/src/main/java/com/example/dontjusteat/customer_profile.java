@@ -17,6 +17,7 @@ import com.bumptech.glide.Glide;
 import com.example.dontjusteat.helpers.ProfileEditHelper;
 import com.example.dontjusteat.models.UserPreferences;
 import com.example.dontjusteat.repositories.PreferencesRepository;
+import com.example.dontjusteat.repositories.UserProfileRepository;
 
 
 public class customer_profile extends AppCompatActivity {
@@ -34,35 +35,29 @@ public class customer_profile extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.customer_profile);
 
+        editHelper = new ProfileEditHelper(this);
         preferencesRepository = new PreferencesRepository(this);
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> finish());
 
-        // Apply window insets
         Modules.applyWindowInsets(this, R.id.rootView);
-
-        // Handle menu navigation
         Modules.handleMenuNavigation(this);
 
-        //logic that handles the user profile
-        // initialize the UI components
         View profileImageContainer = findViewById(R.id.profile_image_container);
         profileImageView = findViewById(R.id.profile_image_view);
         ImageView editIcon = findViewById(R.id.editIcon);
 
         editHelper.loadInitialPhoto(profileImageView);
 
-        // register the photo picker activity result launcher
         pickMedia = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
             if (uri != null) {
-                // User selected a new image
                 String uriString = uri.toString();
                 setUserImage(uriString);
+                editHelper.savePhoto(uriString);
             }
         });
 
-        // Set click listener on the container to open the picker
         if (profileImageContainer != null) {
             editIcon.setOnClickListener(v -> openImagePicker());
         }
@@ -71,7 +66,6 @@ public class customer_profile extends AppCompatActivity {
         setupPhoneEditing();
         setupPreferences();
         handleLogout();
-
     }
 
     private void setupNameEditing() {
@@ -79,7 +73,9 @@ public class customer_profile extends AppCompatActivity {
         EditText etCustomerName = findViewById(R.id.et_customer_name);
         ImageView editNameButton = findViewById(R.id.customer_name_edit_button);
 
-
+        boolean[] isEditing = {isEditingName};
+        editHelper.setupNameEditing(tvCustomerName, etCustomerName, editNameButton, isEditing);
+        isEditingName = isEditing[0];
     }
 
     private void setupPhoneEditing() {
@@ -87,7 +83,9 @@ public class customer_profile extends AppCompatActivity {
         EditText etPhoneNumber = findViewById(R.id.et_customer_phone);
         ImageView editPhoneButton = findViewById(R.id.customer_phone_edit_button);
 
-
+        boolean[] isEditing = {isEditingPhone};
+        editHelper.setupPhoneEditing(tvPhoneNumber, etPhoneNumber, editPhoneButton, isEditing);
+        isEditingPhone = isEditing[0];
     }
 
     private void handleLogout() {
