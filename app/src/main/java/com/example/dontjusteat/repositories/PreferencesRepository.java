@@ -1,8 +1,9 @@
 package com.example.dontjusteat.repositories;
 
-
+import android.content.Context;
 
 import com.example.dontjusteat.models.UserPreferences;
+import com.example.dontjusteat.security.SessionManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.Timestamp;
@@ -12,14 +13,28 @@ public class PreferencesRepository {
     // firebase instances
     private final FirebaseFirestore db;
     private final FirebaseAuth auth;
+    private final Context context;
 
 
     // Constructor
-    public PreferencesRepository() {
+    public PreferencesRepository(Context context) {
         this.db = FirebaseFirestore.getInstance();
         this.auth = FirebaseAuth.getInstance();
+        this.context = context;
     }
 
+    // helper methods to get user type and get current user ID
+    private String getCollectionName() {
+        // check session for user type
+        SessionManager sessionManager = new SessionManager(context);
+        SessionManager.SessionData session = sessionManager.getSession();
+
+        // return the right collection name
+        if (session != null && session.isStaff) {
+            return "admins";
+        }
+        return "users";
+    }
 
     // Get current user id
     private String getCurrentUserId() {
@@ -34,11 +49,12 @@ public class PreferencesRepository {
             listener.onFailure("User not authenticated");
             return;
         }
-
+        // get the right collection name
+        String collection = getCollectionName();
         String preferencesDocId = userId + "_preferences";
 
         // save the preferences
-        db.collection("users").document(userId).collection("preferences").document(preferencesDocId)
+        db.collection(collection).document(userId).collection("preferences").document(preferencesDocId)
                 .set(preferences)
                 .addOnSuccessListener(v -> listener.onSuccess())
                 .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
@@ -51,11 +67,12 @@ public class PreferencesRepository {
             listener.onFailure("User not authenticated");
             return;
         }
-
+        // get the right collection name
+        String collection = getCollectionName();
         String preferencesDocId = userId + "_preferences";
 
         // load the preferences
-        db.collection("users").document(userId).collection("preferences").document(preferencesDocId)
+        db.collection(collection).document(userId).collection("preferences").document(preferencesDocId)
                 .get()
                 .addOnSuccessListener(document -> {
                     if (document.exists()) {
@@ -69,7 +86,13 @@ public class PreferencesRepository {
                             listener.onFailure("Failed to parse preferences");
                         }
                     } else {
-
+                        // f the document doesn't exist create default preferences
+                        UserPreferences defaultPreferences = new UserPreferences(userId, true, true);
+                        // save the default preferences
+                        db.collection(collection).document(userId).collection("preferences").document(preferencesDocId)
+                                .set(defaultPreferences)
+                                .addOnSuccessListener(v -> listener.onSuccess(defaultPreferences))
+                                .addOnFailureListener(e -> listener.onPreferencesNotFound());
                     }
                 })
                 .addOnFailureListener(e -> listener.onPreferencesNotFound());
@@ -83,12 +106,13 @@ public class PreferencesRepository {
             listener.onFailure("User not authenticated");
             return;
         }
-
+        // get the right collection name
+        String collection = getCollectionName();
         String preferencesDocId = userId + "_preferences";
 
 
         // update the preferences
-        db.collection("users").document(userId).collection("preferences").document(preferencesDocId)
+        db.collection(collection).document(userId).collection("preferences").document(preferencesDocId)
                 // update the offersAndDiscounts field
                 .update("offersAndDiscounts", value, "lastUpdated", Timestamp.now())
                 // call the relevant listener method
@@ -104,10 +128,11 @@ public class PreferencesRepository {
             listener.onFailure("User not authenticated");
             return;
         }
-
+        // get the right collection name
+        String collection = getCollectionName();
         String preferencesDocId = userId + "_preferences";
         // update the preferences
-        db.collection("users").document(userId).collection("preferences").document(preferencesDocId)
+        db.collection(collection).document(userId).collection("preferences").document(preferencesDocId)
                 // update the secondaryUpdates field
                 .update("secondaryUpdates", value, "lastUpdated", Timestamp.now())
                 .addOnSuccessListener(v -> listener.onSuccess())
