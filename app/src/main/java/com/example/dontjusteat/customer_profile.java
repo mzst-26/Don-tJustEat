@@ -18,6 +18,7 @@ import com.example.dontjusteat.helpers.ProfileEditHelper;
 import com.example.dontjusteat.models.UserPreferences;
 import com.example.dontjusteat.repositories.PreferencesRepository;
 import com.example.dontjusteat.repositories.UserProfileRepository;
+import com.google.firebase.auth.FirebaseAuth;
 
 
 public class customer_profile extends AppCompatActivity {
@@ -65,7 +66,16 @@ public class customer_profile extends AppCompatActivity {
         setupNameEditing();
         setupPhoneEditing();
         setupPreferences();
+        displayCustomerId();
         handleLogout();
+    }
+
+    private void displayCustomerId() {
+        TextView tvCustomerID = findViewById(R.id.tv_customer_id);
+        if (tvCustomerID != null) {
+            String customerID = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            tvCustomerID.setText("ID: " + customerID.substring(0, 5));
+        }
     }
 
     private void setupNameEditing() {

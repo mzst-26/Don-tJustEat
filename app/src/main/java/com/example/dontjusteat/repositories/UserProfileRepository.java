@@ -78,6 +78,41 @@ public class UserProfileRepository {
                 .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
     }
 
+    // load admin/user location
+    public void loadLocationName(OnLocationLoadListener listener) {
+        String userId = getCurrentUserId();
+        if (userId == null) {
+            listener.onFailure("User not authenticated");
+            return;
+        }
+
+        db.collection("admins").document(userId).get()
+                .addOnSuccessListener(document -> {
+                    if (document != null && document.exists()) {
+                        // Use the exact schema field 'locationID'
+                        String locationId = document.getString("locationId");
+                        if (locationId == null || locationId.isEmpty()) {
+                            listener.onFailure("Location ID not set for user");
+                            return;
+                        }
+                        db.collection("restaurants").document(locationId).get()
+                                .addOnSuccessListener(locDoc -> {
+                                    if (locDoc != null && locDoc.exists()) {
+                                        String locationName = locDoc.getString("name");
+                                        if (locationName == null) locationName = "";
+                                        listener.onSuccess(locationName);
+                                    } else {
+                                        listener.onFailure("Location not found");
+                                    }
+                                })
+                                .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
+                    } else {
+                        listener.onFailure("User profile not found");
+                    }
+                })
+                .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
+    }
+
     private String getCollectionName() {
         SessionManager sessionManager = new SessionManager(context);
         SessionManager.SessionData session = sessionManager.getSession();
@@ -102,5 +137,10 @@ public class UserProfileRepository {
         void onSuccess(String name, String phone, String photoUrl);
         void onFailure(String error);
     }
-}
 
+    // New listener for location loading
+    public interface OnLocationLoadListener {
+        void onSuccess(String locationName);
+        void onFailure(String error);
+    }
+}

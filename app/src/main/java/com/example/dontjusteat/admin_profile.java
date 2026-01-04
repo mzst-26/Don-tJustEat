@@ -17,6 +17,8 @@ import com.bumptech.glide.Glide;
 import com.example.dontjusteat.helpers.ProfileEditHelper;
 import com.example.dontjusteat.models.UserPreferences;
 import com.example.dontjusteat.repositories.PreferencesRepository;
+import com.example.dontjusteat.repositories.UserProfileRepository;
+import com.example.dontjusteat.security.SessionManager;
 import com.google.firebase.auth.FirebaseAuth;
 
 
@@ -40,8 +42,9 @@ public class admin_profile extends AppCompatActivity {
 
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> finish());
-
+        // Apply window insets
         Modules.applyWindowInsets(this, R.id.rootView);
+        // Handle menu navigation
         admin_modules.handleMenuNavigation(this);
 
         View profileImageContainer = findViewById(R.id.profile_image_container);
@@ -65,13 +68,40 @@ public class admin_profile extends AppCompatActivity {
         setupNameEditing();
         setupPhoneEditing();
         setupPreferences();
+        displayAdminId();
         handleLogout();
 
+        // Set fixed location text (to be replaced by Firebase later)
         TextView tvAdminLocation = findViewById(R.id.tv_admin_location);
         if (tvAdminLocation != null) {
-            tvAdminLocation.setText("Location: Plymouth, UK");
+            UserProfileRepository repo = new UserProfileRepository(this);
+            // get location name from repository
+            repo.loadLocationName(new UserProfileRepository.OnLocationLoadListener() {
+                // on success, set text
+                @Override
+                public void onSuccess(String locationName) {
+                    tvAdminLocation.setText("Working At: " + locationName);
+                }
+
+                // on failure, set text to unknown
+                @Override
+                public void onFailure(String error) {
+                    tvAdminLocation.setText("Location: Unknown");
+                }
+            });
         }
     }
+
+    private void displayAdminId() {
+        // display admin ID
+        TextView tvAdminId = findViewById(R.id.tv_admin_id);
+        // get admin ID from session
+        if (tvAdminId != null) {
+            String adminId = new SessionManager(this).getSession().userId;
+            tvAdminId.setText("ID: " + adminId.substring(0, 5));
+        }
+    }
+
 
     private void setupNameEditing() {
         TextView tvAdminName = findViewById(R.id.tv_admin_name);
