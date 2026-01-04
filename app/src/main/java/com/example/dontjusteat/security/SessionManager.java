@@ -31,12 +31,13 @@ public class SessionManager {
         this.prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
     }
 
-    public void saveSession(String userId, String email, boolean isCustomer) {
+    public void saveSession(String userId, String email, boolean isCustomer, boolean isAdmin) {
         // store only non-sensitive data
         prefs.edit()
                 .putString(KEY_USER_ID, userId)
                 .putString(KEY_EMAIL, email)
                 .putBoolean(KEY_ROLE_CUSTOMER, isCustomer)
+                .putBoolean(KEY_ROLE_STAFF, isAdmin)
                 .apply();
     }
 
@@ -53,8 +54,8 @@ public class SessionManager {
         String userId = prefs.getString(KEY_USER_ID, "");
         String email = prefs.getString(KEY_EMAIL, "");
         boolean isCustomer = prefs.getBoolean(KEY_ROLE_CUSTOMER, false);
-        boolean isStaff = prefs.getBoolean(KEY_ROLE_STAFF, false);
-        return new SessionData(userId, email, isCustomer, isStaff);
+        boolean isAdmin = prefs.getBoolean(KEY_ROLE_STAFF, false);
+        return new SessionData(userId, email, isCustomer, isAdmin);
     }
 
     public void clearSession() {

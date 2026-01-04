@@ -45,7 +45,7 @@
             android:id="@+id/pageTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Customer Sign in/Sign up"
+            android:text="Sign in to your Account."
             android:gravity="center"
             style="@style/text_title"/>
 
@@ -55,7 +55,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:textSize="17sp"
-            android:text="Enter your email and password to sign in." />
+            android:text="Enter your email and password to sign in or create a new account using the blue link." />
 
         <EditText
             android:id="@+id/customerName"
@@ -134,6 +134,20 @@
             android:focusable="true"
             />
 
+        <TextView
+            android:id="@+id/forgot_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:gravity="center"
+            android:textColor="@color/blue_link"
+            android:text="Forgot Password?"
+            android:textSize="10sp"
+            android:clickable="true"
+            android:focusable="true"
+            />
+
 
 
 
@@ -183,7 +197,7 @@
             android:id="@+id/customer_google_sign_in"
             android:layout_width="match_parent"
             android:layout_height="60dp"
-            app:srcCompat="@drawable/google_sign_in"
+            app:srcCompat="@drawable/continue_with_google_dark"
             android:contentDescription="Google Sign-In"
             android:clickable="true"
             android:focusable="true"

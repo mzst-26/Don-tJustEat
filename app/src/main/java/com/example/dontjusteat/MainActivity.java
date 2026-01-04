@@ -15,9 +15,14 @@ public class MainActivity extends AppCompatActivity {
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_main);
         SessionManager sessionManager = new SessionManager(this);
-        if (sessionManager.isLoggedIn()) {
+        if (sessionManager.isLoggedIn() && sessionManager.getSession().isCustomer) {
             // User has active session, skip login
             startActivity(new Intent(this, customer_booking.class));
+            finish();
+            return;
+        }else if (sessionManager.isLoggedIn() && sessionManager.getSession().isStaff) {
+            // User has active session, skip login
+            startActivity(new Intent(this, admin_dashboard.class));
             finish();
             return;
         }

@@ -9,6 +9,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -17,11 +18,10 @@ import com.example.dontjusteat.repositories.LoginRepository;
 import com.example.dontjusteat.repositories.CreateAccountRepository;
 import com.example.dontjusteat.security.PasswordValidator;
 import com.example.dontjusteat.security.SessionManager;
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.auth.api.identity.BeginSignInRequest;
+import com.google.android.gms.auth.api.identity.Identity;
+import com.google.android.gms.auth.api.identity.SignInClient;
+import com.google.android.gms.auth.api.identity.SignInCredential;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -33,6 +33,7 @@ import com.google.firebase.Timestamp;
 
 public class customer_login extends AppCompatActivity {
     Button signInWithEmailButton;
+    TextView forgotPasswordLinkButton;
     EditText emailEditText;
     EditText customerPassword;
     EditText customerNameEditText;
@@ -52,39 +53,34 @@ public class customer_login extends AppCompatActivity {
     // google sign in
     private ImageView googleSignInButton;
     private FirebaseAuth auth;
-    private GoogleSignInClient googleClient;
+    private SignInClient oneTapClient;
+    private BeginSignInRequest signInRequest;
 
-    // handle Google sign-in result
-    private final ActivityResultLauncher<Intent> googleSignInLauncher =
-
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                // handle the result
+    // handle Google Identity sign-in result
+    private final ActivityResultLauncher<IntentSenderRequest> googleSignInLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartIntentSenderForResult(), result -> {
                 if (result.getResultCode() != RESULT_OK || result.getData() == null) {
                     Toast.makeText(this, "Google sign-in cancelled.", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                // get the GoogleSignInAccount from the intent
                 try {
-                    GoogleSignInAccount account = GoogleSignIn.getSignedInAccountFromIntent(result.getData()).getResult(ApiException.class);
-
-                    if (account == null || account.getIdToken() == null) {
+                    SignInCredential credential = oneTapClient.getSignInCredentialFromIntent(result.getData());
+                    String idToken = credential.getGoogleIdToken();
+                    if (idToken == null) {
                         Toast.makeText(this, "Failed to get Google ID token.", Toast.LENGTH_LONG).show();
                         return;
                     }
-                    // authenticate with firebase using the ID token
-                    firebaseAuthWithGoogle(account.getIdToken());
-
-                } catch (ApiException e) {
+                    firebaseAuthWithGoogle(idToken);
+                } catch (Exception e) {
                     Toast.makeText(this, "Google sign-in failed.", Toast.LENGTH_LONG).show();
                 }
             });
 
     @Override
-    @SuppressWarnings("deprecation")
     protected void onCreate(Bundle savedInstanceState) {
         // Check session first (faster than Firebase check)
         SessionManager sessionManager = new SessionManager(this);
-        if (sessionManager.isLoggedIn()) {
+        if (sessionManager.isLoggedIn() && sessionManager.getSession().isCustomer && !sessionManager.getSession().isStaff) {
             // User has active session, skip login
             startActivity(new Intent(this, customer_booking.class));
             finish();
@@ -105,6 +101,7 @@ public class customer_login extends AppCompatActivity {
 
         //Sign in with email button (for testing only)
         signInWithEmailButton = findViewById(R.id.sign_in_with_email);
+        forgotPasswordLinkButton = findViewById(R.id.forgot_password);
         emailEditText = findViewById(R.id.customerEmail);
         customerPassword = findViewById(R.id.customer_password);
         customerNameEditText = findViewById(R.id.customerName);
@@ -123,24 +120,34 @@ public class customer_login extends AppCompatActivity {
         // initialize Firebase Auth
         auth = FirebaseAuth.getInstance();
 
-
-        // configure Google Sign-In client
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail()
+        // set up onetap login
+        oneTapClient = Identity.getSignInClient(this);
+        // configure sign in request
+        signInRequest = new BeginSignInRequest.Builder()
+                .setGoogleIdTokenRequestOptions(new BeginSignInRequest.GoogleIdTokenRequestOptions.Builder()
+                        .setSupported(true)
+                        .setServerClientId(getString(R.string.default_web_client_id))
+                        // Show all accounts; set true to filter by previously authorized accounts
+                        .setFilterByAuthorizedAccounts(false)
+                        .build())
+                .setAutoSelectEnabled(false)
                 .build();
-        googleClient = GoogleSignIn.getClient(this, gso);
-
-
 
         // set up google sign in button listener
         if (googleSignInButton != null) {
             googleSignInButton.setOnClickListener(v -> {
-                // force showing account chooser
-                googleClient.signOut().addOnCompleteListener(task -> {
-                    Intent signInIntent = googleClient.getSignInIntent();
-                    googleSignInLauncher.launch(signInIntent);
-                });
+                // start the one tap sign in flow
+                oneTapClient.beginSignIn(signInRequest)
+                        .addOnSuccessListener(result -> {
+                            // launch the intent
+                            try {
+                                IntentSenderRequest request = new IntentSenderRequest.Builder(result.getPendingIntent().getIntentSender()).build();
+                                googleSignInLauncher.launch(request);
+                            } catch (Exception e) {
+                                Toast.makeText(this, "Failed to launch Google sign-in.", Toast.LENGTH_LONG).show();
+                            }
+                        })
+                        .addOnFailureListener(e -> Toast.makeText(this, "No Google accounts available or sign-in failed.", Toast.LENGTH_LONG).show());
             });
         }
 
@@ -175,7 +182,7 @@ public class customer_login extends AppCompatActivity {
                     }
 
                     // Save lightweight session
-                    new SessionManager(this).saveSession(fbUser.getUid(), fbUser.getEmail(), true);
+                    new SessionManager(this).saveSession(fbUser.getUid(), fbUser.getEmail(), true, false);
 
                     // Check if user document already exists
                     FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -219,12 +226,18 @@ public class customer_login extends AppCompatActivity {
 
     // build a user model and write it to firestore
     private void saveUserToFirestore(String uid, String email, String name, String phone, String photoUrl, boolean isVerified) {
+        // build user model
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+        // default roles
         boolean isCustomer = true;
         boolean isActive = true;
+        // current timestamp
         Timestamp createdAt = Timestamp.now();
+        // create user model
         User userModel = new User(uid, email != null ? email : "", name != null ? name : "", phone != null ? phone : "", createdAt, isCustomer, isActive, photoUrl);
+        // set isVerified
         userModel.setIsVerified(isVerified);
+        // save to firestore
         db.collection("users").document(uid)
                 .set(userModel)
                 .addOnSuccessListener(aVoid -> { /* saved */ })
@@ -239,6 +252,18 @@ public class customer_login extends AppCompatActivity {
                 handleCreateAccount();
             }
         });
+
+        // forgot password link listener
+        forgotPasswordLinkButton.setOnClickListener(v -> {
+            // read email from input; trigger reset if present
+            String email = emailEditText.getText() != null ? emailEditText.getText().toString().trim() : "";
+            if (email.isEmpty()) {
+                Toast.makeText(this, "Please enter your email above", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            loginRepository.sendPasswordReset(email, this);
+        });
+
     }
 
     private void handleSignIn() {

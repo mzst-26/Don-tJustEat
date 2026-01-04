@@ -76,8 +76,7 @@ public class CreateAccountRepository {
                         User user = new User(userId, sanitizedEmail, sanitizedName, sanitizedPhone, Timestamp.now(), true, false, "");
                         // ensure isVerified saved as false initially
                         user.setIsVerified(false);
-
-                        // save the user data in Firestore
+                        // get instance and save user data
                         db.collection("users").document(userId).set(user)
                                 .addOnCompleteListener(task -> {
                                     // check if saving user data was successful

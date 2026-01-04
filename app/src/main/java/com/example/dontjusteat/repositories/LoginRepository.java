@@ -82,7 +82,8 @@ public class LoginRepository {
                                                     sessionManager.saveSession(
                                                             userId,
                                                             sanitizedEmail,
-                                                            true
+                                                            true,
+                                                            false
                                                     );
                                                     // navigate to customer booking activity and give them a notification message
                                                     Toast.makeText(activity, "Login successful", Toast.LENGTH_SHORT).show();
@@ -117,5 +118,31 @@ public class LoginRepository {
                 .addOnFailureListener(e -> {
                     Toast.makeText(activity, "Login failed. Please try again.", Toast.LENGTH_LONG).show();
                 });
+    }
+
+
+
+    public void sendPasswordReset(String email, android.app.Activity activity) {
+        String sanitizedEmail = InputValidator.sanitize(email);
+
+
+        // Check for empty input
+        if (sanitizedEmail.isEmpty()) {
+            android.widget.Toast.makeText(activity, "Please enter your email", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // validate email format
+        if (!InputValidator.isValidEmail(sanitizedEmail)) {
+            String error = InputValidator.getValidationError("email", sanitizedEmail);
+            android.widget.Toast.makeText(activity, error, android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+
+        // send password reset email
+        auth.sendPasswordResetEmail(sanitizedEmail)
+            .addOnSuccessListener(aVoid -> android.widget.Toast.makeText(activity, "Password reset email sent.", android.widget.Toast.LENGTH_LONG).show())
+            .addOnFailureListener(e -> android.widget.Toast.makeText(activity, "Failed: Please wait 1 minute and try again!", android.widget.Toast.LENGTH_LONG).show());
     }
 }

@@ -6,6 +6,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.content.Intent;
 
+import com.google.firebase.firestore.DocumentSnapshot;
+
 public class admin_modules {
     // Handle navigation for admin pages
     public static void handleMenuNavigation(Activity activity) {
@@ -71,6 +73,12 @@ public class admin_modules {
         // Apply the listener to both the container and the button
         container.setOnClickListener(listener);
         button.setOnClickListener(listener);
+    }
+
+    public static boolean isAuthorizedAdminDoc(DocumentSnapshot doc) {
+        if (doc == null || !doc.exists()) return false;
+        Boolean isActive = doc.getBoolean("isActive");
+        return Boolean.TRUE.equals(isActive);
     }
 }
 

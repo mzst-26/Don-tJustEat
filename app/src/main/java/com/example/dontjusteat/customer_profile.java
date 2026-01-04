@@ -151,7 +151,7 @@ public class customer_profile extends AppCompatActivity {
         // Handle logout button click
         View logoutButton = findViewById(R.id.logout_button);
         // Set click listener on the logout button and handle the logout action
-        logoutButton.setOnClickListener(v -> logoutAction(this));
+        logoutButton.setOnClickListener(v -> Modules.logoutAction(this));
     }
 
     private void saveName(String name) {

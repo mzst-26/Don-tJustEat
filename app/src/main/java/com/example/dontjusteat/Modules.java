@@ -13,6 +13,14 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.dontjusteat.security.SessionManager;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.firebase.firestore.DocumentSnapshot;
+
 public class Modules {
 
     // Call this AFTER setContentView(...), pass your actual root view id
@@ -123,6 +131,36 @@ public class Modules {
         ImageView backButton = activity.findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> activity.finish());
     }
+
+
+    public static void logoutAction(Activity activity){
+        // Clear local session
+        try {
+            new SessionManager(activity).clearSession();
+        } catch (Exception ignored) { }
+
+        // Sign out from Firebase
+        try {
+            FirebaseAuth.getInstance().signOut();
+        } catch (Exception ignored) { }
+
+        // sign out Google if it was used
+        try {
+            GoogleSignInClient googleSignInClient = GoogleSignIn.getClient(activity, GoogleSignInOptions.DEFAULT_SIGN_IN);
+            // clear google cache
+            googleSignInClient.signOut();
+            //fully revoke access
+            googleSignInClient.revokeAccess();
+        } catch (Exception ignored) { }
+
+        // navigate to main activity
+        Intent intent = new Intent(activity, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        activity.startActivity(intent);
+        activity.finish();
+    }
+
+
 
 
 
