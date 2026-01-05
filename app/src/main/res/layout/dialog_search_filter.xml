@@ -18,23 +18,23 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
-    <!-- CITY -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="City"
-        app:startIconDrawable="@drawable/home_inactive"
-        android:layout_marginBottom="14dp">
+<!--    &lt;!&ndash; CITY &ndash;&gt;-->
+<!--    <com.google.android.material.textfield.TextInputLayout-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:hint="City"-->
+<!--        app:startIconDrawable="@drawable/home_inactive"-->
+<!--        android:layout_marginBottom="14dp">-->
 
-        <AutoCompleteTextView
-            android:id="@+id/input_city"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textCapWords"
-            style="@style/BlackUnderlineInput"
-            />
+<!--        <AutoCompleteTextView-->
+<!--            android:id="@+id/input_city"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:inputType="textCapWords"-->
+<!--            style="@style/BlackUnderlineInput"-->
+<!--            />-->
 
-    </com.google.android.material.textfield.TextInputLayout>
+<!--    </com.google.android.material.textfield.TextInputLayout>-->
 
     <!-- DATE -->
     <com.google.android.material.textfield.TextInputLayout

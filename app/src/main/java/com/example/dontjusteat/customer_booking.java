@@ -18,14 +18,41 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.Manifest;
+import android.content.pm.PackageManager;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import androidx.lifecycle.ViewModelProvider;
+import com.example.dontjusteat.viewmodel.CustomerBookingViewModel;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+import android.location.Address;
+import android.location.Geocoder;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.Executors;
+
+
+
 
 import java.util.Calendar;
 
 public class customer_booking extends BaseActivity {
+    private CustomerBookingViewModel viewModel;
+
+    private static final int REQ_LOCATION = 1001;
+    private FusedLocationProviderClient locationClient;
 
     private LinearLayout bottomSheet;
     private BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
@@ -52,6 +79,8 @@ public class customer_booking extends BaseActivity {
             return;
         }
         setContentView(R.layout.customer_booking);
+        // initialize the ViewModel
+        viewModel = new ViewModelProvider(this).get(CustomerBookingViewModel.class);
 
         initViews(); // initializing the views
         setupBottomSheetBehavior(); // setting up the bottom sheet
@@ -60,6 +89,30 @@ public class customer_booking extends BaseActivity {
         setupButtonClick(); // setting up the select button for booking
         setupEditButton(); // setting up the edit button for search function
         applySystemUIHandling(); // setting up the system UI handling
+        locationClient = LocationServices.getFusedLocationProviderClient(this);
+        requestLocationPermissionIfNeeded();
+
+
+        viewModel.getStartTimeMillis().observe(this, millis -> {
+            if (millis == null) return;
+
+            Date d = new Date(millis);
+            SimpleDateFormat dateFmt = new SimpleDateFormat("dd/MM", Locale.UK);
+            SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm", Locale.UK);
+
+            txtDate.setText(dateFmt.format(d));
+            txtTime.setText("After " + timeFmt.format(d));
+        });
+
+        viewModel.getGuests().observe(this, g -> {
+            if (g == null) return;
+            txtGuests.setText("Table for " + g);
+        });
+
+        viewModel.getCity().observe(this, c -> {
+            if (c == null || c.isEmpty()) return;
+            txtCity.setText(c);
+        });
 
 
     }
@@ -110,7 +163,7 @@ public class customer_booking extends BaseActivity {
     // SEARCH FILTER BUTTON SET UP
     private void setupEditButton() {
         if (editButton != null) {
-            editButton.setOnClickListener(v -> showSearchFilterDialog());
+            editButton.setOnClickListener(v -> {showSearchFilterDialog(); requestLocationPermissionIfNeeded();});
         }
     }
 
@@ -144,7 +197,6 @@ public class customer_booking extends BaseActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_search_filter, null);
 
-        AutoCompleteTextView inputCity = dialogView.findViewById(R.id.input_city);
         EditText inputDate = dialogView.findViewById(R.id.input_date);
         EditText inputGuests = dialogView.findViewById(R.id.input_guests);
 
@@ -155,26 +207,19 @@ public class customer_booking extends BaseActivity {
                 android.R.layout.simple_dropdown_item_1line,
                 cityList
         );
-        inputCity.setAdapter(adapter);
-        inputCity.setThreshold(1);
 
         //set up date and time picker
         inputDate.setOnClickListener(v -> pickDateAndTime(inputDate));
         //the positive button for the pop up dialog to submit a search
         builder.setPositiveButton("Search", (dialog, which) -> {
-            //check if the input is valid
-            String city = safeText(inputCity);
-            // give a toast if the city is invalid
-            if (!isValidCity(city)) {
-                Toast.makeText(this, "Please select a valid city from the list", Toast.LENGTH_SHORT).show();
-                return; // do not close or proceed
-            }
             // update the search UI with the input values if the value is valid
-            updateSearchUI(
-                    safeText(inputCity),
-                    safeText(inputDate),
-                    safeText(inputGuests)
-            );
+            String guestsStr = safeText(inputGuests);
+            int g = 2;
+            try {
+                if (!guestsStr.isEmpty()) g = Integer.parseInt(guestsStr);
+            } catch (NumberFormatException ignored) { }
+
+            viewModel.setGuests(g);
         });
 
         // create a cancel dialog button and close when clicked on
@@ -202,12 +247,21 @@ public class customer_booking extends BaseActivity {
                     timePickerDialog = new TimePickerDialog(
                             this,
                             (timeView, hour, minute) -> {
+                                Calendar chosen = Calendar.getInstance();
+                                chosen.set(Calendar.YEAR, year);
+                                chosen.set(Calendar.MONTH, month);
+                                chosen.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                                chosen.set(Calendar.HOUR_OF_DAY, hour);
+                                chosen.set(Calendar.MINUTE, minute);
+                                chosen.set(Calendar.SECOND, 0);
+                                chosen.set(Calendar.MILLISECOND, 0);
 
-                                String date = dayOfMonth + "/" + (month + 1); // we only need the day and month
-                                // format the time to hh:mm
-                                String time = String.format("%02d:%02d", hour, minute);
+                                long millis = chosen.getTimeInMillis();
+                                viewModel.setStartTimeMillis(millis);
 
-                                inputDate.setText(date + " after " + time);
+                                //show in the dialog input field
+                                String display = dayOfMonth + "/" + (month + 1) + " after " + String.format("%02d:%02d", hour, minute);
+                                inputDate.setText(display);
                             },
                             c.get(Calendar.HOUR_OF_DAY),
                             c.get(Calendar.MINUTE),
@@ -245,28 +299,6 @@ public class customer_booking extends BaseActivity {
         Modules.handleMenuNavigation(this);
     }
 
-    private void updateSearchUI(String city, String dateTime, String guests) {
-        // update the search UI with the input values
-        //check if the city is not null
-        if (txtCity != null) { txtCity.setText(city);} else{ txtCity.setText(cityList[0]);}
-        //check if the date and time are not null
-        if (txtDate != null || txtTime != null) {
-            String[] parts = dateTime.split(" after ");
-            // check if they are seperated by a space correctly or not
-            if (parts.length == 2) {
-                // Display the content
-                txtDate.setText(parts[0]);
-                txtTime.setText("After " + parts[1]);
-            }
-        }
-
-        if (txtGuests != null) txtGuests.setText("Table for " + guests);
-
-        Toast.makeText(this, "Searching in: " + city, Toast.LENGTH_SHORT).show();
-    }
-
-
-
 
     // UTILS
     private int dpToPx(int dp) {
@@ -296,5 +328,138 @@ public class customer_booking extends BaseActivity {
         }
         return false;
     }
+
+
+    //Permission functions
+    private void requestLocationPermissionIfNeeded() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            fetchUserLocation();
+        } else {
+            requestPermissions(
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQ_LOCATION
+            );
+        }
+    }
+
+    // fetch the user's location
+    private void fetchUserLocation() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        // fetch the last known location
+        locationClient.getLastLocation()
+                .addOnSuccessListener(location -> {
+                    if (location == null) {
+                        // no cached location yet
+                        Toast.makeText(this, "Location not available. Turn on GPS and try again.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    // get the location coordinates
+                    double lat = location.getLatitude();
+                    double lng = location.getLongitude();
+                    // update the view model with the location
+                    viewModel.setUserLocation(lat, lng);
+
+                    // Resolve city name and display it
+                    resolveCityFromLatLng(lat, lng);
+
+//                    Toast.makeText(this, "Lat: " + lat + " Lng: " + lng, Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to get location", Toast.LENGTH_SHORT).show()
+                );
+
+    }
+
+    @Override
+    // handle the result of the permission request
+    public void onRequestPermissionsResult(
+            int requestCode,
+            @NonNull String[] permissions,
+            @NonNull int[] grantResults
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == REQ_LOCATION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                fetchUserLocation();
+            } else {
+                Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void resolveCityFromLatLng(double lat, double lng) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                Geocoder geocoder = new Geocoder(this, Locale.UK);
+                List<Address> addresses = geocoder.getFromLocation(lat, lng, 1);
+
+                String city = "Location Permission Required";
+                if (addresses != null && !addresses.isEmpty()) {
+                    Address a = addresses.get(0);
+
+                    if (a.getLocality() != null) {
+                        city = a.getLocality();
+                    } else if (a.getSubAdminArea() != null) {
+                        city = a.getSubAdminArea();
+                    } else if (a.getAdminArea() != null) {
+                        city = a.getAdminArea();
+                    }
+                }
+
+                final String finalCity = city;
+                runOnUiThread(() -> askBookingCityOverride(finalCity));
+
+            } catch (IOException e) {
+                runOnUiThread(() -> txtCity.setText("Location Permission Required"));
+            }
+        });
+    }
+
+    private void askBookingCityOverride(String detectedCity) {
+        new AlertDialog.Builder(this)
+                .setTitle("Booking location")
+                .setMessage("Are you booking within " + detectedCity + "?")
+                .setPositiveButton("Yes", (d, w) -> {
+                    // Use detected city
+                    txtCity.setText(detectedCity);
+                    viewModel.setCity(detectedCity);
+                })
+                .setNegativeButton("No", (d, w) -> promptForManualLocation(detectedCity))
+                .show();
+    }
+
+    private void promptForManualLocation(String detectedCity) {
+        final EditText input = new EditText(this);
+        input.setHint("Enter city/area/postcode (e.g. Plymouth, PL1)");
+
+        new AlertDialog.Builder(this)
+                .setTitle("Enter booking location")
+                .setMessage("Detected: " + detectedCity)
+                .setView(input)
+                .setPositiveButton("Use", (d, w) -> {
+                    String manual = input.getText() == null ? "" : input.getText().toString().trim();
+                    if (manual.isEmpty()) {
+                        Toast.makeText(this, "Please enter a location", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    txtCity.setText(manual);
+                    viewModel.setCity(manual);
+                })
+                .setNegativeButton("Cancel", (d, w) -> {
+                    // Keep detected city if they cancel
+                    txtCity.setText(detectedCity);
+                    viewModel.setCity(detectedCity);
+                })
+                .show();
+    }
+
+
+
+
 
 }

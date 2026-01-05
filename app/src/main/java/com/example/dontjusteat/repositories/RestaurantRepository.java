@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import com.example.dontjusteat.models.Restaurant;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -27,7 +28,7 @@ public class RestaurantRepository {
         this.auth = FirebaseAuth.getInstance();
         this.context = context;
     }
-
+    // get all the restaurants
     public void loadAllRestaurants(@NonNull OnRestaurantsLoadListener listener) {
         db.collection("restaurants")
                 .get()
@@ -48,6 +49,10 @@ public class RestaurantRepository {
                 .addOnFailureListener(e -> listener.onFailure(
                         e.getMessage() != null ? e.getMessage() : "Failed to load restaurants"
                 ));
+    }
+
+    public void filterRestaurants(String location, Timestamp dateTime, Number guests, @NonNull OnRestaurantsLoadListener listener){
+
     }
 
 
