@@ -2,6 +2,7 @@ package com.example.dontjusteat;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -30,12 +31,23 @@ public class BaseActivity extends AppCompatActivity {
     // check if the user is authenticated
     protected void enforceAuthenticatedUser() {
         // make sure that firebase user and local sessions exist
+        boolean isSessionValid = true;
         boolean isLoggedIn = FirebaseAuth.getInstance().getCurrentUser() != null;
         boolean isEmailVerified = FirebaseAuth.getInstance().getCurrentUser().isEmailVerified();
         SessionManager sm = new SessionManager(this);
         SessionManager.SessionData session = sm.getSession();
 
-        if (!isLoggedIn || session == null || !isEmailVerified) {
+        //check session timeout
+        long lastLogin = sm.getLastLogin();
+        long now = System.currentTimeMillis();
+        //check if one minute has been passed (for test)
+        if (now - lastLogin > 18000000) {
+            isSessionValid = false;
+            //toast to user session timeOut
+            Toast.makeText(this, "5 hour session, timed out. Please log in again.", Toast.LENGTH_SHORT).show();
+        }
+
+        if (!isLoggedIn || session == null || !isEmailVerified || !isSessionValid) {
             // Clear any partial state and route to login
             sm.clearSession();
             FirebaseAuth.getInstance().signOut();

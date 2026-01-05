@@ -3,12 +3,17 @@ package com.example.dontjusteat.security;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.google.firebase.Timestamp;
+
 public class SessionManager {
     private static final String PREF_NAME = "dontjusteat_session";
     private static final String KEY_USER_ID = "user_id";
     private static final String KEY_EMAIL = "email";
     private static final String KEY_ROLE_CUSTOMER = "role_customer";
     private static final String KEY_ROLE_STAFF = "role_staff";
+
+    private static final String KEY_LAST_LOGIN_MS = "last_login_ms";
+
 
     private final SharedPreferences prefs;
 
@@ -18,11 +23,14 @@ public class SessionManager {
         public final boolean isCustomer;
         public final boolean isStaff;
 
-        public SessionData(String userId, String email, boolean isCustomer, boolean isStaff) {
+        public final long lastLogin;
+
+        public SessionData(String userId, String email, boolean isCustomer, boolean isStaff, long lastLoginMs ) {
             this.userId = userId;
             this.email = email;
             this.isCustomer = isCustomer;
             this.isStaff = isStaff;
+            this.lastLogin = lastLoginMs;
         }
     }
 
@@ -32,13 +40,20 @@ public class SessionManager {
     }
 
     public void saveSession(String userId, String email, boolean isCustomer, boolean isAdmin) {
+        long now = System.currentTimeMillis();
+        prefs.edit();
         // store only non-sensitive data
         prefs.edit()
                 .putString(KEY_USER_ID, userId)
                 .putString(KEY_EMAIL, email)
                 .putBoolean(KEY_ROLE_CUSTOMER, isCustomer)
                 .putBoolean(KEY_ROLE_STAFF, isAdmin)
+                .putLong(KEY_LAST_LOGIN_MS, now)
                 .apply();
+    }
+
+    public long getLastLogin(){
+        return prefs.getLong(KEY_LAST_LOGIN_MS, 0L);
     }
 
     public boolean isLoggedIn() {
@@ -55,7 +70,8 @@ public class SessionManager {
         String email = prefs.getString(KEY_EMAIL, "");
         boolean isCustomer = prefs.getBoolean(KEY_ROLE_CUSTOMER, false);
         boolean isAdmin = prefs.getBoolean(KEY_ROLE_STAFF, false);
-        return new SessionData(userId, email, isCustomer, isAdmin);
+        long lastLoginMs = prefs.getLong(KEY_LAST_LOGIN_MS, 0L);
+        return new SessionData(userId, email, isCustomer, isAdmin, lastLoginMs);
     }
 
     public void clearSession() {
