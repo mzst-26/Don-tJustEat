@@ -12,7 +12,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
-public class restaurantRepository {
+public class RestaurantRepository {
 
     private final FirebaseFirestore db;
     private final FirebaseAuth auth;
@@ -22,7 +22,7 @@ public class restaurantRepository {
 
 
     // create the constructor
-    public restaurantRepository(Context context) {
+    public RestaurantRepository(Context context) {
         this.db = FirebaseFirestore.getInstance();
         this.auth = FirebaseAuth.getInstance();
         this.context = context;
