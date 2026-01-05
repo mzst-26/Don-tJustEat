@@ -8,11 +8,14 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 
-public class booking_confirmation extends AppCompatActivity {
+public class booking_confirmation extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
+        if (!requireCustomerOrFinish()) {
+            return;
+        }
         setContentView(R.layout.booking_confirmation);
         Modules.applyWindowInsets(this, R.id.rootView);
 

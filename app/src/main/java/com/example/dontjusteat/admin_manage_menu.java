@@ -22,7 +22,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.util.ArrayList;
 import java.util.List;
 
-public class admin_manage_menu extends AppCompatActivity {
+public class admin_manage_menu extends BaseActivity {
 
     // image picker stuff
     private ActivityResultLauncher<Intent> imagePickerLauncher;
@@ -57,6 +57,10 @@ public class admin_manage_menu extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // ensure only admins can view this screen
+        if (!requireAdminOrFinish()) {
+            return;
+        }
         setContentView(R.layout.admin_manage_menu);
 
         // initialize image picker launcher

@@ -22,7 +22,7 @@ import com.example.dontjusteat.security.SessionManager;
 import com.google.firebase.auth.FirebaseAuth;
 
 
-public class admin_profile extends AppCompatActivity {
+public class admin_profile extends BaseActivity {
 
     private ImageView profileImageView;
     private ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
@@ -35,6 +35,10 @@ public class admin_profile extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // ensure only admins can view this screen
+        if (!requireAdminOrFinish()) {
+            return;
+        }
         setContentView(R.layout.admin_profile);
 
         editHelper = new ProfileEditHelper(this);

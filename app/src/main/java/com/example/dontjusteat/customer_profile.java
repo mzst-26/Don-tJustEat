@@ -21,7 +21,7 @@ import com.example.dontjusteat.repositories.UserProfileRepository;
 import com.google.firebase.auth.FirebaseAuth;
 
 
-public class customer_profile extends AppCompatActivity {
+public class customer_profile extends BaseActivity {
 
     private ImageView profileImageView;
     private ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
@@ -34,6 +34,9 @@ public class customer_profile extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!requireCustomerOrFinish()) {
+            return;
+        }
         setContentView(R.layout.customer_profile);
 
         editHelper = new ProfileEditHelper(this);

@@ -14,11 +14,14 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
-public class customer_location_detail extends AppCompatActivity {
+public class customer_location_detail extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!requireCustomerOrFinish()) {
+            return;
+        }
         setContentView(R.layout.customer_location_detail);
 
         //Back button

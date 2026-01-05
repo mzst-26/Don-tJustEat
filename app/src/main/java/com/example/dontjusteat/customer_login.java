@@ -80,11 +80,17 @@ public class customer_login extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         // Check session first (faster than Firebase check)
         SessionManager sessionManager = new SessionManager(this);
-        if (sessionManager.isLoggedIn() && sessionManager.getSession().isCustomer && !sessionManager.getSession().isStaff) {
-            // User has active session, skip login
-            startActivity(new Intent(this, customer_booking.class));
-            finish();
-            return;
+        if (sessionManager.isLoggedIn()) {
+            if (sessionManager.getSession().isStaff) {
+                startActivity(new Intent(this, admin_dashboard.class));
+                finish();
+                return;
+            } else if (sessionManager.getSession().isCustomer) {
+                // already logged in as a customer; send to customer home
+                startActivity(new Intent(this, customer_booking.class));
+                finish();
+                return;
+            }
         }
 
         super.onCreate(savedInstanceState);

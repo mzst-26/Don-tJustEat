@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class customer_my_notifications extends AppCompatActivity {
+public class customer_my_notifications extends BaseActivity {
     LinearLayout notificationsContainer;
     TextView noNotificationText;
     private static class NotificationCard {
@@ -39,6 +39,9 @@ public class customer_my_notifications extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!requireCustomerOrFinish()) {
+            return;
+        }
         setContentView(R.layout.customer_my_notifications);
 
         //import modules

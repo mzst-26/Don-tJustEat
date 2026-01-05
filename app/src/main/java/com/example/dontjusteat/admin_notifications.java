@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class admin_notifications extends AppCompatActivity {
+public class admin_notifications extends BaseActivity {
     LinearLayout notificationsContainer;
     TextView noNotificationText;
     private static class NotificationCard {
@@ -39,6 +39,10 @@ public class admin_notifications extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // ensure only admins can view this screen
+        if (!requireAdminOrFinish()) {
+            return;
+        }
         setContentView(R.layout.admin_notifications);
 
         //import modules

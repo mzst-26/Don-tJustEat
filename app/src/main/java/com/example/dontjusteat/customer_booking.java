@@ -25,7 +25,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import java.util.Calendar;
 
-public class customer_booking extends AppCompatActivity {
+public class customer_booking extends BaseActivity {
 
     private LinearLayout bottomSheet;
     private BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
@@ -48,6 +48,9 @@ public class customer_booking extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!requireCustomerOrFinish()) {
+            return;
+        }
         setContentView(R.layout.customer_booking);
 
         initViews(); // initializing the views

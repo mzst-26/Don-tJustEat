@@ -11,7 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.Slider;
 
-public class booking_summary extends AppCompatActivity {
+public class booking_summary extends BaseActivity {
 
     // --- Data Structures ---
     private static class TableOptions {
@@ -56,6 +56,9 @@ public class booking_summary extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!requireCustomerOrFinish()) {
+            return;
+        }
         setContentView(R.layout.booking_summary);
 
         // get initial mock data

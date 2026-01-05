@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-public class my_bookings extends AppCompatActivity {
+public class my_bookings extends BaseActivity {
 
     private LinearLayout bookingsContainer;
     private LinearLayout latestBookingContainer;
@@ -70,6 +70,9 @@ public class my_bookings extends AppCompatActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!requireCustomerOrFinish()) {
+            return;
+        }
         setContentView(R.layout.my_bookings);
 
         Modules.applyWindowInsets(this, R.id.rootView);

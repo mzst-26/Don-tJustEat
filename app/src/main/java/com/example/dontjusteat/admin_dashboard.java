@@ -13,11 +13,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.util.ArrayList;
 import java.util.List;
 
-public class admin_dashboard extends AppCompatActivity {
+public class admin_dashboard extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+        // ensure only admins can view this screen
+        if (!requireAdminOrFinish()) {
+            return;
+        }
         setContentView(R.layout.admin_dashboard);
         Modules.applyWindowInsets(this, R.id.rootView);
 

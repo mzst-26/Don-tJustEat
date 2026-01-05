@@ -71,14 +71,21 @@ public class staff_login extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.staff_login);
         // Check for existing session
         SessionManager sessionManager = new SessionManager(this);
-        if (sessionManager.isLoggedIn() && sessionManager.getSession().isStaff) {
-            // if user has active session, skip login
-            startActivity(new Intent(this, admin_dashboard.class));
-            finish();
-            return;
+        if (sessionManager.isLoggedIn()) {
+            if (sessionManager.getSession().isStaff) {
+                startActivity(new Intent(this, admin_dashboard.class));
+                finish();
+                return;
+            } else if (sessionManager.getSession().isCustomer) {
+                // already logged in as a customer; send to customer home
+                startActivity(new Intent(this, customer_booking.class));
+                finish();
+                return;
+            }
         }
 
         staffRepo = new StaffLoginRepository();
