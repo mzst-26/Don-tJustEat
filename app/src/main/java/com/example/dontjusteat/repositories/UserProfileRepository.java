@@ -78,6 +78,30 @@ public class UserProfileRepository {
                 .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
     }
 
+    // load user details
+    public void loadUserProfileWithEmail(OnProfileWithEmailLoadListener listener) {
+        String userId = getCurrentUserId();
+        if (userId == null || auth.getCurrentUser() == null) {
+            listener.onFailure("User not authenticated");
+            return;
+        }
+
+        String email = auth.getCurrentUser().getEmail();
+        String collection = getCollectionName();
+
+        db.collection(collection).document(userId).get()
+                .addOnSuccessListener(document -> {
+                    if (document.exists()) {
+                        String name = document.getString("name");
+                        String phone = document.getString("phone");
+                        listener.onSuccess(name, email, phone);
+                    } else {
+                        listener.onFailure("User profile not found");
+                    }
+                })
+                .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
+    }
+
     // load admin/user location
     public void loadLocationName(OnLocationLoadListener listener) {
         String userId = getCurrentUserId();
@@ -135,6 +159,12 @@ public class UserProfileRepository {
 
     public interface OnProfileLoadListener {
         void onSuccess(String name, String phone, String photoUrl);
+        void onFailure(String error);
+    }
+
+    // listener for profile with email
+    public interface OnProfileWithEmailLoadListener {
+        void onSuccess(String name, String email, String phone);
         void onFailure(String error);
     }
 

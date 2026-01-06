@@ -39,6 +39,7 @@
 
         <!-- Location name in header -->
         <TextView
+            android:id="@+id/header_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -330,7 +331,7 @@
                         android:paddingEnd="12dp"
                         style="@style/text_normal" />
 
-                    <EditText
+                    <TextView
                         android:id="@+id/phone_number"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -358,14 +359,14 @@
                 android:paddingTop="24dp"
                 android:paddingBottom="16dp">
 
-                <TextView
-                    android:id="@+id/location_summary"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Location Summary asfas asfasf asfasf asf asfasf fhab aksf ajsbuwe asoo is asf mamo asuhfw cknsw asloiw aosnfw lama siu"
-                    android:gravity="center"
-                    style="@style/text_normal"
-                    android:layout_margin="15dp" />
+<!--                <TextView-->
+<!--                    android:id="@+id/location_summary"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="Location Summary asfas asfasf asfasf asf asfasf fhab aksf ajsbuwe asoo is asf mamo asuhfw cknsw asloiw aosnfw lama siu"-->
+<!--                    android:gravity="center"-->
+<!--                    style="@style/text_normal"-->
+<!--                    android:layout_margin="15dp" />-->
 
                 <TextView
                     android:id="@+id/location_name"

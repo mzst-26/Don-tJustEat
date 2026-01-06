@@ -1,6 +1,7 @@
 package com.example.dontjusteat;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -8,15 +9,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.dontjusteat.models.Table;
 import com.example.dontjusteat.models.TableAvailability;
 import com.example.dontjusteat.models.Restaurant;
 import com.example.dontjusteat.repositories.RestaurantRepository;
+import com.example.dontjusteat.repositories.UserProfileRepository;
 import com.example.dontjusteat.viewMode.CustomerBookingViewModel;
-import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.Slider;
 import com.google.firebase.Timestamp;
 
@@ -82,7 +82,10 @@ public class booking_summary extends BaseActivity {
         initializeViews();
         initializeNavigationService();
 
-        //load tables and availability
+        //load user data dynamically
+        loadUserData();
+
+        // load tables and availability
         loadTablesForRestaurant();
 
         Modules.applyWindowInsets(this, R.id.rootView);
@@ -122,6 +125,9 @@ public class booking_summary extends BaseActivity {
         repo.getRestaurantById(restaurantId, new RestaurantRepository.OnRestaurantFetchListener() {
             @Override
             public void onSuccess(Restaurant restaurant) {
+                // display restaurant data in UI
+                displayRestaurantData(restaurant);
+                // load tables with configuration
                 loadTablesWithConfig(restaurant);
             }
 
@@ -381,5 +387,103 @@ public class booking_summary extends BaseActivity {
         intent.putExtra("selectedTimes", new ArrayList<>(selectedTableTimes.values()));
         intent.putExtra("partySize", partySize);
         startActivity(intent);
+    }
+
+    // load current user data
+    private void loadUserData() {
+        UserProfileRepository userRepo = new UserProfileRepository(this);
+        userRepo.loadUserProfileWithEmail(new UserProfileRepository.OnProfileWithEmailLoadListener() {
+            @Override
+            public void onSuccess(String name, String email, String phone) {
+                displayUserData(name, email, phone);
+            }
+
+            @Override
+            public void onFailure(String error) {
+                Toast.makeText(booking_summary.this, "Failed to load user data: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // display user data in UI
+    private void displayUserData(String name, String email, String phone) {
+
+        TextView tvName = findViewById(R.id.name);
+        TextView tvEmail = findViewById(R.id.email);
+        TextView tvPhone = findViewById(R.id.phone_number);
+
+
+
+        if (tvName != null) tvName.setText(name != null ? name : "N/A");
+        if (tvEmail != null) tvEmail.setText(email != null ? email : "N/A");
+        if (tvPhone != null) tvPhone.setText(phone != null ? phone : "");
+    }
+
+
+
+
+    // display restaurant data in header and location section
+    private void displayRestaurantData(Restaurant restaurant) {
+        // set header title with restaurant name
+        TextView headerTitle = findViewById(R.id.header_title);
+        if (headerTitle != null) {
+            headerTitle.setText(restaurant.getName() != null ? restaurant.getName() : "Restaurant");
+        }
+
+
+        // set location name
+        TextView tvLocationName = findViewById(R.id.location_name);
+        if (tvLocationName != null) {
+            tvLocationName.setText(restaurant.getName() != null ? restaurant.getName() : "N/A");
+        }
+
+
+        // set location address
+        TextView tvLocationAddress = findViewById(R.id.location_address);
+        if (tvLocationAddress != null) {
+            tvLocationAddress.setText(restaurant.getAddress() != null ? restaurant.getAddress() : "N/A");
+        }
+
+
+        // setup map link button
+        Button btnMapLink = findViewById(R.id.location_map_link);
+        if (btnMapLink != null) {
+            btnMapLink.setOnClickListener(v -> openLocationOnMap(restaurant.getLocationURL()));
+        }
+    }
+
+    // open location on map using locationURL
+    private void openLocationOnMap(String locationURL) {
+        if (locationURL == null || locationURL.trim().isEmpty()) {
+            Toast.makeText(this, "Location URL not available", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
+            // validate and parse URI
+            Uri locationUri = Uri.parse(locationURL.trim());
+
+
+            // try opening with maps app first
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, locationUri);
+            mapIntent.setPackage("com.google.android.apps.maps");
+
+
+            if (mapIntent.resolveActivity(getPackageManager()) != null) {
+                startActivity(mapIntent);
+            } else {
+
+                // fallback to browser if maps not available
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, locationUri);
+                if (browserIntent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(browserIntent);
+                } else {
+                    Toast.makeText(this, "No app available to view location", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+        } catch (Exception e) {
+            Toast.makeText(this, "Invalid location URL", Toast.LENGTH_SHORT).show();
+        }
     }
 }
