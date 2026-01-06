@@ -24,6 +24,9 @@ import androidx.core.content.ContextCompat;
 
 
 import com.example.dontjusteat.repositories.RestaurantRepository;
+import com.example.dontjusteat.models.RestaurantAvailability;
+import com.example.dontjusteat.models.Restaurant;
+import com.bumptech.glide.Glide;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
@@ -58,11 +61,11 @@ public class customer_booking extends BaseActivity {
     private View header;
     private View mapView;
     private View handle;
-    private ImageView editButton;
     DatePickerDialog datePickerDialog;
     TimePickerDialog timePickerDialog;
 
     private TextView txtCity, txtDate, txtTime, txtGuests;
+    private LinearLayout cardContainer;
 
 
 
@@ -80,11 +83,9 @@ public class customer_booking extends BaseActivity {
         setupBottomSheetBehavior(); // setting up the bottom sheet
         setupHandleTouchControl(); // setting up the handle for the bottom sheet
         calculatePeekHeightAndOffsets(); // calculating the peek height and offsets for the bottom sheet
-        setupButtonClick(); // setting up the select button for booking
         setupEditButton(); // setting up the edit button for search function
         applySystemUIHandling(); // setting up the system UI handling
         locationClient = LocationServices.getFusedLocationProviderClient(this);
-        requestLocationPermissionIfNeeded();
 
 
         viewModel.getStartTimeMillis().observe(this, millis -> {
@@ -108,6 +109,11 @@ public class customer_booking extends BaseActivity {
             txtCity.setText(c);
         });
 
+        //observe availability results and render cards
+        viewModel.getAvailabilityResults().observe(this, results -> {
+            renderAvailabilityResults(results);
+        });
+
 
     }
 
@@ -121,20 +127,21 @@ public class customer_booking extends BaseActivity {
         handle = findViewById(R.id.handle_container);
         mapView = findViewById(R.id.mapView);
 
-        //for search filter button:
-        editButton = findViewById(R.id.edit_icon);
+        //for search filter:
         txtCity = findViewById(R.id.searched_city);
         txtDate = findViewById(R.id.searched_date);
         txtTime = findViewById(R.id.searched_time);
         txtGuests = findViewById(R.id.searched_number_of_guests);
 
+        // container for result cards
+        cardContainer = findViewById(R.id.card_container);
     }
 
 
     // BOTTOM SHEET SETUP
     private void setupBottomSheetBehavior() {
-        bottomSheetBehavior.setFitToContents(false);
-        bottomSheetBehavior.setDraggable(false);
+        bottomSheetBehavior.setFitToContents(true);
+        bottomSheetBehavior.setDraggable(true);
     }
 
     private void setupHandleTouchControl() {
@@ -154,10 +161,14 @@ public class customer_booking extends BaseActivity {
         });
     }
 
-    // SEARCH FILTER BUTTON SET UP
+    // SEARCH FILTER SETUP
     private void setupEditButton() {
-        if (editButton != null) {
-            editButton.setOnClickListener(v -> {showSearchFilterDialog(); requestLocationPermissionIfNeeded();});
+        //make the entire header clickable
+        if (header != null) {
+            header.setOnClickListener(v -> {
+                showSearchFilterDialog();
+                requestLocationPermissionIfNeeded();
+            });
         }
     }
 
@@ -250,11 +261,16 @@ public class customer_booking extends BaseActivity {
                     new RestaurantRepository.OnAvailabilitySearchListener() {
                         @Override
                         public void onSuccess(List<com.example.dontjusteat.models.RestaurantAvailability> results) {
-                            // later I will update the buttom sheet here
                             viewModel.setAvailabilityResults(results);
 
                             if (results.isEmpty()) {
                                 Toast.makeText(customer_booking.this, "No availability found", Toast.LENGTH_SHORT).show();
+                            } else {
+                                // Automatically expand bottom sheet to show results
+                                if (bottomSheetBehavior != null) {
+                                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                                }
+                                Toast.makeText(customer_booking.this, "Found " + results.size() + " available location(s)", Toast.LENGTH_SHORT).show();
                             }
                         }
 
@@ -328,15 +344,52 @@ public class customer_booking extends BaseActivity {
     }
 
 
-    // BUTTON ACTIONS
-    private void setupButtonClick() {
-        Button selectButton = findViewById(R.id.select_button);
-        selectButton.setOnClickListener(v -> openLocationDetails());
+    private void openLocationDetails(String restaurantId, String restaurantName) {
+        Intent intent = new Intent(this, customer_location_detail.class);
+        intent.putExtra("restaurantId", restaurantId);
+        intent.putExtra("restaurantName", restaurantName);
+        Long millis = viewModel.getStartTimeMillis().getValue();
+        if (millis != null) intent.putExtra("requestedAfterMs", millis);
+        startActivity(intent);
     }
 
-    private void openLocationDetails() {
-        Intent intent = new Intent(this, customer_location_detail.class);
-        startActivity(intent);
+    // RENDERING
+    private void renderAvailabilityResults(List<RestaurantAvailability> results) {
+        if (cardContainer == null) return;
+        // clear the container
+        cardContainer.removeAllViews();
+        if (results == null || results.isEmpty()) return;
+        // inflate the card for each result
+        LayoutInflater inflater = LayoutInflater.from(this);
+        for (RestaurantAvailability ra : results) {
+            // get the restaurant object
+            Restaurant r = ra.restaurant;
+            View card = inflater.inflate(R.layout.component_customer_booking_location_card, cardContainer, false);
+            // set the fields
+            ImageView img = card.findViewById(R.id.card_image);
+            TextView title = card.findViewById(R.id.card_title);
+            TextView desc = card.findViewById(R.id.card_description);
+            TextView availability = card.findViewById(R.id.card_availability);
+            Button btn = card.findViewById(R.id.select_button);
+
+
+
+            // set the fields
+            title.setText(r.getName() != null ? r.getName() : "Unnamed Location");
+            desc.setText(r.getAddress() != null ? r.getAddress() : "");
+            int slots = (ra.slots != null ? ra.slots.size() : 0);
+            availability.setText(slots + (slots == 1 ? " slot available" : " slots available"));
+
+            // load the image
+            String imageUrl = r.getImageUrl();
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                Glide.with(this).load(imageUrl).into(img);
+            }
+            // set the click listener
+            btn.setOnClickListener(v -> openLocationDetails(r.getId(), r.getName()));
+
+            cardContainer.addView(card);
+        }
     }
 
 

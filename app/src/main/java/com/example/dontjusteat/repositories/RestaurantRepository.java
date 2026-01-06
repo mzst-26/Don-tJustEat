@@ -44,7 +44,7 @@ public class RestaurantRepository {
                 .addOnSuccessListener(qs -> {
 
                         // used this for debugging
-//                    android.util.Log.d("REPO_DEBUG", "Found " + qs.size() + " active restaurants total");
+                    android.util.Log.d("REPO_DEBUG", "Found " + qs.size() + " active restaurants total");
                     // filter restaurants by location
                     List<Restaurant> candidates = new ArrayList<>();
 
@@ -60,7 +60,7 @@ public class RestaurantRepository {
                         String addr = r.getAddress();
 
                         // used for debugging
-//                        android.util.Log.d("REPO_DEBUG", "  Checking: " + r.getName() + " (address: " + addr + ")");
+                        android.util.Log.d("REPO_DEBUG", "  Checking: " + r.getName() + " (address: " + addr + ")");
 
                         // check if the address contains the location text
                         if (containsIgnoreCase(addr, locationText)) {
@@ -71,7 +71,7 @@ public class RestaurantRepository {
                         }
                     }
                     // used for debugging
-//                    android.util.Log.d("REPO_DEBUG", "Location filter: " + candidates.size() + " restaurants match");
+                    android.util.Log.d("REPO_DEBUG", "Location filter: " + candidates.size() + " restaurants match");
 
                     // create a list of tasks for each restaurant
                     List<Task<RestaurantAvailability>> tasks = new ArrayList<>();
@@ -174,6 +174,15 @@ public class RestaurantRepository {
                         lockTasks.add(loadLocksForTable(r.getId(), tr.tableId, startMs, endMs));
                     }
 
+                    Tasks.whenAllSuccess(lockTasks)
+                            .addOnSuccessListener(lockObjects -> {
+                                List<com.example.dontjusteat.models.Slot> slots =
+                                        buildAvailableSlots(startMs, endMs, slotMinutes, durationMinutes, maxSlots, tables, lockObjects);
+
+                                tcs.setResult(new RestaurantAvailability(r, slots));
+                            })
+                            .addOnFailureListener(e -> tcs.setResult(new RestaurantAvailability(r, Collections.emptyList())));
+
                 })
                 .addOnFailureListener(e -> tcs.setResult(new RestaurantAvailability(r, Collections.emptyList())));
 
@@ -253,4 +262,79 @@ public class RestaurantRepository {
     private static String msg(Exception e, String fallback) {
         return (e != null && e.getMessage() != null) ? e.getMessage() : fallback;
     }
+
+
+    private static List<com.example.dontjusteat.models.Slot> buildAvailableSlots(
+            long startMs,
+            long endMs,
+            int slotMinutes,
+            int durationMinutes,
+            int maxSlots,
+            List<TableRef> tables,
+            List<Object> lockObjects
+    ) {
+        Map<String, Set<Long>> lockedByTable = new HashMap<>();
+
+        for (Object o : lockObjects) {
+            if (o instanceof TableLocks) {
+                TableLocks tl = (TableLocks) o;
+                lockedByTable.put(
+                        tl.tableId,
+                        (tl.lockedSlotStarts != null) ? tl.lockedSlotStarts : Collections.emptySet()
+                );
+            }
+        }
+
+        long slotMs = TimeUnit.MINUTES.toMillis(slotMinutes);
+        long durationMs = TimeUnit.MINUTES.toMillis(durationMinutes);
+
+        int limit = (maxSlots <= 0) ? Integer.MAX_VALUE : maxSlots;
+
+        List<com.example.dontjusteat.models.Slot> out = new ArrayList<>();
+
+        for (long t = startMs; t + durationMs <= endMs; t += slotMs) {
+
+            boolean hasAnyTable = false;
+
+            for (TableRef tr : tables) {
+                Set<Long> locked = lockedByTable.get(tr.tableId);
+                if (locked == null) locked = Collections.emptySet();
+
+                if (!isLockedForWindow(locked, t, durationMs, slotMs)) {
+                    Timestamp st = new Timestamp(new Date(t));
+                    Timestamp en = new Timestamp(new Date(t + durationMs));
+
+                    com.example.dontjusteat.models.Slot s = new com.example.dontjusteat.models.Slot(st, en);
+                    trySetField(s, "tableId", tr.tableId);
+
+                    out.add(s);
+                    hasAnyTable = true;
+                    break;
+                }
+
+            }
+
+            if (hasAnyTable && out.size() >= limit) break;
+        }
+
+        return out;
+    }
+
+    private static boolean isLockedForWindow(Set<Long> lockedSlotStarts, long startMs, long durationMs, long slotMs) {
+        long endExclusive = startMs + durationMs;
+        for (long t = startMs; t < endExclusive; t += slotMs) {
+            if (lockedSlotStarts.contains(t)) return true;
+        }
+        return false;
+    }
+
+    private static void trySetField(Object target, String fieldName, Object value) {
+        try {
+            java.lang.reflect.Field f = target.getClass().getDeclaredField(fieldName);
+            f.setAccessible(true);
+            f.set(target, value);
+        } catch (Exception ignored) {
+        }
+    }
+
 }

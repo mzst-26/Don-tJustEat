@@ -4,6 +4,10 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.dontjusteat.models.RestaurantAvailability;
+
+import java.util.List;
+
 public class CustomerBookingViewModel extends ViewModel {
 
     private final MutableLiveData<Double> lat = new MutableLiveData<>();
@@ -35,5 +39,13 @@ public class CustomerBookingViewModel extends ViewModel {
         guests.setValue(value);
     }
 
+    public void setAvailabilityResults(List<RestaurantAvailability> results) {
+        availabilityResults.setValue(results);
+    }
+
+    private final MutableLiveData<List<RestaurantAvailability>> availabilityResults = new MutableLiveData<>();
+    public LiveData<List<RestaurantAvailability>> getAvailabilityResults() {
+        return availabilityResults;
+    }
 
 }

@@ -3,7 +3,7 @@ package com.example.dontjusteat.models;
 import com.google.firebase.Timestamp;
 
 public class Slot {
-    public final Timestamp startTime;
+    public Timestamp startTime;
     public final Timestamp endTime;
 
     public Slot(Timestamp startTime, Timestamp endTime) {
