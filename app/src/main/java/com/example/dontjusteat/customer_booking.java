@@ -40,6 +40,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import androidx.lifecycle.ViewModelProvider;
 import com.example.dontjusteat.viewmodel.CustomerBookingViewModel;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
@@ -377,12 +378,27 @@ public class customer_booking extends BaseActivity implements OnMapReadyCallback
         startActivity(intent);
     }
 
-    // open location with availability info
-    private void openLocationDetailsWithAvailability(String restaurantId, String restaurantName, int availableSlots) {
+    // open location with availability info (passes slots as primitive longs)
+    private void openLocationDetailsWithAvailability(RestaurantAvailability ra) {
+        if (ra == null || ra.restaurant == null || ra.slots == null || ra.slots.isEmpty()) {
+            Toast.makeText(this, "Please use the search first check the availability.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        ArrayList<Long> slotStarts = new ArrayList<>();
+        ArrayList<Long> slotEnds = new ArrayList<>();
+        for (com.example.dontjusteat.models.Slot s : ra.slots) {
+            if (s == null || s.startTime == null || s.endTime == null) continue;
+            slotStarts.add(s.startTime.toDate().getTime());
+            slotEnds.add(s.endTime.toDate().getTime());
+        }
+
         Intent intent = new Intent(this, customer_location_detail.class);
-        intent.putExtra("restaurantId", restaurantId);
-        intent.putExtra("restaurantName", restaurantName);
-        intent.putExtra("availableSlots", availableSlots);
+        intent.putExtra("restaurantId", ra.restaurant.getId());
+        intent.putExtra("restaurantName", ra.restaurant.getName());
+        intent.putExtra("availableSlots", slotStarts.size());
+        intent.putExtra("slotStarts", slotStarts);
+        intent.putExtra("slotEnds", slotEnds);
         Long millis = viewModel.getStartTimeMillis().getValue();
         if (millis != null) intent.putExtra("requestedAfterMs", millis);
         startActivity(intent);
@@ -427,7 +443,13 @@ public class customer_booking extends BaseActivity implements OnMapReadyCallback
 
             // set the click listener with availability info
             final int slotsCount = slots;
-            btn.setOnClickListener(v -> openLocationDetailsWithAvailability(r.getId(), r.getName(), slotsCount));
+            btn.setOnClickListener(v -> {
+                if (slotsCount <= 0) {
+                    Toast.makeText(this, "No availability yet. Please search to refresh availability.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                openLocationDetailsWithAvailability(ra);
+            });
 
             cardContainer.addView(card);
         }
@@ -718,4 +740,3 @@ public class customer_booking extends BaseActivity implements OnMapReadyCallback
     }
 
 }
-

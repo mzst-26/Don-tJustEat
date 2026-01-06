@@ -54,7 +54,7 @@ public class customer_location_detail extends BaseActivity {
         bottomSheetBehavior.setFitToContents(false);
 
         // Disable dragging initially
-        bottomSheetBehavior.setDraggable(false);
+        bottomSheetBehavior.setDraggable(true);
 
         // Enable dragging only when touching handle
         View handle = findViewById(R.id.handle_container);
