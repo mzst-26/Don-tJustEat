@@ -38,6 +38,7 @@
             />
         <!--location name-->
         <TextView
+            android:id="@+id/header_title"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -75,45 +76,45 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-       <!-- search container -->
-        <LinearLayout
-            android:id="@+id/search_container"
-            android:layout_width="match_parent"
-            android:layout_margin="10dp"
-            android:layout_height="50dp"
-            android:background="@drawable/pink_back_full_radius"
-            app:layout_constraintTop_toBottomOf="@+id/divider"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:gravity="center_vertical"
-            android:paddingLeft="20dp"
-            >
-            <!--search icon-->
-            <RelativeLayout
-                android:id="@+id/search"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:clipToOutline="true"
-                android:background="@drawable/search"
-                android:layout_marginRight="10dp"
+<!--       &lt;!&ndash; search container &ndash;&gt;-->
+<!--        <LinearLayout-->
+<!--            android:id="@+id/search_container"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_margin="10dp"-->
+<!--            android:layout_height="50dp"-->
+<!--            android:background="@drawable/pink_back_full_radius"-->
+<!--            app:layout_constraintTop_toBottomOf="@+id/divider"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            android:gravity="center_vertical"-->
+<!--            android:paddingLeft="20dp"-->
+<!--            >-->
+<!--            &lt;!&ndash;search icon&ndash;&gt;-->
+<!--            <RelativeLayout-->
+<!--                android:id="@+id/search"-->
+<!--                android:layout_width="24dp"-->
+<!--                android:layout_height="24dp"-->
+<!--                android:clipToOutline="true"-->
+<!--                android:background="@drawable/search"-->
+<!--                android:layout_marginRight="10dp"-->
 
-                />
-            <!--search input-->
-            <EditText
-                android:id="@+id/foodSearchText"
-                android:layout_width="300dp"
-                android:layout_height="50dp"
-                android:inputType="textAutoCorrect"
-                android:hint="Search your favorite food"
-                android:padding="10dp"
-                android:layout_margin="16dp"
-                android:background="@null"
-                android:textColor="@color/black"
-                android:textColorHint="#898585"
+<!--                />-->
+<!--            &lt;!&ndash;search input&ndash;&gt;-->
+<!--            <EditText-->
+<!--                android:id="@+id/foodSearchText"-->
+<!--                android:layout_width="300dp"-->
+<!--                android:layout_height="50dp"-->
+<!--                android:inputType="textAutoCorrect"-->
+<!--                android:hint="Search your favorite food"-->
+<!--                android:padding="10dp"-->
+<!--                android:layout_margin="16dp"-->
+<!--                android:background="@null"-->
+<!--                android:textColor="@color/black"-->
+<!--                android:textColorHint="#898585"-->
 
-                />
+<!--                />-->
 
-        </LinearLayout>
+<!--        </LinearLayout>-->
 
 
         <!--location distance-->
@@ -131,14 +132,17 @@
 
             <!--location name-->
             <TextView
-                android:layout_width="wrap_content"
+                android:id="@+id/location_name_text"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_marginRight="140dp"
+                android:layout_weight="0"
                 android:text="Location Name"
-                android:textSize="16dp"
+                android:textSize="15dp"
                 android:gravity="center_vertical"
                 android:textColor="@color/black"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:paddingEnd="8dp"
                 />
 
                 <!-- Back Button !-->
@@ -153,17 +157,21 @@
 
                     />
 
-                <!--location distance text-->
+                <!--location address text-->
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:id="@+id/location_address_text"
+                    android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:text="1.5 miles"
-                    android:textSize="16dp"
+                    android:text="Address here"
+                    android:textSize="13dp"
                     android:gravity="center_vertical"
+                    android:maxLines="1"
+                    android:ellipsize="end"
                     style="@style/search_subtitles"
                     android:layout_margin="0dp"
                     android:textColor="@color/black"
+                    android:paddingStart="8dp"
                     />
 
         </LinearLayout>
@@ -181,6 +189,7 @@
         >
             <!--Number of tables available-->
             <TextView
+                android:id="@+id/tables_available_count"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="5"
@@ -218,12 +227,14 @@
             android:layout_height="wrap_content"
             app:layout_constraintTop_toBottomOf="@+id/location_availability">
             <ImageView
+                android:id="@+id/restaurant_image"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/restaurant_image"
+                android:layout_height="380dp"
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-
+                android:contentDescription="Restaurant image"
                 />
         </LinearLayout>
         </LinearLayout>
@@ -252,13 +263,13 @@
         <RelativeLayout
             android:id="@+id/handle_container"
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="10dp"
             android:gravity="center_vertical"
             >
 
             <View
                 android:id="@+id/handle"
-                android:layout_width="48dp"
+                android:layout_width="35dp"
                 android:layout_height="8dp"
                 android:layout_alignParentBottom="true"
                 android:layout_centerHorizontal="true"
@@ -291,284 +302,6 @@
                     android:orientation="vertical"
                     android:padding="0dp"
                     >
-
-                    <!--card item-->
-                    <LinearLayout
-
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/card_background"
-                        android:padding="10dp"
-                        android:layout_marginBottom="10dp"
-                        >
-
-                        <!--card Image-->
-                        <ImageView
-
-                            android:layout_width="match_parent"
-                            android:layout_height="150dp"
-                            android:background="@drawable/white_background_round"
-                            android:padding="5dp"
-                            />
-                        <!--card title-->
-                        <TextView
-
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="5dp"
-                            android:layout_marginBottom="5dp"
-                            android:text="Dish name"
-                            />
-                        <!--card info and button-->
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:layout_marginTop="5dp"
-                            android:layout_marginBottom="5dp"
-
-                            >
-                            <TextView
-
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="5dp"
-                                android:layout_marginBottom="5dp"
-                                android:text="Description of the dish lam behsh cap sinch shab ausf amsic sinv ias s sdsd as lkjnof jsue asueh snnw wbshdw sjsdafasf asuwusnd asfwudan."
-                                />
-                            <Space
-                                android:layout_width="0dp"
-                                android:layout_height="0dp"
-                                android:layout_weight="1" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                    <!--card item-->
-                    <LinearLayout
-
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/card_background"
-                        android:padding="10dp"
-                        android:layout_marginBottom="10dp"
-                        >
-
-                        <!--card Image-->
-                        <ImageView
-
-                            android:layout_width="match_parent"
-                            android:layout_height="150dp"
-                            android:background="@drawable/white_background_round"
-                            android:padding="5dp"
-                            />
-                        <!--card title-->
-                        <TextView
-
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="5dp"
-                            android:layout_marginBottom="5dp"
-                            android:text="Dish name"
-                            />
-                        <!--card info and button-->
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:layout_marginTop="5dp"
-                            android:layout_marginBottom="5dp"
-
-                            >
-                            <TextView
-
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="5dp"
-                                android:layout_marginBottom="5dp"
-                                android:text="Description of the dish lam behsh cap sinch shab ausf amsic sinv ias s sdsd as lkjnof jsue asueh snnw wbshdw sjsdafasf asuwusnd asfwudan."
-                                />
-                            <Space
-                                android:layout_width="0dp"
-                                android:layout_height="0dp"
-                                android:layout_weight="1" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                    <!--card item-->
-                    <LinearLayout
-
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/card_background"
-                        android:padding="10dp"
-                        android:layout_marginBottom="10dp"
-                        >
-
-                        <!--card Image-->
-                        <ImageView
-
-                            android:layout_width="match_parent"
-                            android:layout_height="150dp"
-                            android:background="@drawable/white_background_round"
-                            android:padding="5dp"
-                            />
-                        <!--card title-->
-                        <TextView
-
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="5dp"
-                            android:layout_marginBottom="5dp"
-                            android:text="Dish name"
-                            />
-                        <!--card info and button-->
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:layout_marginTop="5dp"
-                            android:layout_marginBottom="5dp"
-
-                            >
-                            <TextView
-
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="5dp"
-                                android:layout_marginBottom="5dp"
-                                android:text="Description of the dish lam behsh cap sinch shab ausf amsic sinv ias s sdsd as lkjnof jsue asueh snnw wbshdw sjsdafasf asuwusnd asfwudan."
-                                />
-                            <Space
-                                android:layout_width="0dp"
-                                android:layout_height="0dp"
-                                android:layout_weight="1" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                    <!--card item-->
-                    <LinearLayout
-
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/card_background"
-                        android:padding="10dp"
-                        android:layout_marginBottom="10dp"
-                        >
-
-                        <!--card Image-->
-                        <ImageView
-
-                            android:layout_width="match_parent"
-                            android:layout_height="150dp"
-                            android:background="@drawable/white_background_round"
-                            android:padding="5dp"
-                            />
-                        <!--card title-->
-                        <TextView
-
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="5dp"
-                            android:layout_marginBottom="5dp"
-                            android:text="Dish name"
-                            />
-                        <!--card info and button-->
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:layout_marginTop="5dp"
-                            android:layout_marginBottom="5dp"
-
-                            >
-                            <TextView
-
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="5dp"
-                                android:layout_marginBottom="5dp"
-                                android:text="Description of the dish lam behsh cap sinch shab ausf amsic sinv ias s sdsd as lkjnof jsue asueh snnw wbshdw sjsdafasf asuwusnd asfwudan."
-                                />
-                            <Space
-                                android:layout_width="0dp"
-                                android:layout_height="0dp"
-                                android:layout_weight="1" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                    <!--card item-->
-                    <LinearLayout
-
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="@drawable/card_background"
-                        android:padding="10dp"
-                        android:layout_marginBottom="10dp"
-                        >
-
-                        <!--card Image-->
-                        <ImageView
-
-                            android:layout_width="match_parent"
-                            android:layout_height="150dp"
-                            android:background="@drawable/white_background_round"
-                            android:padding="5dp"
-                            />
-                        <!--card title-->
-                        <TextView
-
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="5dp"
-                            android:layout_marginBottom="5dp"
-                            android:text="Dish name"
-                            />
-                        <!--card info and button-->
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:layout_marginTop="5dp"
-                            android:layout_marginBottom="5dp"
-
-                            >
-                            <TextView
-
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="5dp"
-                                android:layout_marginBottom="5dp"
-                                android:text="Description of the dish lam behsh cap sinch shab ausf amsic sinv ias s sdsd as lkjnof jsue asueh snnw wbshdw sjsdafasf asuwusnd asfwudan."
-                                />
-                            <Space
-                                android:layout_width="0dp"
-                                android:layout_height="0dp"
-                                android:layout_weight="1" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-
-
 
 
 
