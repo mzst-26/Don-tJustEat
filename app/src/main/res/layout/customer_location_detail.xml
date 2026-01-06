@@ -224,16 +224,17 @@
         <!--Restaurant Image -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="330dp"
+            android:layout_height="wrap_content"
             app:layout_constraintTop_toBottomOf="@+id/location_availability">
             <ImageView
                 android:id="@+id/restaurant_image"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scaleType="centerCrop"
+                android:layout_height="380dp"
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-
+                android:contentDescription="Restaurant image"
                 />
         </LinearLayout>
         </LinearLayout>
@@ -262,7 +263,7 @@
         <RelativeLayout
             android:id="@+id/handle_container"
             android:layout_width="match_parent"
-            android:layout_height="35dp"
+            android:layout_height="10dp"
             android:gravity="center_vertical"
             >
 
