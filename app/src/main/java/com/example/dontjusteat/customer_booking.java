@@ -10,8 +10,6 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -25,6 +23,7 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
 
+import com.example.dontjusteat.repositories.RestaurantRepository;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
@@ -40,7 +39,6 @@ import android.location.Geocoder;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.Executors;
 
 
@@ -66,10 +64,6 @@ public class customer_booking extends BaseActivity {
 
     private TextView txtCity, txtDate, txtTime, txtGuests;
 
-    private final String[] cityList = new String[]{
-            "London", "Bristol", "Manchester", "Liverpool", "Leeds",
-            "Edinburgh", "Cardiff", "Birmingham", "Glasgow", "Newcastle"
-    };
 
 
     @Override
@@ -201,26 +195,79 @@ public class customer_booking extends BaseActivity {
         EditText inputGuests = dialogView.findViewById(R.id.input_guests);
 
         builder.setView(dialogView);
-        // CITY AUTOCOMPLETE
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_dropdown_item_1line,
-                cityList
-        );
 
         //set up date and time picker
         inputDate.setOnClickListener(v -> pickDateAndTime(inputDate));
         //the positive button for the pop up dialog to submit a search
         builder.setPositiveButton("Search", (dialog, which) -> {
-            // update the search UI with the input values if the value is valid
+
+            // guests
+            // get the guest number input text
             String guestsStr = safeText(inputGuests);
             int g = 2;
+            // check if it is empty or larger than max capacity
             try {
                 if (!guestsStr.isEmpty()) g = Integer.parseInt(guestsStr);
-            } catch (NumberFormatException ignored) { }
+            } catch (NumberFormatException ignored) {}
+
+            if (g > 10) {
+                Toast.makeText(this, "Maximum 10 guests", Toast.LENGTH_SHORT).show();
+                g = 10;
+            }
 
             viewModel.setGuests(g);
+
+
+            // date and time
+            Long millis = viewModel.getStartTimeMillis().getValue();
+            // check if date and time are selected
+            if (millis == null) {
+                Toast.makeText(this, "Please select date & time", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            // convert the milli seconds to timestamp firebase format
+            com.google.firebase.Timestamp requestedAfter =
+                    new com.google.firebase.Timestamp(new Date(millis));
+
+            // location that comes from the textview
+            String locationText = txtCity.getText() == null ? "" : txtCity.getText().toString().trim();
+            // check if location is empty
+            if (locationText.isEmpty() || locationText.equalsIgnoreCase("Location Permission Required")) {
+                Toast.makeText(this, "Location is required please select a location or allow location access", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // run the search
+            RestaurantRepository repo = new RestaurantRepository(/* context only if your constructor requires it */);
+
+            Toast.makeText(this, "Searching for: " + locationText + ", guests: " + g + ", after: " + new SimpleDateFormat("HH:mm", Locale.UK).format(new Date(millis)), Toast.LENGTH_LONG).show();
+
+            repo.searchAvailableRestaurants(
+                    locationText,
+                    requestedAfter,
+                    g,
+                    20,
+                    new RestaurantRepository.OnAvailabilitySearchListener() {
+                        @Override
+                        public void onSuccess(List<com.example.dontjusteat.models.RestaurantAvailability> results) {
+                            // later I will update the buttom sheet here
+                            viewModel.setAvailabilityResults(results);
+
+                            if (results.isEmpty()) {
+                                Toast.makeText(customer_booking.this, "No availability found", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(String error) {
+                            android.util.Log.e("BOOKING_DEBUG", "Search error: " + error);
+                            Toast.makeText(customer_booking.this, error, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+            );
+
         });
+
 
         // create a cancel dialog button and close when clicked on
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
@@ -313,20 +360,6 @@ public class customer_booking extends BaseActivity {
     private String safeText(EditText et) {
         if (et == null || et.getText() == null) return "";
         return et.getText().toString().trim();
-    }
-
-    private String safeText(AutoCompleteTextView et) {
-        if (et == null || et.getText() == null) return "";
-        return et.getText().toString().trim();
-    }
-
-    private boolean isValidCity(String city) {
-        for (String c : cityList) {
-            if (c.equalsIgnoreCase(city.trim())) {
-                return true;
-            }
-        }
-        return false;
     }
 
 
