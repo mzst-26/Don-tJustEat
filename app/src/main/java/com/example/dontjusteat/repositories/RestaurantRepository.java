@@ -29,6 +29,35 @@ public class RestaurantRepository {
         void onFailure(String error);
     }
 
+    public interface OnRestaurantFetchListener {
+        void onSuccess(Restaurant restaurant);
+        void onFailure(String error);
+    }
+
+    public interface OnMenuItemsListener {
+        void onSuccess(List<com.example.dontjusteat.models.MenuItem> items);
+        void onFailure(String error);
+    }
+
+    // get a single restaurant by ID
+    public void getRestaurantById(String restaurantId, OnRestaurantFetchListener listener) {
+        db.collection("restaurants").document(restaurantId).get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        Restaurant r = doc.toObject(Restaurant.class);
+                        if (r != null) {
+                            r.setId(doc.getId());
+                            listener.onSuccess(r);
+                        } else {
+                            listener.onFailure("Failed to parse restaurant data");
+                        }
+                    } else {
+                        listener.onFailure("Restaurant not found");
+                    }
+                })
+                .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
+    }
+
     //get all the restaurants
     public void getAllRestaurants(@NonNull OnAllRestaurantsListener listener) {
         db.collection("restaurants")
@@ -243,6 +272,24 @@ public class RestaurantRepository {
         return tcs.getTask();
     }
 
+    // fetch menu items for a specific restaurant
+    public void getMenuItemsByRestaurantId(String restaurantId, OnMenuItemsListener listener) {
+        db.collection("restaurants").document(restaurantId)
+                .collection("menu")
+                .get()
+                .addOnSuccessListener(qs -> {
+                    List<com.example.dontjusteat.models.MenuItem> items = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : qs) {
+                        com.example.dontjusteat.models.MenuItem item = doc.toObject(com.example.dontjusteat.models.MenuItem.class);
+                        if (item != null) {
+                            item.setItemId(doc.getId());
+                            items.add(item);
+                        }
+                    }
+                    listener.onSuccess(items);
+                })
+                .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
+    }
 
     // small structures as helpers
     private static class TableRef {

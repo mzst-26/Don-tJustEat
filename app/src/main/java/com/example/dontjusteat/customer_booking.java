@@ -377,6 +377,17 @@ public class customer_booking extends BaseActivity implements OnMapReadyCallback
         startActivity(intent);
     }
 
+    // open location with availability info
+    private void openLocationDetailsWithAvailability(String restaurantId, String restaurantName, int availableSlots) {
+        Intent intent = new Intent(this, customer_location_detail.class);
+        intent.putExtra("restaurantId", restaurantId);
+        intent.putExtra("restaurantName", restaurantName);
+        intent.putExtra("availableSlots", availableSlots);
+        Long millis = viewModel.getStartTimeMillis().getValue();
+        if (millis != null) intent.putExtra("requestedAfterMs", millis);
+        startActivity(intent);
+    }
+
     // RENDERING
     private void renderAvailabilityResults(List<RestaurantAvailability> results) {
         if (cardContainer == null) return;
@@ -413,8 +424,10 @@ public class customer_booking extends BaseActivity implements OnMapReadyCallback
             if (imageUrl != null && !imageUrl.isEmpty()) {
                 Glide.with(this).load(imageUrl).into(img);
             }
-            // set the click listener
-            btn.setOnClickListener(v -> openLocationDetails(r.getId(), r.getName()));
+
+            // set the click listener with availability info
+            final int slotsCount = slots;
+            btn.setOnClickListener(v -> openLocationDetailsWithAvailability(r.getId(), r.getName(), slotsCount));
 
             cardContainer.addView(card);
         }

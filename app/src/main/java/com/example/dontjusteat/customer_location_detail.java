@@ -3,18 +3,27 @@ package com.example.dontjusteat;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.TypedValue;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
-
+import com.bumptech.glide.Glide;
+import com.example.dontjusteat.models.Restaurant;
+import com.example.dontjusteat.repositories.RestaurantRepository;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
+import java.util.List;
+
 public class customer_location_detail extends BaseActivity {
+
+    private String restaurantId;
+    private int availableSlots = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,6 +32,15 @@ public class customer_location_detail extends BaseActivity {
             return;
         }
         setContentView(R.layout.customer_location_detail);
+
+        // get intent data
+        restaurantId = getIntent().getStringExtra("restaurantId");
+        availableSlots = getIntent().getIntExtra("availableSlots", 0);
+
+        // fetch restaurant details
+        if (restaurantId != null) {
+            fetchRestaurantDetails();
+        }
 
         //Back button
         ImageView backButton = findViewById(R.id.back_button);
@@ -52,7 +70,7 @@ public class customer_location_detail extends BaseActivity {
                         bottomSheetBehavior.setDraggable(false);
                         break;
                 }
-                return false; // allow other events like click
+                return false;
             }
         });
 
@@ -64,19 +82,14 @@ public class customer_location_detail extends BaseActivity {
             public void onGlobalLayout() {
                 bottomSheet.getViewTreeObserver().removeOnGlobalLayoutListener(this);
 
-                // Get parent height (screen height minus status/nav bars if any)
                 int parentHeight = ((View) bottomSheet.getParent()).getHeight();
-
-                // Minimum visible height: lip to lip with map bottom
                 int mapBottom = Upper_container.getBottom();
                 int peekHeight = parentHeight - mapBottom;
-                bottomSheetBehavior.setPeekHeight(peekHeight + + dpToPx(28));
+                bottomSheetBehavior.setPeekHeight(peekHeight + dpToPx(28));
 
-                // Maximum expansion: up to below the header (covers map but keeps header visible)
                 int headerHeight = header.getHeight();
                 bottomSheetBehavior.setExpandedOffset(headerHeight);
 
-                // Set initial state to collapsed (which is now lip to lip)
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
             }
         });
@@ -85,7 +98,6 @@ public class customer_location_detail extends BaseActivity {
         bookTableButton.setOnClickListener(view -> {
             Intent intent = new Intent(customer_location_detail.this, booking_summary.class);
             startActivity(intent);
-
         });
 
         // Apply window insets
@@ -94,6 +106,106 @@ public class customer_location_detail extends BaseActivity {
         // Handle menu navigation
         Modules.handleMenuNavigation(this);
 
+    }
+
+    // fetch restaurant details from database
+    private void fetchRestaurantDetails() {
+        RestaurantRepository repo = new RestaurantRepository();
+        repo.getRestaurantById(restaurantId, new RestaurantRepository.OnRestaurantFetchListener() {
+            @Override
+            public void onSuccess(Restaurant restaurant) {
+                displayRestaurantDetails(restaurant);
+                // fetch menu items after restaurant details load
+                fetchMenuItems();
+            }
+
+            @Override
+            public void onFailure(String error) {
+                Toast.makeText(customer_location_detail.this, "Failed to load restaurant details", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // fetch menu items for the restaurant
+    private void fetchMenuItems() {
+        RestaurantRepository repo = new RestaurantRepository();
+        repo.getMenuItemsByRestaurantId(restaurantId, new RestaurantRepository.OnMenuItemsListener() {
+            @Override
+            public void onSuccess(List<com.example.dontjusteat.models.MenuItem> items) {
+                displayMenuItems(items);
+            }
+
+            @Override
+            public void onFailure(String error) {
+                android.util.Log.e("LOCATION_DEBUG", "Failed to load menu: " + error);
+            }
+        });
+    }
+
+    // display menu items by inflating cards
+    private void displayMenuItems(List<com.example.dontjusteat.models.MenuItem> items) {
+        LinearLayout cardContainer = findViewById(R.id.card_container);
+        if (cardContainer == null) return;
+
+        cardContainer.removeAllViews();
+
+        LayoutInflater inflater = LayoutInflater.from(this);
+        for (com.example.dontjusteat.models.MenuItem item : items) {
+            View card = inflater.inflate(R.layout.component_location_detail_card, cardContainer, false);
+
+            // set menu item data
+            ImageView itemImage = card.findViewById(R.id.menu_item_image);
+            TextView itemName = card.findViewById(R.id.menu_item_name);
+            TextView itemDescription = card.findViewById(R.id.menu_item_description);
+            TextView itemPrice = card.findViewById(R.id.menu_item_price);
+
+            itemName.setText(item.getItemName());
+            itemDescription.setText(item.getItemDes());
+            itemPrice.setText(String.format("£%.2f", item.getPrice()));
+
+            if (item.getImageURL() != null && !item.getImageURL().isEmpty()) {
+                Glide.with(this).load(item.getImageURL()).into(itemImage);
+            }
+
+            cardContainer.addView(card);
+        }
+    }
+
+    // fetch restaurant details from database
+
+    // display the fetched restaurant data on the UI
+    private void displayRestaurantDetails(Restaurant restaurant) {
+        // set header title
+        TextView headerTitle = findViewById(R.id.header_title);
+        if (headerTitle != null) {
+            headerTitle.setText(restaurant.getName());
+        }
+
+        // set location image
+        ImageView restaurantImage = findViewById(R.id.restaurant_image);
+        if (restaurantImage != null && restaurant.getImageUrl() != null) {
+            Glide.with(this).load(restaurant.getImageUrl()).into(restaurantImage);
+        }
+
+        // set location name
+        TextView locationNameText = findViewById(R.id.location_name_text);
+        if (locationNameText != null) {
+            locationNameText.setText(restaurant.getName());
+        }
+
+        // set address
+        TextView addressText = findViewById(R.id.location_address_text);
+        if (addressText != null) {
+            addressText.setText(restaurant.getAddress());
+        }
+
+        // set tables available from passed intent data
+        TextView tablesAvailableCount = findViewById(R.id.tables_available_count);
+        if (tablesAvailableCount != null) {
+            tablesAvailableCount.setText(String.valueOf(availableSlots));
+        }
+
+        android.util.Log.d("LOCATION_DEBUG", "Loaded: " + restaurant.getName() + " | Phone: " + restaurant.getPhone() + " | Available Slots: " + availableSlots);
     }
 
     // Helper method: convert dp to pixels
