@@ -38,7 +38,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import androidx.lifecycle.ViewModelProvider;
-import com.example.dontjusteat.viewmodel.CustomerBookingViewModel;
+import com.example.dontjusteat.viewMode.CustomerBookingViewModel;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -380,7 +380,7 @@ public class customer_booking extends BaseActivity implements OnMapReadyCallback
 
     // open location with availability info (passes slots as primitive longs)
     private void openLocationDetailsWithAvailability(RestaurantAvailability ra) {
-        if (ra == null || ra.restaurant == null || ra.slots == null || ra.slots.isEmpty()) {
+        if (ra == null || ra.restaurant == null) {
             Toast.makeText(this, "Please use the search first check the availability.", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -399,6 +399,7 @@ public class customer_booking extends BaseActivity implements OnMapReadyCallback
         intent.putExtra("availableSlots", slotStarts.size());
         intent.putExtra("slotStarts", slotStarts);
         intent.putExtra("slotEnds", slotEnds);
+        intent.putExtra("partySize", viewModel.getGuests().getValue());
         Long millis = viewModel.getStartTimeMillis().getValue();
         if (millis != null) intent.putExtra("requestedAfterMs", millis);
         startActivity(intent);
