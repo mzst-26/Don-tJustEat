@@ -7,10 +7,10 @@
     <!-- rounded corners -->
     <corners android:radius="10dp" />
 
-    <!-- optional border -->
-<!--    <stroke-->
-<!--&lt;!&ndash;        android:width="2dp"&ndash;&gt;-->
-<!--        android:color="#BDBDBD" />-->
+     <!-- border -->
+    <stroke
+        android:width="0.5dp"
+        android:color="#BDBDBD" />
 
     <!-- optional padding -->
     <padding
