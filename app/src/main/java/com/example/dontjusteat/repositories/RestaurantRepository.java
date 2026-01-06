@@ -24,6 +24,34 @@ public class RestaurantRepository {
         void onFailure(String error);
     }
 
+    public interface OnAllRestaurantsListener {
+        void onSuccess(List<RestaurantAvailability> results);
+        void onFailure(String error);
+    }
+
+    //get all the restaurants
+    public void getAllRestaurants(@NonNull OnAllRestaurantsListener listener) {
+        db.collection("restaurants")
+                .whereEqualTo("isActive", true)
+                .get()
+                .addOnSuccessListener(qs -> {
+                    List<com.example.dontjusteat.models.Slot> emptySlots = Collections.emptyList();
+                    List<RestaurantAvailability> results = new ArrayList<>();
+
+                    for (QueryDocumentSnapshot doc : qs) {
+                        Restaurant r = doc.toObject(Restaurant.class);
+                        if (r != null) {
+                            r.setId(doc.getId());
+                            results.add(new RestaurantAvailability(r, emptySlots));
+                        }
+                    }
+
+                    android.util.Log.d("REPO_DEBUG", "Loaded " + results.size() + " restaurants");
+                    listener.onSuccess(results);
+                })
+                .addOnFailureListener(e -> listener.onFailure(msg(e, "Failed to load restaurants")));
+    }
+
     // search restaurants in specific location that have at least 1 table for guests
     // and return available slots after "requestedAfter".
     public void searchAvailableRestaurants(

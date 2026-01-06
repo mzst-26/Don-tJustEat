@@ -29,6 +29,12 @@ import com.example.dontjusteat.models.Restaurant;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import androidx.lifecycle.ViewModelProvider;
@@ -49,7 +55,7 @@ import java.util.concurrent.Executors;
 
 import java.util.Calendar;
 
-public class customer_booking extends BaseActivity {
+public class customer_booking extends BaseActivity implements OnMapReadyCallback {
     private CustomerBookingViewModel viewModel;
 
     private static final int REQ_LOCATION = 1001;
@@ -59,7 +65,8 @@ public class customer_booking extends BaseActivity {
     private BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
 
     private View header;
-    private View mapView;
+    private MapView mapView;
+    private GoogleMap googleMap;
     private View handle;
     DatePickerDialog datePickerDialog;
     TimePickerDialog timePickerDialog;
@@ -114,6 +121,9 @@ public class customer_booking extends BaseActivity {
             renderAvailabilityResults(results);
         });
 
+        //load all restaurants initially
+        loadAllRestaurants();
+
 
     }
 
@@ -135,6 +145,10 @@ public class customer_booking extends BaseActivity {
 
         // container for result cards
         cardContainer = findViewById(R.id.card_container);
+
+        // set up google maps
+        mapView.onCreate(null);
+        mapView.getMapAsync(this);
     }
 
 
@@ -261,23 +275,26 @@ public class customer_booking extends BaseActivity {
                     new RestaurantRepository.OnAvailabilitySearchListener() {
                         @Override
                         public void onSuccess(List<com.example.dontjusteat.models.RestaurantAvailability> results) {
-                            viewModel.setAvailabilityResults(results);
-
                             if (results.isEmpty()) {
                                 Toast.makeText(customer_booking.this, "No availability found", Toast.LENGTH_SHORT).show();
-                            } else {
-                                // Automatically expand bottom sheet to show results
-                                if (bottomSheetBehavior != null) {
-                                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-                                }
-                                Toast.makeText(customer_booking.this, "Found " + results.size() + " available location(s)", Toast.LENGTH_SHORT).show();
+                                loadAllRestaurants();
+                                return;
                             }
+
+                            viewModel.setAvailabilityResults(results);
+
+                            // Automatically expand bottom sheet to show results
+                            if (bottomSheetBehavior != null) {
+                                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                            }
+                            Toast.makeText(customer_booking.this, "Found " + results.size() + " available location(s)", Toast.LENGTH_SHORT).show();
                         }
 
                         @Override
                         public void onFailure(String error) {
                             android.util.Log.e("BOOKING_DEBUG", "Search error: " + error);
                             Toast.makeText(customer_booking.this, error, Toast.LENGTH_SHORT).show();
+                            loadAllRestaurants(); // Show all restaurants if search fails
                         }
                     }
             );
@@ -289,6 +306,13 @@ public class customer_booking extends BaseActivity {
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
 
         AlertDialog dialog = builder.create();
+        // Set button text colors using our styles
+        dialog.setOnShowListener(d -> {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                    .setTextColor(getResources().getColor(R.color.green_button));
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+                    .setTextColor(getResources().getColor(R.color.red_button));
+        });
         //check if the dialog has a valid window and set the background to transparent
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
@@ -378,7 +402,11 @@ public class customer_booking extends BaseActivity {
             title.setText(r.getName() != null ? r.getName() : "Unnamed Location");
             desc.setText(r.getAddress() != null ? r.getAddress() : "");
             int slots = (ra.slots != null ? ra.slots.size() : 0);
-            availability.setText(slots + (slots == 1 ? " slot available" : " slots available"));
+            if (slots > 0) {
+                availability.setText(slots + (slots == 1 ? " slot available" : " slots available"));
+            } else {
+                availability.setText("Use search feature to get availability.");
+            }
 
             // load the image
             String imageUrl = r.getImageUrl();
@@ -507,23 +535,25 @@ public class customer_booking extends BaseActivity {
     }
 
     private void askBookingCityOverride(String detectedCity) {
-        new AlertDialog.Builder(this)
+        // material-styled dialog with centered layout
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this,
+                com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered)
                 .setTitle("Booking location")
                 .setMessage("Are you booking within " + detectedCity + "?")
-                .setPositiveButton("Yes", (d, w) -> {
-                    // Use detected city
+                .setPositiveButton("Yes, use " + detectedCity, (d, w) -> {
                     txtCity.setText(detectedCity);
                     viewModel.setCity(detectedCity);
                 })
-                .setNegativeButton("No", (d, w) -> promptForManualLocation(detectedCity))
+                .setNegativeButton("No, change", (d, w) -> promptForManualLocation(detectedCity))
                 .show();
     }
 
     private void promptForManualLocation(String detectedCity) {
         final EditText input = new EditText(this);
-        input.setHint("Enter city/area/postcode (e.g. Plymouth, PL1)");
+        input.setHint("Enter city name ONLY (e.g. London)");
 
-        new AlertDialog.Builder(this)
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this,
+                com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog_Centered)
                 .setTitle("Enter booking location")
                 .setMessage("Detected: " + detectedCity)
                 .setView(input)
@@ -544,8 +574,135 @@ public class customer_booking extends BaseActivity {
                 .show();
     }
 
+    // Load all restaurants and display them on map and bottom sheet
+    private void loadAllRestaurants() {
+        RestaurantRepository repo = new RestaurantRepository();
+        repo.getAllRestaurants(new RestaurantRepository.OnAllRestaurantsListener() {
+            @Override
+            public void onSuccess(List<RestaurantAvailability> results) {
+                viewModel.setAvailabilityResults(results);
+            }
+
+            @Override
+            public void onFailure(String error) {
+                android.util.Log.e("BOOKING_DEBUG", "Failed to load restaurants: " + error);
+            }
+        });
+    }
 
 
 
+
+    // set up google map
+    // set up google map
+    @Override
+    public void onMapReady(@NonNull GoogleMap map) {
+        // save the map instance
+        this.googleMap = map;
+
+
+        // set england bounds
+        LatLng swEngland = new LatLng(50.0, -5.5);
+        LatLng neEngland = new LatLng(55.8, 2.5);
+        LatLngBounds englandBounds = new LatLngBounds(swEngland, neEngland);
+
+        // camera only show england
+        googleMap.setLatLngBoundsForCameraTarget(englandBounds);
+
+        // set min zoom and max zoom
+        googleMap.setMinZoomPreference(7f);
+        googleMap.setMaxZoomPreference(16f);
+
+        // initial view is center of UK
+        LatLng englandCenter = new LatLng(52.6, -1.5);
+        googleMap.moveCamera(com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(englandCenter, 7f));
+
+        // observe the search results
+        viewModel.getAvailabilityResults().observe(this, results -> {
+            if (googleMap != null && !results.isEmpty()) {
+                addRestaurantMarkers(results);
+            }
+        });
+    }
+
+
+    // add the points on the map
+    private void addRestaurantMarkers(List<RestaurantAvailability> results) {
+        if (googleMap == null) return;
+        // clear the map from previous markers
+        googleMap.clear();
+
+        // set up the bounds builder
+        LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
+        boolean hasValidLocation = false;
+
+        // add a marker for each restaurant
+        for (RestaurantAvailability ra : results) {
+            Restaurant r = ra.restaurant;
+            if (r != null && r.getLocation() != null) {
+                // get the location coordinates
+                LatLng location = new LatLng(r.getLocation().getLatitude(), r.getLocation().getLongitude());
+                // set the marker on gogleMaps
+                googleMap.addMarker(new MarkerOptions()
+                        .position(location)
+                        .title(r.getName())
+                        .snippet(r.getAddress()));
+                boundsBuilder.include(location);
+                // set the flag to true
+                hasValidLocation = true;
+            }
+        }
+
+        // zoom to view all markers with minimum zoom
+        if (hasValidLocation) {
+            try {
+                LatLngBounds markerBounds = boundsBuilder.build();
+
+                // Use animateCamera with padding, which will respect zoom preferences
+                googleMap.animateCamera(com.google.android.gms.maps.CameraUpdateFactory.newLatLngBounds(markerBounds, dpToPx(100)));
+
+
+            } catch (IllegalStateException e) {
+                // fallback to first restaurant
+
+                Restaurant firstRestaurant = results.get(0).restaurant;
+
+                if (firstRestaurant != null && firstRestaurant.getLocation() != null) {
+                    // set the camera to the first restaurant
+                    LatLng firstLocation = new LatLng(
+                        firstRestaurant.getLocation().getLatitude(),
+                        firstRestaurant.getLocation().getLongitude()
+                    );
+                    //use zoom level 11 which is between min (7) and max (16)
+                    googleMap.animateCamera(com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(firstLocation, 11f));
+                }
+            }
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mapView != null) {
+            mapView.onResume();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        if (mapView != null) {
+            mapView.onPause();
+        }
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (mapView != null) {
+            mapView.onDestroy();
+        }
+        super.onDestroy();
+    }
 
 }
+
