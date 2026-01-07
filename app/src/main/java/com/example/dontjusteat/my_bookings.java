@@ -77,6 +77,7 @@ public class my_bookings extends BaseActivity {
 
         Modules.applyWindowInsets(this, R.id.rootView);
         Modules.handleMenuNavigation(this);
+        Modules.handleSimpleHeaderNavigation(this);
 
         // Initialize the container
         bookingsContainer = findViewById(R.id.past_booking_card_container);
