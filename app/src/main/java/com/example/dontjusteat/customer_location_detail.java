@@ -121,6 +121,8 @@ public class customer_location_detail extends BaseActivity {
             @Override
             public void onSuccess(Restaurant restaurant) {
                 displayRestaurantDetails(restaurant);
+                // fetch total tables count
+                fetchTotalTablesCount();
                 // fetch menu items after restaurant details load
                 fetchMenuItems();
             }
@@ -130,6 +132,28 @@ public class customer_location_detail extends BaseActivity {
                 Toast.makeText(customer_location_detail.this, "Failed to load restaurant details", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    // fetch total number of tables for the restaurant
+    private void fetchTotalTablesCount() {
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+
+                .collection("restaurants")
+                .document(restaurantId)
+                .collection("tables")
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    int totalTables = snapshot.size();
+                    // update tables available count
+                    TextView tablesAvailableCount = findViewById(R.id.tables_available_count);
+
+                    if (tablesAvailableCount != null) {
+                        tablesAvailableCount.setText(String.valueOf(totalTables));
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("LOCATION_DEBUG", "Failed to load tables count: " + e.getMessage());
+                });
     }
 
     // fetch menu items for the restaurant
@@ -205,13 +229,7 @@ public class customer_location_detail extends BaseActivity {
             addressText.setText(restaurant.getAddress());
         }
 
-        // set tables available from passed intent data
-        TextView tablesAvailableCount = findViewById(R.id.tables_available_count);
-        if (tablesAvailableCount != null) {
-            tablesAvailableCount.setText(String.valueOf(availableSlots));
-        }
-
-        android.util.Log.d("LOCATION_DEBUG", "Loaded: " + restaurant.getName() + " | Phone: " + restaurant.getPhone() + " | Available Slots: " + availableSlots);
+        android.util.Log.d("LOCATION_DEBUG", "Loaded: " + restaurant.getName() + " | Phone: " + restaurant.getPhone());
     }
 
     // Helper method: convert dp to pixels
