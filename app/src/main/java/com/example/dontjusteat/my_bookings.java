@@ -28,6 +28,7 @@ import java.util.Map;
 import com.example.dontjusteat.repositories.BookingEditRepository;
 import com.example.dontjusteat.repositories.BookingDataRepository;
 import com.example.dontjusteat.repositories.BookingCancelRepository;
+import com.example.dontjusteat.repositories.ReviewRepository;
 import com.google.firebase.Timestamp;
 
 public class my_bookings extends BaseActivity {
@@ -310,73 +311,83 @@ public class my_bookings extends BaseActivity {
     }
 
     private void leaveAReviewHandler() {
-        // open the review dialog and wire interactions
-        reviewDialog = new Dialog(this);
-        reviewDialog.setContentView(R.layout.component_customer_leave_review);
-        reviewDialog.setCancelable(true);
-
-        if (reviewDialog.getWindow() != null) {
-            reviewDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        // check if already reviewed this booking
+        BookingDataRepository.BookingDisplayModel meta = bookingMetaById.get(currentBookingIdForEdit);
+        if (meta == null) {
+            Toast.makeText(this, "Missing booking data", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        // stars
-        ImageView iv1 = reviewDialog.findViewById(R.id.iv_star_1);
-        ImageView iv2 = reviewDialog.findViewById(R.id.iv_star_2);
-        ImageView iv3 = reviewDialog.findViewById(R.id.iv_star_3);
-        ImageView iv4 = reviewDialog.findViewById(R.id.iv_star_4);
-        ImageView iv5 = reviewDialog.findViewById(R.id.iv_star_5);
+        ReviewRepository reviewRepo = new ReviewRepository();
+        reviewRepo.checkIfReviewed(meta.restaurantId, meta.bookingId, alreadyReviewed -> {
+            if (alreadyReviewed) {
+                Toast.makeText(this, "You already reviewed this booking", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-        View.OnClickListener starClick = v -> {
-            if (v.getId() == R.id.iv_star_1) selectedRating = 1;
-            else if (v.getId() == R.id.iv_star_2) selectedRating = 2;
-            else if (v.getId() == R.id.iv_star_3) selectedRating = 3;
-            else if (v.getId() == R.id.iv_star_4) selectedRating = 4;
-            else if (v.getId() == R.id.iv_star_5) selectedRating = 5;
-            updateStars(selectedRating);
-        };
+            // open review dialog
+            reviewDialog = new Dialog(this);
+            reviewDialog.setContentView(R.layout.component_customer_leave_review);
+            reviewDialog.setCancelable(true);
 
-        iv1.setOnClickListener(starClick);
-        iv2.setOnClickListener(starClick);
-        iv3.setOnClickListener(starClick);
-        iv4.setOnClickListener(starClick);
-        iv5.setOnClickListener(starClick);
+            if (reviewDialog.getWindow() != null) {
+                reviewDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            }
 
-        //upload photo area
-        LinearLayout uploadArea = reviewDialog.findViewById(R.id.ll_upload_photo);
-        final TextView tvUploadText = reviewDialog.findViewById(R.id.tv_upload_text);
-        final ImageView ivPhotoPreview = reviewDialog.findViewById(R.id.iv_photo_preview);
+            // stars
+            ImageView iv1 = reviewDialog.findViewById(R.id.iv_star_1);
+            ImageView iv2 = reviewDialog.findViewById(R.id.iv_star_2);
+            ImageView iv3 = reviewDialog.findViewById(R.id.iv_star_3);
+            ImageView iv4 = reviewDialog.findViewById(R.id.iv_star_4);
+            ImageView iv5 = reviewDialog.findViewById(R.id.iv_star_5);
 
-        uploadArea.setOnClickListener(v -> {
-            // launch image picker
-            Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            intent.setType("image/*");
-            startActivityForResult(intent, PICK_IMAGE_REQUEST);
+            View.OnClickListener starClick = v -> {
+                if (v.getId() == R.id.iv_star_1) selectedRating = 1;
+                else if (v.getId() == R.id.iv_star_2) selectedRating = 2;
+                else if (v.getId() == R.id.iv_star_3) selectedRating = 3;
+                else if (v.getId() == R.id.iv_star_4) selectedRating = 4;
+                else if (v.getId() == R.id.iv_star_5) selectedRating = 5;
+                updateStars(selectedRating);
+            };
+
+            iv1.setOnClickListener(starClick);
+            iv2.setOnClickListener(starClick);
+            iv3.setOnClickListener(starClick);
+            iv4.setOnClickListener(starClick);
+            iv5.setOnClickListener(starClick);
+
+            // ...existing code...
+
+            // submit button
+            Button submitBtn = reviewDialog.findViewById(R.id.btn_submit_review);
+            final EditText etDescription = reviewDialog.findViewById(R.id.et_review_description);
+            submitBtn.setOnClickListener(v -> {
+                if (selectedRating == 0) {
+                    Toast.makeText(this, "Please select a rating", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                String description = etDescription.getText() != null ? etDescription.getText().toString() : "";
+
+                // submit to firestore
+                reviewRepo.submitReview(meta.restaurantId, meta.bookingId, selectedRating, description,
+                        new ReviewRepository.OnReviewSubmitListener() {
+                            @Override public void onSuccess() {
+                                Toast.makeText(my_bookings.this, "Review submitted", Toast.LENGTH_SHORT).show();
+                                selectedRating = 0;
+                                selectedImageUri = null;
+                                reviewDialog.dismiss();
+                            }
+                            @Override public void onFailure(String error) {
+                                Toast.makeText(my_bookings.this, error != null ? error : "Failed", Toast.LENGTH_LONG).show();
+                            }
+                        });
+            });
+
+            // ...existing code...
+
+            reviewDialog.show();
         });
-
-        // submit button
-        Button submitBtn = reviewDialog.findViewById(R.id.btn_submit_review);
-        final EditText etDescription = reviewDialog.findViewById(R.id.et_review_description);
-        submitBtn.setOnClickListener(v -> {
-            String description = etDescription.getText() != null ? etDescription.getText().toString() : "";
-            // For now, I just show a Toast with collected info and dismiss.
-            String msg = "Submitted review — Rating: " + selectedRating + " Description length: " + description.length();
-            if (selectedImageUri != null) msg += " Photo: yes";
-            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-
-            // reset selection
-            selectedRating = 0;
-            selectedImageUri = null;
-            reviewDialog.dismiss();
-        });
-
-        //If image was previously selected and dialog is re-used then show preview
-        if (selectedImageUri != null) {
-            ivPhotoPreview.setVisibility(View.VISIBLE);
-            ivPhotoPreview.setImageURI(selectedImageUri);
-            tvUploadText.setVisibility(View.GONE);
-        }
-
-        reviewDialog.show();
     }
 
     private void updateStars(int rating) {
@@ -395,24 +406,6 @@ public class my_bookings extends BaseActivity {
         iv5.setImageResource(rating >= 5 ? R.drawable.star_solid_full : R.drawable.star_regular_empty);
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
-            selectedImageUri = data.getData();
-            if (reviewDialog != null && reviewDialog.isShowing()) {
-                ImageView ivPhotoPreview = reviewDialog.findViewById(R.id.iv_photo_preview);
-                TextView tvUploadText = reviewDialog.findViewById(R.id.tv_upload_text);
-                if (ivPhotoPreview != null) {
-                    ivPhotoPreview.setVisibility(View.VISIBLE);
-                    ivPhotoPreview.setImageURI(selectedImageUri);
-                }
-                if (tvUploadText != null) {
-                    tvUploadText.setVisibility(View.GONE);
-                }
-            }
-        }
-    }
 
     private void requestAnEditHandler() {
         // open dialog for requesting an edit (frontend-only)
