@@ -356,8 +356,6 @@ public class my_bookings extends BaseActivity {
             iv4.setOnClickListener(starClick);
             iv5.setOnClickListener(starClick);
 
-            // ...existing code...
-
             // submit button
             Button submitBtn = reviewDialog.findViewById(R.id.btn_submit_review);
             final EditText etDescription = reviewDialog.findViewById(R.id.et_review_description);
@@ -383,8 +381,6 @@ public class my_bookings extends BaseActivity {
                             }
                         });
             });
-
-            // ...existing code...
 
             reviewDialog.show();
         });
