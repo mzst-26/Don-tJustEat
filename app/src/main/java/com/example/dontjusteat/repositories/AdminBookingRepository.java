@@ -72,7 +72,6 @@ public class AdminBookingRepository {
     }
 
     private void fetchBookingsForRestaurant(String restaurantId, OnBookingsLoadListener listener) {
-        // query all bookings under this restaurant
         db.collection("restaurants").document(restaurantId)
                 .collection("bookings")
                 .get()
@@ -80,10 +79,56 @@ public class AdminBookingRepository {
                     List<BookingModel> urgent = new ArrayList<>();
                     List<BookingModel> today = new ArrayList<>();
 
-                    for (DocumentSnapshot doc : snapshot.getDocuments()) {
-                        BookingModel booking = mapToBookingModel(doc);
-                        if (booking == null) continue;
+                    int total = snapshot.getDocuments().size();
+                    if (total == 0) {
+                        listener.onUrgentLoaded(urgent);
+                        listener.onTodayLoaded(today);
+                        return;
+                    }
 
+                    // load all bookings and get customer names
+                    int[] count = {0};
+                    for (DocumentSnapshot doc : snapshot.getDocuments()) {
+                        String userId = doc.getString("userId");
+                        if (userId != null && !userId.isEmpty()) {
+                            // fetch customer name from users collection
+                            getCustomerName(userId, doc, urgent, today, listener, count, total);
+                        } else {
+                            BookingModel booking = mapToBookingModel(doc, "Guest");
+                            if (booking != null) {
+                                if (isUrgent(booking.status)) {
+                                    urgent.add(booking);
+                                } else if (isToday(booking.startTime)) {
+                                    today.add(booking);
+                                }
+                            }
+                            count[0]++;
+                            if (count[0] == total) {
+                                listener.onUrgentLoaded(urgent);
+                                listener.onTodayLoaded(today);
+                            }
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
+    }
+
+    private void getCustomerName(String userId, DocumentSnapshot bookingDoc,
+                                List<BookingModel> urgent, List<BookingModel> today,
+                                OnBookingsLoadListener listener, int[] count, int total) {
+        // get customer name from users collection using userId
+        db.collection("users").document(userId).get()
+                .addOnSuccessListener(userDoc -> {
+                    String name = "Guest";
+                    if (userDoc.exists()) {
+                        String userName = userDoc.getString("name");
+                        if (userName != null && !userName.isEmpty()) {
+                            name = userName;
+                        }
+                    }
+
+                    BookingModel booking = mapToBookingModel(bookingDoc, name);
+                    if (booking != null) {
                         if (isUrgent(booking.status)) {
                             urgent.add(booking);
                         } else if (isToday(booking.startTime)) {
@@ -91,22 +136,39 @@ public class AdminBookingRepository {
                         }
                     }
 
-                    // send both lists back
-                    listener.onUrgentLoaded(urgent);
-                    listener.onTodayLoaded(today);
+                    count[0]++;
+                    if (count[0] == total) {
+                        listener.onUrgentLoaded(urgent);
+                        listener.onTodayLoaded(today);
+                    }
                 })
-                .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
+                .addOnFailureListener(e -> {
+                    // if fetch fails just use guest
+                    BookingModel booking = mapToBookingModel(bookingDoc, "Guest");
+                    if (booking != null) {
+                        if (isUrgent(booking.status)) {
+                            urgent.add(booking);
+                        } else if (isToday(booking.startTime)) {
+                            today.add(booking);
+                        }
+                    }
+
+                    count[0]++;
+                    if (count[0] == total) {
+                        listener.onUrgentLoaded(urgent);
+                        listener.onTodayLoaded(today);
+                    }
+                });
     }
 
-    private BookingModel mapToBookingModel(DocumentSnapshot doc) {
+    private BookingModel mapToBookingModel(DocumentSnapshot doc, String customerName) {
         try {
             String bookingId = doc.getId();
-            String customerName = doc.getString("customerName");
             if (customerName == null || customerName.isEmpty()) {
                 customerName = "Guest";
             }
 
-            // get tableId and guests
+            // get table and party size
             String tableId = doc.getString("tableId");
             Long guestsLong = doc.getLong("partySize");
             int guests = guestsLong != null ? guestsLong.intValue() : 0;
@@ -115,7 +177,7 @@ public class AdminBookingRepository {
 
             if (startTs == null) return null;
 
-            // format time and date for display
+            // format time and date
             String time = formatTime(startTs);
             String date = formatDate(startTs);
 

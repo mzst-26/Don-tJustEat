@@ -18,6 +18,11 @@ public class User {
     // add isVerified flag for email verification status
     private boolean isVerified;
 
+    // no-arg constructor for firebase
+    public User() {
+        createdAt = Timestamp.now();
+    }
+
     public User(String uid, String email, String name, String phone, Timestamp createdAt, boolean isRoleCustomer, boolean isActive, String photoUrl) {
         this.uid = uid;
         this.email = email;
