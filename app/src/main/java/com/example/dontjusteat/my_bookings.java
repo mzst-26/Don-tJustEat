@@ -15,16 +15,15 @@ import android.widget.EditText;
 import android.widget.Toast;
 import android.widget.DatePicker;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.Slider;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Calendar;
 import java.util.List;
+
+import com.example.dontjusteat.repositories.BookingDataRepository;
 
 public class my_bookings extends BaseActivity {
 
@@ -52,7 +51,9 @@ public class my_bookings extends BaseActivity {
         int bigImageResId;
         int smallImageResId;
 
-        BookingCard(String location, String date,String time, String numberOfGuests, String booking_status, String reference_number, String location_address, int bigImageResId, int smallImageResId) {
+        long sortTimestamp;
+
+        BookingCard(String location, String date, String time, String numberOfGuests, String booking_status, String reference_number, String location_address, int bigImageResId, int smallImageResId, long sortTimestamp) {
             this.location = location;
             this.date = date;
             this.time = time;
@@ -62,9 +63,8 @@ public class my_bookings extends BaseActivity {
             this.location_address = location_address;
             this.bigImageResId = bigImageResId;
             this.smallImageResId = smallImageResId;
+            this.sortTimestamp = sortTimestamp;
         }
-        List<BookingCard> data;
-
     }
 
     @Override
@@ -83,86 +83,80 @@ public class my_bookings extends BaseActivity {
         latestBookingContainer = findViewById(R.id.latest_booking_container);
         pastBookingTitle = findViewById(R.id.past_booking_title);
 
+        loadBookings();
 
-        // Get the data
-        // Fake data for now than later I will replace it with the real data from the DB
-        List<BookingCard> cards = new ArrayList<>();
+    }
 
-        cards.add(new BookingCard(
-                "Bristol - Soho",
-                "08/05/2025",
-                "19:30",
-                "2 Guests",
-                "Pending",
-                "#12345",
-                "14 Testinghom Ave, Plymouth PL1 1PL",
-                R.drawable.restaurant_image,
-                R.drawable.restaurant_image
-        ));
-
-        cards.add(new BookingCard(
-                "London - Center",
-                "05/05/2025",
-                "18:00",
-                "4 Guests",
-                "Completed",
-                "#12347",
-                "15 Testinghom Ave, Plymouth PL1 1PL",
-                R.drawable.restaurant_image,
-                R.drawable.restaurant_image
-        ));
-
-        cards.add(new BookingCard(
-                "Plymouth - Barbican",
-                "02/05/2025",
-                "20:15",
-                "3 Guests",
-                "Cancelled",
-                "#12349",
-                "16 Testinghom Ave, Plymouth PL1 1PL",
-                R.drawable.restaurant_image,
-                R.drawable.restaurant_image
-        ));
-
-
-        if (cards.isEmpty()) {
-
-            // Empty state
-            cards.add(new BookingCard(
-                    "Your bookings will appear here!",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    0,
-                    0
-            ));
-            renderCards(cards, true);
-
-        } else {
-
-            // Always render most recent booking
-            renderMostRecentCard(cards.subList(0, 1));
-
-            // Render past bookings only if more exist
-            if (cards.size() > 1) {
-                pastBookingTitle.setVisibility(View.VISIBLE);
-                renderCards(cards.subList(1, cards.size()), false);
-            } else {
-                bookingsContainer.removeAllViews();
+    private void loadBookings() {
+        BookingDataRepository repo = new BookingDataRepository();
+        repo.fetchUserBookings(new BookingDataRepository.OnBookingsLoaded() {
+            @Override
+            public void onSuccess(List<BookingDataRepository.BookingDisplayModel> bookings) {
+                renderLoadedCards(toCards(bookings));
             }
+
+            @Override
+            public void onFailure() {
+                renderEmptyState();
+            }
+        });
+    }
+
+    private List<BookingCard> toCards(List<BookingDataRepository.BookingDisplayModel> list) {
+        List<BookingCard> cards = new ArrayList<>();
+        if (list == null) return cards;
+        for (BookingDataRepository.BookingDisplayModel m : list) {
+            cards.add(new BookingCard(
+                    m.locationName,
+                    m.date,
+                    m.time,
+                    m.guests,
+                    m.status,
+                    m.bookingId,
+                    m.address,
+                    R.drawable.restaurant_image,
+                    R.drawable.restaurant_image,
+                    m.sortTimestamp
+            ));
+        }
+        return cards;
+    }
+
+    private void renderLoadedCards(List<BookingCard> cards) {
+        if (cards.isEmpty()) {
+            renderEmptyState();
+            return;
         }
 
+        Collections.sort(cards, Comparator.comparingLong(c -> -c.sortTimestamp));
 
+        renderMostRecentCard(cards.subList(0, 1));
+        if (cards.size() > 1) {
+            pastBookingTitle.setVisibility(View.VISIBLE);
+            renderCards(cards.subList(1, cards.size()), false);
+        } else {
+            bookingsContainer.removeAllViews();
+            pastBookingTitle.setVisibility(View.GONE);
+        }
+    }
 
-
-
-
-
-
-
+    private void renderEmptyState() {
+        List<BookingCard> cards = new ArrayList<>();
+        cards.add(new BookingCard(
+                "Your bookings will appear here!",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                0,
+                0,
+                System.currentTimeMillis()
+        ));
+        renderCards(cards, true);
+        latestBookingContainer.removeAllViews();
+        pastBookingTitle.setVisibility(View.GONE);
     }
 
     // Render the cards in the container
@@ -183,8 +177,8 @@ public class my_bookings extends BaseActivity {
             //set the data to the views
             imgSmall.setImageResource(cardData.smallImageResId);
             imgBig.setImageResource(cardData.bigImageResId);
-            txtLocation.setText(cardData.location);
-            txtTime.setText(cardData.date);
+            txtLocation.setText(cardData.location != null ? cardData.location : ""); // name only
+            txtTime.setText(cardData.date + (cardData.time.isEmpty() ? "" : ("  " + cardData.time)));
             if (!isListEmpty) {
                 cardView.setOnClickListener(v -> popUpHandler(cardData));
             }
