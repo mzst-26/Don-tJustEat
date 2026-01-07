@@ -319,6 +319,57 @@ public class booking_summary extends BaseActivity {
             return;
         }
 
+        // check active bookings limit before adding table
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
+                        FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+
+        if (userId == null) {
+            Toast.makeText(this, "Please log in to make a booking", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // check how many active bookings user has
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("users").document(userId).collection("bookings")
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    int activeCount = 0;
+                    long currentTimeMs = System.currentTimeMillis();
+
+                    for (com.google.firebase.firestore.DocumentSnapshot doc : snapshot.getDocuments()) {
+                        String status = doc.getString("status");
+
+                        if ("pending".equalsIgnoreCase(status)) {
+                            activeCount++;
+                        } else if ("CONFIRMED".equalsIgnoreCase(status)) {
+                            com.google.firebase.Timestamp bookingStartTime = doc.getTimestamp("startTime");
+                            if (bookingStartTime != null && bookingStartTime.toDate().getTime() > currentTimeMs) {
+                                activeCount++;
+                            }
+                        }
+                    }
+
+                    // calculate max tables user can add
+                    int maxTablesAllowed = 3 - activeCount;
+                    int currentlySelected = selectedTableTimes.size();
+
+                    if (currentlySelected >= maxTablesAllowed) {
+                        String message = activeCount == 0 ?
+                            "You can only select up to 3 tables per booking" :
+                            "You have " + activeCount + " active booking(s). You can only have 3 active bookings at a time.";
+                        Toast.makeText(booking_summary.this, message, Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    // proceed with adding table
+                    addTableToSelection(timeIndex, times);
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to check booking limit", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void addTableToSelection(int timeIndex, List<String> times) {
         String selectedTime = times.get(timeIndex);
         selectedTableTimes.put(currentTable.getId(), selectedTime);
 
