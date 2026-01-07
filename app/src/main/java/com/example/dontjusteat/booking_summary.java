@@ -473,6 +473,20 @@ public class booking_summary extends BaseActivity {
                             completedBookings[0]++;
                             bookingIds.add(bookingId);
 
+                            // after each booking success create a notification for the user
+                            try {
+                                com.example.dontjusteat.repositories.NotificationRepository nRepo = new com.example.dontjusteat.repositories.NotificationRepository();
+                                com.example.dontjusteat.models.Notification notif = new com.example.dontjusteat.models.Notification(
+                                        "Booking created",
+                                        "Your booking #" + bookingId.substring(0, Math.min(8, bookingId.length())) + " was created",
+                                        "unread",
+                                        com.google.firebase.Timestamp.now(),
+                                        bookingId,
+                                        restaurantId
+                                );
+
+                                nRepo.createNotification(userId, notif);
+                            } catch (Exception ignored) {}
 
                             // check if all bookings are done
                             if (completedBookings[0] == totalBookings && !hasError[0]) {
@@ -482,12 +496,10 @@ public class booking_summary extends BaseActivity {
                                 // navigate to confirmation page with booking IDs
                                 Intent intent = new Intent(booking_summary.this, booking_confirmation.class);
                                 intent.putExtra("restaurantId", restaurantId);
-
                                 intent.putStringArrayListExtra("bookingIds", new ArrayList<>(bookingIds));
                                 startActivity(intent);
                                 finish();
                             }
-
 
                         }
 
