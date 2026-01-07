@@ -13,6 +13,7 @@ public class Booking {
     private int partySize;
     private String status;  // "pending", "confirmed", "cancelled"
     private Timestamp createdAt;
+    private boolean acknowledgedByStaff;  // when true, excludes from urgent
 
     public Booking() {
         // required for Firestore
@@ -61,5 +62,8 @@ public class Booking {
 
     public Timestamp getCreatedAt() { return createdAt; }
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
+
+    public boolean isAcknowledgedByStaff() { return acknowledgedByStaff; }
+    public void setAcknowledgedByStaff(boolean acknowledged) { this.acknowledgedByStaff = acknowledged; }
 }
 

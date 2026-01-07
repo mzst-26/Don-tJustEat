@@ -50,9 +50,11 @@ public class admin_dashboard extends BaseActivity {
         int guests;
         String bookingId;
         String status;
+        String restaurantId;
+        String phone;
         int avatarResId;
 
-        Booking(String name, String tableLabel, String time, String date, int guests, String bookingId, String status, int avatarResId) {
+        Booking(String name, String tableLabel, String time, String date, int guests, String bookingId, String status, String restaurantId, String phone, int avatarResId) {
             this.name = name;
             this.tableLabel = tableLabel;
             this.time = time;
@@ -60,6 +62,8 @@ public class admin_dashboard extends BaseActivity {
             this.guests = guests;
             this.bookingId = bookingId;
             this.status = status;
+            this.restaurantId = restaurantId;
+            this.phone = phone;
             this.avatarResId = avatarResId;
         }
     }
@@ -130,6 +134,8 @@ public class admin_dashboard extends BaseActivity {
                 bm.guests,
                 bm.bookingId,
                 displayStatus,
+                bm.restaurantId,
+                bm.customerPhone,
                 R.drawable.logo
         );
     }
@@ -263,7 +269,11 @@ public class admin_dashboard extends BaseActivity {
 
         avatar.setImageResource(booking.avatarResId);
         customerName.setText(booking.name);
-        customerInfo.setText("Booking ID: #" + booking.bookingId);
+        String customerInfoText = "Booking ID: #" + booking.bookingId;
+        if (booking.phone != null && !booking.phone.isEmpty()) {
+            customerInfoText += "\nPhone: " + booking.phone;
+        }
+        customerInfo.setText(customerInfoText);
         tableNumber.setText(booking.tableLabel);
         time.setText(booking.time);
         date.setText(booking.date);
@@ -302,27 +312,60 @@ public class admin_dashboard extends BaseActivity {
 
     //handle accepting a booking request
     private void handleAcceptBooking(Booking booking) {
-        android.widget.Toast.makeText(this,
-            "Accepted: " + booking.name + " - " + booking.status,
-            android.widget.Toast.LENGTH_SHORT).show();
+        // disable button during update
+        AdminBookingRepository repo = new AdminBookingRepository();
 
-        // later that I will do: Update booking status in database
-        // later that I will do: Send notification to customer
-        // later that I will do: Refresh the booking lists
+        // check if this is a cancellation (acknowledge) or a new booking (accept)
+        boolean isCancellation = booking.status.equals("Canceled");
+        String newStatus = isCancellation ? booking.status : "CONFIRMED";
+        boolean acknowledge = isCancellation;
 
+        repo.updateBookingStatus(booking.restaurantId, booking.bookingId, newStatus, acknowledge,
+                new AdminBookingRepository.OnStatusUpdateListener() {
+                    @Override
+                    public void onSuccess() {
+                        String message = isCancellation ?
+                                "Cancellation acknowledged" :
+                                "Booking accepted: " + booking.name;
+                        android.widget.Toast.makeText(admin_dashboard.this, message,
+                                android.widget.Toast.LENGTH_SHORT).show();
+
+                        // refresh booking lists
+                        loadBookingsFromFirestore();
+                    }
+
+                    @Override
+                    public void onFailure(String error) {
+                        android.widget.Toast.makeText(admin_dashboard.this,
+                                "Failed to update: " + error,
+                                android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     // Handle rejecting a booking request
     private void handleRejectBooking(Booking booking) {
-        android.widget.Toast.makeText(this,
-            "Rejected: " + booking.name + " - " + booking.status,
-            android.widget.Toast.LENGTH_SHORT).show();
+        AdminBookingRepository repo = new AdminBookingRepository();
 
-        // later that I will do: Update booking status in database
-        // later that I will do: Send notification to customer
-        // later that I will do: Refresh the booking lists
+        repo.updateBookingStatus(booking.restaurantId, booking.bookingId, "REJECTED BY STAFF", false,
+                new AdminBookingRepository.OnStatusUpdateListener() {
+                    @Override
+                    public void onSuccess() {
+                        android.widget.Toast.makeText(admin_dashboard.this,
+                                "Booking rejected: " + booking.name,
+                                android.widget.Toast.LENGTH_SHORT).show();
 
+                        // refresh booking lists
+                        loadBookingsFromFirestore();
+                    }
 
+                    @Override
+                    public void onFailure(String error) {
+                        android.widget.Toast.makeText(admin_dashboard.this,
+                                "Failed to reject: " + error,
+                                android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     // show booking details popup
@@ -354,7 +397,11 @@ public class admin_dashboard extends BaseActivity {
         // Fiill in all the booking information
         avatar.setImageResource(booking.avatarResId);
         customerName.setText(booking.name);
-        customerInfo.setText("Booking ID: #" + booking.bookingId);
+        String customerInfoText = "Booking ID: #" + booking.bookingId;
+        if (booking.phone != null && !booking.phone.isEmpty()) {
+            customerInfoText += "\nPhone: " + booking.phone;
+        }
+        customerInfo.setText(customerInfoText);
         tableNumber.setText(booking.tableLabel);
         time.setText(booking.time);
         date.setText(booking.date);

@@ -19,23 +19,29 @@ public class AdminBookingRepository {
     public static class BookingModel {
         public String bookingId;
         public String customerName;
+        public String customerPhone;
         public String tableId;
         public String time;
         public String date;
         public int guests;
         public String status;
         public Timestamp startTime;
+        public boolean acknowledgedByStaff;
+        public String restaurantId;
 
         public BookingModel(String bookingId, String customerName, String tableId, String time,
                             String date, int guests, String status, Timestamp startTime) {
             this.bookingId = bookingId;
             this.customerName = customerName;
+            this.customerPhone = "";
             this.tableId = tableId;
             this.time = time;
             this.date = date;
             this.guests = guests;
             this.status = status;
             this.startTime = startTime;
+            this.acknowledgedByStaff = false;
+            this.restaurantId = "";
         }
     }
 
@@ -92,11 +98,12 @@ public class AdminBookingRepository {
                         String userId = doc.getString("userId");
                         if (userId != null && !userId.isEmpty()) {
                             // fetch customer name from users collection
-                            getCustomerName(userId, doc, urgent, today, listener, count, total);
+                            getCustomerName(userId, doc, restaurantId, urgent, today, listener, count, total);
                         } else {
-                            BookingModel booking = mapToBookingModel(doc, "Guest");
+                            BookingModel booking = mapToBookingModel(doc, "Guest", "", restaurantId);
                             if (booking != null) {
-                                if (isUrgent(booking.status)) {
+                                // exclude acknowledged bookings from urgent
+                                if (!booking.acknowledgedByStaff && isUrgent(booking.status)) {
                                     urgent.add(booking);
                                 } else if (isToday(booking.startTime)) {
                                     today.add(booking);
@@ -113,23 +120,29 @@ public class AdminBookingRepository {
                 .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
     }
 
-    private void getCustomerName(String userId, DocumentSnapshot bookingDoc,
+    private void getCustomerName(String userId, DocumentSnapshot bookingDoc, String restaurantId,
                                 List<BookingModel> urgent, List<BookingModel> today,
                                 OnBookingsLoadListener listener, int[] count, int total) {
-        // get customer name from users collection using userId
+        // get customer name and phone from users collection using userId
         db.collection("users").document(userId).get()
                 .addOnSuccessListener(userDoc -> {
                     String name = "Guest";
+                    String phone = "";
                     if (userDoc.exists()) {
                         String userName = userDoc.getString("name");
                         if (userName != null && !userName.isEmpty()) {
                             name = userName;
                         }
+                        String userPhone = userDoc.getString("phone");
+                        if (userPhone != null) {
+                            phone = userPhone;
+                        }
                     }
 
-                    BookingModel booking = mapToBookingModel(bookingDoc, name);
+                    BookingModel booking = mapToBookingModel(bookingDoc, name, phone, restaurantId);
                     if (booking != null) {
-                        if (isUrgent(booking.status)) {
+                        // exclude acknowledged bookings from urgent
+                        if (!booking.acknowledgedByStaff && isUrgent(booking.status)) {
                             urgent.add(booking);
                         } else if (isToday(booking.startTime)) {
                             today.add(booking);
@@ -144,9 +157,10 @@ public class AdminBookingRepository {
                 })
                 .addOnFailureListener(e -> {
                     // if fetch fails just use guest
-                    BookingModel booking = mapToBookingModel(bookingDoc, "Guest");
+                    BookingModel booking = mapToBookingModel(bookingDoc, "Guest", "", restaurantId);
                     if (booking != null) {
-                        if (isUrgent(booking.status)) {
+                        // exclude acknowledged bookings from urgent
+                        if (!booking.acknowledgedByStaff && isUrgent(booking.status)) {
                             urgent.add(booking);
                         } else if (isToday(booking.startTime)) {
                             today.add(booking);
@@ -161,7 +175,7 @@ public class AdminBookingRepository {
                 });
     }
 
-    private BookingModel mapToBookingModel(DocumentSnapshot doc, String customerName) {
+    private BookingModel mapToBookingModel(DocumentSnapshot doc, String customerName, String customerPhone, String restaurantId) {
         try {
             String bookingId = doc.getId();
             if (customerName == null || customerName.isEmpty()) {
@@ -174,6 +188,7 @@ public class AdminBookingRepository {
             int guests = guestsLong != null ? guestsLong.intValue() : 0;
             String status = doc.getString("status");
             Timestamp startTs = doc.getTimestamp("startTime");
+            Boolean acknowledged = doc.getBoolean("acknowledgedByStaff");
 
             if (startTs == null) return null;
 
@@ -181,7 +196,11 @@ public class AdminBookingRepository {
             String time = formatTime(startTs);
             String date = formatDate(startTs);
 
-            return new BookingModel(bookingId, customerName, tableId != null ? tableId : "", time, date, guests, status, startTs);
+            BookingModel booking = new BookingModel(bookingId, customerName, tableId != null ? tableId : "", time, date, guests, status, startTs);
+            booking.acknowledgedByStaff = acknowledged != null && acknowledged;
+            booking.restaurantId = restaurantId;
+            booking.customerPhone = customerPhone != null ? customerPhone : "";
+            return booking;
         } catch (Exception e) {
             return null;
         }
@@ -233,5 +252,52 @@ public class AdminBookingRepository {
         // format and return
 
         return String.format("%s %d, %d", months[month], day, year);
+    }
+
+    // update booking status in firestore
+    public void updateBookingStatus(String restaurantId, String bookingId, String newStatus,
+                                   boolean acknowledged, OnStatusUpdateListener listener) {
+        java.util.Map<String, Object> updates = new java.util.HashMap<>();
+        updates.put("status", newStatus);
+        if (acknowledged) {
+            updates.put("acknowledgedByStaff", true);
+        }
+
+        // first get the booking to extract userId
+        db.collection("restaurants").document(restaurantId)
+                .collection("bookings").document(bookingId)
+                .get()
+                .addOnSuccessListener(bookingDoc -> {
+                    if (!bookingDoc.exists()) {
+                        listener.onFailure("Booking not found");
+                        return;
+                    }
+
+                    String userId = bookingDoc.getString("userId");
+
+                    // update restaurant booking
+                    db.collection("restaurants").document(restaurantId)
+                            .collection("bookings").document(bookingId)
+                            .update(updates)
+                            .addOnSuccessListener(v -> {
+                                // also update user booking if userId exists
+                                if (userId != null && !userId.isEmpty()) {
+                                    db.collection("users").document(userId)
+                                            .collection("bookings").document(bookingId)
+                                            .update("status", newStatus)
+                                            .addOnSuccessListener(v2 -> listener.onSuccess())
+                                            .addOnFailureListener(e -> listener.onSuccess()); // still success even if user update fails
+                                } else {
+                                    listener.onSuccess();
+                                }
+                            })
+                            .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
+                })
+                .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
+    }
+
+    public interface OnStatusUpdateListener {
+        void onSuccess();
+        void onFailure(String error);
     }
 }
