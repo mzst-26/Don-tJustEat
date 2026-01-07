@@ -193,8 +193,18 @@ public class admin_dashboard extends BaseActivity {
             headerText.setText(date);
             headerText.setTextSize(14);
             headerText.setTypeface(null, android.graphics.Typeface.BOLD);
+            headerText.setTextColor(android.graphics.Color.BLACK);
             headerText.setPadding(16, 16, 16, 8);
             upcomingContentContainer.addView(headerView);
+
+            // add divider line under date
+            View divider = new View(this);
+            divider.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    2
+            ));
+            divider.setBackgroundColor(android.graphics.Color.BLACK);
+            upcomingContentContainer.addView(divider);
 
             // add bookings for this date
             List<Booking> dateBookings = upcomingByDate.get(date);
