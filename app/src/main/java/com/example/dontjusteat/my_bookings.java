@@ -285,7 +285,14 @@ public class my_bookings extends BaseActivity {
         statusBtn.setOnClickListener(v -> bookingStatusUpdateHandler());
         reviewBtn.setOnClickListener(v -> leaveAReviewHandler());
         editBtn.setOnClickListener(v -> requestAnEditHandler());
-        cancelBtn.setOnClickListener(v -> requestCancellationHandler());
+
+        // disable cancel if already canceled
+        if ("CANCELED".equals(booking.booking_status)) {
+            cancelBtn.setEnabled(false);
+            cancelBtn.setAlpha(0.5f);
+        } else {
+            cancelBtn.setOnClickListener(v -> requestCancellationHandler());
+        }
 
 
         // set selected bookingId for edit
