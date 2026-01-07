@@ -285,8 +285,16 @@ public class AdminBookingRepository {
                                     db.collection("users").document(userId)
                                             .collection("bookings").document(bookingId)
                                             .update("status", newStatus)
-                                            .addOnSuccessListener(v2 -> listener.onSuccess())
-                                            .addOnFailureListener(e -> listener.onSuccess()); // still success even if user update fails
+                                            .addOnSuccessListener(v2 -> {
+                                                // send notification to user
+                                                sendStatusChangeNotification(userId, bookingId, restaurantId, newStatus, acknowledged);
+                                                listener.onSuccess();
+                                            })
+                                            .addOnFailureListener(e -> {
+                                                // still send notification even if user booking update fails
+                                                sendStatusChangeNotification(userId, bookingId, restaurantId, newStatus, acknowledged);
+                                                listener.onSuccess();
+                                            });
                                 } else {
                                     listener.onSuccess();
                                 }
@@ -294,6 +302,40 @@ public class AdminBookingRepository {
                             .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
                 })
                 .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
+    }
+
+    // send notification to user about status change
+    private void sendStatusChangeNotification(String userId, String bookingId, String restaurantId,
+                                             String newStatus, boolean acknowledged) {
+        String title;
+        String description;
+
+        // create appropriate notification message based on status
+        if (acknowledged) {
+            title = "Cancellation Acknowledged";
+            description = "Your cancellation for booking #" + bookingId.substring(0, Math.min(8, bookingId.length())) + " has been acknowledged. Thank you!";
+        } else if (newStatus.equalsIgnoreCase("CONFIRMED")) {
+            title = "Booking Confirmed";
+            description = "Your booking #" + bookingId.substring(0, Math.min(8, bookingId.length())) + " has been confirmed! looking forward to seeing you soon!!!";
+        } else if (newStatus.equalsIgnoreCase("REJECTED BY STAFF")) {
+            title = "Booking Rejected";
+            description = "Unfortunately, at this moment our staff members have rejected your booking #" + bookingId.substring(0, Math.min(8, bookingId.length())) + ". Please call the restaurant if you have any questions";
+        } else {
+            title = "Booking Status Updated";
+            description = "Your booking #" + bookingId.substring(0, Math.min(8, bookingId.length())) + " status has been updated. Please check the booking on (My Booking) page ";
+        }
+
+        NotificationRepository notifRepo = new NotificationRepository();
+        com.example.dontjusteat.models.Notification notification = new com.example.dontjusteat.models.Notification(
+                title,
+                description,
+                "unread",
+                com.google.firebase.Timestamp.now(),
+                bookingId,
+                restaurantId
+        );
+
+        notifRepo.createNotification(userId, notification);
     }
 
     public interface OnStatusUpdateListener {
