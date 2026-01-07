@@ -39,6 +39,7 @@
 
         <!-- Location name in header -->
         <TextView
+            android:id="@+id/header_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -110,6 +111,16 @@
                         android:paddingBottom="4dp"
                         style="@style/text_normal" />
 
+                    <TextView
+                        android:id="@+id/tv_table_capacity"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Capacity: 4 guests"
+                        android:gravity="center"
+                        android:paddingBottom="8dp"
+                        android:textSize="12sp"
+                        style="@style/text_normal" />
+
                     <com.google.android.material.slider.Slider
                         android:id="@+id/slider_table_selection"
                         android:layout_width="match_parent"
@@ -175,6 +186,33 @@
 
                 </LinearLayout>
             </LinearLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E6E6E6" />
+
+            <!-- Select Table Button -->
+            <Button
+                android:id="@+id/select_table_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:text="Select This Table"
+                android:gravity="center"
+                style="@style/AppButton.Primary" />
+
+            <!-- Selected Tables Display -->
+            <LinearLayout
+                android:id="@+id/selected_tables_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp" />
 
             <!-- Divider -->
             <View
@@ -293,7 +331,7 @@
                         android:paddingEnd="12dp"
                         style="@style/text_normal" />
 
-                    <EditText
+                    <TextView
                         android:id="@+id/phone_number"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -321,14 +359,14 @@
                 android:paddingTop="24dp"
                 android:paddingBottom="16dp">
 
-                <TextView
-                    android:id="@+id/location_summary"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Location Summary asfas asfasf asfasf asf asfasf fhab aksf ajsbuwe asoo is asf mamo asuhfw cknsw asloiw aosnfw lama siu"
-                    android:gravity="center"
-                    style="@style/text_normal"
-                    android:layout_margin="15dp" />
+<!--                <TextView-->
+<!--                    android:id="@+id/location_summary"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="Location Summary asfas asfasf asfasf asf asfasf fhab aksf ajsbuwe asoo is asf mamo asuhfw cknsw asloiw aosnfw lama siu"-->
+<!--                    android:gravity="center"-->
+<!--                    style="@style/text_normal"-->
+<!--                    android:layout_margin="15dp" />-->
 
                 <TextView
                     android:id="@+id/location_name"

@@ -1,10 +1,14 @@
 package com.example.dontjusteat.models;
 
+import com.google.firebase.firestore.PropertyName;
+
 public class MenuItem {
     private String itemId;
+    @PropertyName("ItemName")
     private String itemName;
+    @PropertyName("ItemDes")
     private String itemDes;
-
+    @PropertyName("Price")
     private double price;
     private String imageURL;
 

@@ -24,6 +24,7 @@ public class customer_location_detail extends BaseActivity {
 
     private String restaurantId;
     private int availableSlots = 0;
+    private int partySize = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +37,7 @@ public class customer_location_detail extends BaseActivity {
         // get intent data
         restaurantId = getIntent().getStringExtra("restaurantId");
         availableSlots = getIntent().getIntExtra("availableSlots", 0);
+        partySize = getIntent().getIntExtra("partySize", 2);
 
         // fetch restaurant details
         if (restaurantId != null) {
@@ -97,6 +99,10 @@ public class customer_location_detail extends BaseActivity {
         Button bookTableButton = findViewById(R.id.book_table_button);
         bookTableButton.setOnClickListener(view -> {
             Intent intent = new Intent(customer_location_detail.this, booking_summary.class);
+            intent.putExtra("restaurantId", restaurantId);
+            intent.putExtra("partySize", partySize);
+            long requestedAfterMsExtra = getIntent().getLongExtra("requestedAfterMs", -1);
+            if (requestedAfterMsExtra > 0) intent.putExtra("requestedAfterMs", requestedAfterMsExtra);
             startActivity(intent);
         });
 

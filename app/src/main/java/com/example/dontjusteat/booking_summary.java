@@ -1,57 +1,66 @@
 package com.example.dontjusteat;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
-import com.google.android.material.slider.LabelFormatter;
+import com.example.dontjusteat.models.Table;
+import com.example.dontjusteat.models.TableAvailability;
+import com.example.dontjusteat.models.Restaurant;
+import com.example.dontjusteat.repositories.BookingRepository;
+import com.example.dontjusteat.repositories.RestaurantRepository;
+import com.example.dontjusteat.repositories.UserProfileRepository;
+import com.example.dontjusteat.viewMode.CustomerBookingViewModel;
 import com.google.android.material.slider.Slider;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.Timestamp;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class booking_summary extends BaseActivity {
 
-    // --- Data Structures ---
-    private static class TableOptions {
-        String name;
-        int size;
-        String[] availableTimes;
+    private String restaurantId;
+    private int partySize;
+    private CustomerBookingViewModel viewModel;
+    private RestaurantRepository repo;
+    private BookingRepository bookingRepo;
+    private Restaurant currentRestaurant;  // store restaurant for duration config
+
+    // currently selected table
+    private Table currentTable;
+    private List<Table> availableTables = new ArrayList<>();
+    private Map<String, List<String>> tableTimesMap = new HashMap<>(); // tableId -> list of time strings
 
 
-
-        TableOptions(String name, int size, String[] availableTimes) {
-            this.name = name;
-            this.size = size;
-            this.availableTimes = availableTimes;
-        }
-    }
-
-
-    //define user data types and structures
-    private static class UserInfo {
-        String name;
-        String phoneNumber;
-        String email;
-
-        // Constructor
-        UserInfo(String name, String phoneNumber, String email) {
-            this.name = name;
-            this.phoneNumber = phoneNumber;
-            this.email = email;
-        }
-    }
-
-
-    // --- states & Data ---
-    private TableOptions[] availableTables;
-    private String[] currentTimeOptions; // mutable list of times based on selected table
-
-    // --- Ui Components ---
+    //ui components
+    private TextView tvTableName;
+    private TextView tvTableCapacity;
+    private Slider sliderTable;
     private TextView tvDiningTime;
     private Slider sliderDiningTime;
-    private TextView tvTableName;
+    private LinearLayout selectedTablesContainer;
+    private Button confirmBookingButton;
+    private Button selectTableButton;
+
+    // track selected tables and times
+    private Map<String, String> selectedTableTimes = new HashMap<>(); // tableId -> selected time string
+
+    // store slot objects for timestamp reconstruction
+    private Map<String, List<com.example.dontjusteat.models.Slot>> tableSlots = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,173 +70,542 @@ public class booking_summary extends BaseActivity {
         }
         setContentView(R.layout.booking_summary);
 
-        // get initial mock data
-        initData();
+        // get data from intent
+        restaurantId = getIntent().getStringExtra("restaurantId");
+        partySize = getIntent().getIntExtra("partySize", 2);
 
-        // Orchestrator: Initialize separate functional modules
+        if (restaurantId == null || restaurantId.isEmpty()) {
+            Toast.makeText(this, "Restaurant ID missing", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        viewModel = new ViewModelProvider(this).get(CustomerBookingViewModel.class);
+        repo = new RestaurantRepository();
+        bookingRepo = new BookingRepository();
+
+        // Initialize UI
+        initializeViews();
         initializeNavigationService();
-        initializeDiningTimeService(); // Must be init first to setup views
-        initializeTableService();      // Depends on Dining Time Service
 
-        Button confirmBookingButton = findViewById(R.id.confirm_booking_button);
-        confirmBookingButton.setOnClickListener(view -> {
-            Intent intent = new Intent(booking_summary.this, booking_confirmation.class);
-            startActivity(intent);
-        });
+        //load user data dynamically
+        loadUserData();
+
+        // load tables and availability
+        loadTablesForRestaurant();
 
         Modules.applyWindowInsets(this, R.id.rootView);
     }
 
-    //I will later replace this with the database data
-    private void initData() {
-        // different tables have different available times
-        availableTables = new TableOptions[]{
-                new TableOptions("Table 1 (4 Seats)", 4, new String[]{"18:00", "19:00", "20:00"}),
-                new TableOptions("Table 2 (2 Seats)", 2, new String[]{"17:30", "18:30", "21:00"}),
-                new TableOptions("Table 3 (6 Seats)", 6, new String[]{"19:00", "20:00"}),
-                new TableOptions("Table 4 (4 Seats)", 4, new String[]{"20:00", "20:30", "21:00", "21:30"})
-        };
-        // Default to first table's times
-        currentTimeOptions = availableTables[0].availableTimes;
+    private void initializeViews() {
+        tvTableName = findViewById(R.id.tv_table_name);
+        tvTableCapacity = findViewById(R.id.tv_table_capacity);
+        sliderTable = findViewById(R.id.slider_table_selection);
+        tvDiningTime = findViewById(R.id.tv_dining_time);
+        sliderDiningTime = findViewById(R.id.slider_dining_time);
+        selectedTablesContainer = findViewById(R.id.selected_tables_container);
+        confirmBookingButton = findViewById(R.id.confirm_booking_button);
+        selectTableButton = findViewById(R.id.select_table_button);
 
-        UserInfo userInfo = new UserInfo(
-                "John Doe",
-                "1234567890", "jhondoe@example.com"
-        );
+        selectTableButton.setOnClickListener(v -> selectCurrentTable());
+        confirmBookingButton.setOnClickListener(v -> confirmBooking());
 
-        fillUserData(userInfo);
+        //add dining time slider listener once (prevents stacking on table changes)
+        sliderDiningTime.addOnChangeListener((slider, value, fromUser) -> {
+            List<String> times = tableTimesMap.getOrDefault(currentTable.getId(), new ArrayList<>());
+            int index = (int) value;
+            if (index >= 0 && index < times.size()) {
+                tvDiningTime.setText(times.get(index));
+            }
+        });
     }
 
-    //I have put the code in sections to make it clean and easy to navigate when trying to edit.
-    // I will later do the same with the rest of the code
-    /**
-     * Section 1: navigation
-     */
     private void initializeNavigationService() {
         ImageView backButton = findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> finish());
     }
 
-    /**
-     * Section 2: Dining Time Service
-     * this will handle time selection logic.
-     */
-    private void initializeDiningTimeService() {
-        //get elements from layout
-        tvDiningTime = findViewById(R.id.tv_dining_time);
-        sliderDiningTime = findViewById(R.id.slider_dining_time);
-
-        // first configuration
-        updateDiningTimeUI();
-
-        // formatter
-        sliderDiningTime.setLabelFormatter(value -> {
-            // converting the slider value to index
-            int index = (int) value;
-
-            if (isTimeOptionValidIndex(index)) {
-                return currentTimeOptions[index];
+    // Load tables that can fit the party size
+    private void loadTablesForRestaurant() {
+        // first fetch restaurant details to get duration/slot config
+        repo.getRestaurantById(restaurantId, new RestaurantRepository.OnRestaurantFetchListener() {
+            @Override
+            public void onSuccess(Restaurant restaurant) {
+                // store restaurant for booking creation
+                currentRestaurant = restaurant;
+                // display restaurant data in UI
+                displayRestaurantData(restaurant);
+                // load tables with configuration
+                loadTablesWithConfig(restaurant);
             }
-            return "";
-        });
 
-        // listener
-        // slider value changes to show the selected time for booking
-        sliderDiningTime.addOnChangeListener((slider, value, fromUser) -> {
-            int index = (int) value;
-            if (isTimeOptionValidIndex(index)) {
-                // update the text view with the selected time
-                tvDiningTime.setText(currentTimeOptions[index]);
+            @Override
+            public void onFailure(String error) {
+                Toast.makeText(booking_summary.this, "Failed to load restaurant: " + error, Toast.LENGTH_SHORT).show();
+                finish();
             }
         });
     }
 
-    /**
-     * Section 3: table service
-     *  to handle table selection logic.
-     */
-    private void initializeTableService() {
-        //get elements from layout
-        tvTableName = findViewById(R.id.tv_table_name);
-        Slider sliderTable = findViewById(R.id.slider_table_selection);
+    private void loadTablesWithConfig(Restaurant restaurant) {
+        repo.getTablesForRestaurant(restaurantId, new RestaurantRepository.OnTablesListener() {
+            @Override
+            public void onSuccess(List<Table> tables) {
+                // filter tables by capacity
+                availableTables.clear();
+                for (Table t : tables) {
+                    if (t.getCapacity() >= partySize) {
+                        availableTables.add(t);
+                    }
+                }
 
-        //set slider based on number of tables available
+                if (availableTables.isEmpty()) {
+                    Toast.makeText(booking_summary.this, "No tables available for " + partySize + " guests", Toast.LENGTH_SHORT).show();
+                    finish();
+                    return;
+                }
+
+                //load availability for all filtered tables
+                List<String> tableIds = new ArrayList<>();
+                for (Table t : availableTables) {
+                    tableIds.add(t.getId());
+                }
+
+                long requestedAfterMsExtra = getIntent().getLongExtra("requestedAfterMs", -1);
+                long requestedMs = requestedAfterMsExtra > 0 ? requestedAfterMsExtra : System.currentTimeMillis();
+                Timestamp requestedAfter = new Timestamp(new Date(requestedMs));
+
+
+
+
+
+                int duration = 90;
+                int slotMin = 15;
+
+                repo.getTableAvailability(
+                        restaurantId,
+                        tableIds,
+                        requestedAfter,
+                        duration,
+                        slotMin,
+                        new RestaurantRepository.OnTableAvailabilityListener() {
+                            @Override
+                            public void onSuccess(List<TableAvailability> results) {
+                                //Build time strings map and store slot objects
+                                tableTimesMap.clear();
+                                tableSlots.clear();
+                                for (TableAvailability ta : results) {
+                                    List<String> times = new ArrayList<>();
+                                    SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm", Locale.UK);
+                                    for (com.example.dontjusteat.models.Slot slot : ta.slots) {
+                                        times.add(timeFmt.format(slot.startTime.toDate()));
+                                    }
+                                    tableTimesMap.put(ta.table.getId(), times);
+                                    tableSlots.put(ta.table.getId(), ta.slots);
+                                }
+
+                                setupTableSlider();
+
+
+
+                            }
+
+                            @Override
+                            public void onFailure(String error) {
+                                Toast.makeText(booking_summary.this, "Failed to load availability: " + error, Toast.LENGTH_SHORT).show();
+                            }
+
+                        }
+                );
+            }
+
+            @Override
+            public void onFailure(String error) {
+                Toast.makeText(booking_summary.this, "Failed to load tables: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+
+    }
+
+    private void setupTableSlider() {
+        if (availableTables.isEmpty()) return;
+
         sliderTable.setValueFrom(0);
-        sliderTable.setValueTo(availableTables.length - 1); // this would be the index of the last table
+        sliderTable.setValueTo(availableTables.size() - 1);
         sliderTable.setStepSize(1);
         sliderTable.setValue(0);
 
-        // default initial text
-        tvTableName.setText(availableTables[0].name);
+        currentTable = availableTables.get(0);
+        updateTableDisplay();
 
-        // formatter
-        // slider value changes to show the selected table for booking
         sliderTable.setLabelFormatter(value -> {
             int index = (int) value;
-            if (index >= 0 && index < availableTables.length) {
-                //update the text view with the selected table
-                return availableTables[index].name;
+            if (index >= 0 && index < availableTables.size()) {
+                return availableTables.get(index).getDisplayName();
             }
             return "";
         });
 
-        // Listener then update times when table changes
         sliderTable.addOnChangeListener((slider, value, fromUser) -> {
             int index = (int) value;
-            // update the text view with the selected table
-            if (index >= 0 && index < availableTables.length) {
-                TableOptions selectedTable = availableTables[index];
-                tvTableName.setText(selectedTable.name);
-                
-                // this is the helper logic that fetchs times for this table and update the other slider
-                updateDiningTimes(selectedTable.availableTimes);
+            if (index >= 0 && index < availableTables.size()) {
+                currentTable = availableTables.get(index);
+                updateTableDisplay();
             }
         });
     }
 
+    private void updateTableDisplay() {
+        if (currentTable == null) return;
+
+        tvTableName.setText(currentTable.getDisplayName());
+        tvTableCapacity.setText("Capacity: " + currentTable.getCapacity() + " guests");
+
+        //Update time slider for this table
+        updateTimeSlider();
 
 
-    //called when a table is selected to refresh the time slider
-    private void updateDiningTimes(String[] newTimes) {
-        // update the times
-        this.currentTimeOptions = newTimes;
-
-        // Reset slider value first to avoid out-of-bounds
-        sliderDiningTime.setValue(0);
-        
-        // Update range, this will set the range to the length of the new times
-        sliderDiningTime.setValueTo(Math.max(0, newTimes.length - 1));
-        
-        // update UI text
-        updateDiningTimeUI();
+         //Show current selection status
+        updateSelectionStatus();
     }
 
-    // update the text view with the selected time
-    private void updateDiningTimeUI() {
-        if (currentTimeOptions.length > 0) {
-            tvDiningTime.setText(currentTimeOptions[0]);
+    private void updateTimeSlider() {
+        if (currentTable == null) return;
+
+        List<String> times = tableTimesMap.getOrDefault(currentTable.getId(), new ArrayList<>());
+
+        if (times.isEmpty()) {
+            // no times available - set valid range but disable interaction
+            sliderDiningTime.setValueFrom(0);
+            sliderDiningTime.setValueTo(1);
+            sliderDiningTime.setStepSize(1);
+            sliderDiningTime.setValue(0);
+            sliderDiningTime.setEnabled(false);
+            tvDiningTime.setText("No times available");
         } else {
-            tvDiningTime.setText("N/A");
+            // when times available  set valid range
+            sliderDiningTime.setEnabled(true);
+            sliderDiningTime.setValueFrom(0);
+            sliderDiningTime.setValueTo(times.size() - 1);
+            sliderDiningTime.setStepSize(1);
+            sliderDiningTime.setValue(0);
+            tvDiningTime.setText(times.get(0));
+        }
+
+        sliderDiningTime.setLabelFormatter(value -> {
+            int index = (int) value;
+            if (index >= 0 && index < times.size()) {
+                return times.get(index);
+            }
+            return "";
+
+        });
+    }
+
+    // sllow selecting this table with current time
+    private void selectCurrentTable() {
+        if (currentTable == null) {
+            Toast.makeText(this, "No table selected", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        List<String> times = tableTimesMap.getOrDefault(currentTable.getId(), new ArrayList<>());
+        int timeIndex = (int) sliderDiningTime.getValue();
+
+        if (timeIndex < 0 || timeIndex >= times.size()) {
+            Toast.makeText(this, "No time selected", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String selectedTime = times.get(timeIndex);
+        selectedTableTimes.put(currentTable.getId(), selectedTime);
+
+        // store timestamp for later booking creation
+        List<com.example.dontjusteat.models.Slot> slots = tableSlots.get(currentTable.getId());
+        if (slots != null && timeIndex < slots.size()) {
+            com.google.firebase.Timestamp ts = slots.get(timeIndex).startTime;
+            viewModel.selectTimeForTable(currentTable.getId(), ts);
+        }
+
+        updateSelectionStatus();
+
+        Toast.makeText(this, currentTable.getDisplayName() + " at " + selectedTime + " selected", Toast.LENGTH_SHORT).show();
+    }
+
+    private void updateSelectionStatus() {
+        selectedTablesContainer.removeAllViews();
+
+        if (selectedTableTimes.isEmpty()) {
+            TextView empty = new TextView(this);
+            empty.setText("Select tables and times to proceed");
+            empty.setTextColor(getResources().getColor(android.R.color.darker_gray));
+            selectedTablesContainer.addView(empty);
+            return;
+        }
+
+        for (Map.Entry<String, String> entry : selectedTableTimes.entrySet()) {
+            String tableId = entry.getKey();
+            String time = entry.getValue();
+
+            // Find table by ID
+            Table t = null;
+            for (Table table : availableTables) {
+                if (table.getId().equals(tableId)) {
+                    t = table;
+                    break;
+                }
+            }
+
+            if (t != null) {
+                LinearLayout row = new LinearLayout(this);
+                row.setOrientation(LinearLayout.HORIZONTAL);
+                row.setPadding(16, 8, 16, 8);
+
+                TextView text = new TextView(this);
+                text.setText(t.getDisplayName() + " - " + time);
+                text.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+                row.addView(text);
+
+                Button removeBtn = new Button(this);
+                removeBtn.setText("Remove");
+                removeBtn.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                removeBtn.setOnClickListener(v -> {
+                    selectedTableTimes.remove(tableId);
+                    updateSelectionStatus();
+                });
+                row.addView(removeBtn);
+
+                selectedTablesContainer.addView(row);
+            }
         }
     }
 
-    // helper method to check if the index is valid to avoid out-of-bound
-    private boolean isTimeOptionValidIndex(int index) {
-        return index >= 0 && index < currentTimeOptions.length;
+    private void confirmBooking() {
+        // validate selections
+        if (selectedTableTimes.isEmpty()) {
+            Toast.makeText(this, "Please select at least one table and time", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // get current user ID
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
+                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+
+        if (userId == null) {
+            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // validate restaurant and duration
+        if (currentRestaurant == null) {
+            Toast.makeText(this, "Restaurant data not loaded", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+
+
+        int durationMinutes = currentRestaurant.getDefaultDurationMinutes() > 0 ?
+                currentRestaurant.getDefaultDurationMinutes() : 90;
+
+        // show progress dialog
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Creating booking...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        // disable button to prevent double submission
+        confirmBookingButton.setEnabled(false);
+
+
+        // create bookings for each selected table
+        createBookingsForTables(userId, durationMinutes, progressDialog);
     }
 
-    //fill in user data
-    private void fillUserData(UserInfo userInfo) {
+    // create bookings for all selected tables
+    private void createBookingsForTables(String userId, int durationMinutes, ProgressDialog progressDialog) {
+        // counter to track completed bookings
+        final int totalBookings = selectedTableTimes.size();
+        final int[] completedBookings = {0};
+        final boolean[] hasError = {false};
+        final java.util.List<String> bookingIds = new java.util.ArrayList<>();
 
-        //get layout elements
+
+        for (Map.Entry<String, String> entry : selectedTableTimes.entrySet()) {
+            String tableId = entry.getKey();
+            String timeStr = entry.getValue();
+
+            // get the actual timestamp for this table/time
+
+            List<com.example.dontjusteat.models.Slot> slots = tableSlots.get(tableId);
+            if (slots == null || slots.isEmpty()) {
+                handleBookingError(progressDialog, "No time slots available for table " + tableId);
+                return;
+            }
+
+
+
+             // find the matching slot by time string
+            Timestamp startTime = null;
+              for (com.example.dontjusteat.models.Slot slot : slots) {
+                String slotTimeStr = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.UK)
+                        .format(slot.startTime.toDate());
+                if (slotTimeStr.equals(timeStr)) {
+                    startTime = slot.startTime;
+                    break;
+                }
+            }
+
+            if (startTime == null) {
+                handleBookingError(progressDialog, "Invalid time selection for table " + tableId);
+                return;
+            }
+
+
+            // create booking
+            final Timestamp finalStartTime = startTime;
+            bookingRepo.createBooking(restaurantId, userId, tableId, finalStartTime,
+                    durationMinutes, partySize,
+                    new BookingRepository.OnBookingCreateListener() {
+                        @Override
+                        public void onSuccess(String bookingId) {
+                            completedBookings[0]++;
+                            bookingIds.add(bookingId);
+
+
+                            // check if all bookings are done
+                            if (completedBookings[0] == totalBookings && !hasError[0]) {
+                                progressDialog.dismiss();
+                                confirmBookingButton.setEnabled(true);
+
+                                // navigate to confirmation page with booking IDs
+                                Intent intent = new Intent(booking_summary.this, booking_confirmation.class);
+                                intent.putExtra("restaurantId", restaurantId);
+
+                                intent.putStringArrayListExtra("bookingIds", new ArrayList<>(bookingIds));
+                                startActivity(intent);
+                                finish();
+                            }
+
+
+                        }
+
+                        @Override
+                        public void onFailure(String error) {
+                            if (!hasError[0]) {
+                                hasError[0] = true;
+                                handleBookingError(progressDialog, error);
+                            }
+
+                        }
+                    });
+        }
+    }
+
+    // handle booking creation errors
+    private void handleBookingError(ProgressDialog progressDialog, String error) {
+        progressDialog.dismiss();
+
+        confirmBookingButton.setEnabled(true);
+        Toast.makeText(this, "Booking failed: " + error, Toast.LENGTH_LONG).show();
+    }
+
+    // load current user data
+    private void loadUserData() {
+        UserProfileRepository userRepo = new UserProfileRepository(this);
+        userRepo.loadUserProfileWithEmail(new UserProfileRepository.OnProfileWithEmailLoadListener() {
+            @Override
+            public void onSuccess(String name, String email, String phone) {
+                displayUserData(name, email, phone);
+            }
+
+            @Override
+            public void onFailure(String error) {
+                Toast.makeText(booking_summary.this, "Failed to load user data: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // display user data in UI
+    private void displayUserData(String name, String email, String phone) {
+
         TextView tvName = findViewById(R.id.name);
-        TextView tvPhoneNumber = findViewById(R.id.phone_number);
         TextView tvEmail = findViewById(R.id.email);
+        TextView tvPhone = findViewById(R.id.phone_number);
 
-        //set text
-        tvName.setText(userInfo.name);
-        tvPhoneNumber.setText(userInfo.phoneNumber);
-        tvEmail.setText(userInfo.email);
 
+
+        if (tvName != null) tvName.setText(name != null ? name : "N/A");
+        if (tvEmail != null) tvEmail.setText(email != null ? email : "N/A");
+        if (tvPhone != null) tvPhone.setText(phone != null ? phone : "");
+    }
+
+
+
+
+    // display restaurant data in header and location section
+    private void displayRestaurantData(Restaurant restaurant) {
+        // set header title with restaurant name
+        TextView headerTitle = findViewById(R.id.header_title);
+        if (headerTitle != null) {
+            headerTitle.setText(restaurant.getName() != null ? restaurant.getName() : "Restaurant");
+        }
+
+
+        // set location name
+        TextView tvLocationName = findViewById(R.id.location_name);
+        if (tvLocationName != null) {
+            tvLocationName.setText(restaurant.getName() != null ? restaurant.getName() : "N/A");
+        }
+
+
+        // set location address
+        TextView tvLocationAddress = findViewById(R.id.location_address);
+        if (tvLocationAddress != null) {
+            tvLocationAddress.setText(restaurant.getAddress() != null ? restaurant.getAddress() : "N/A");
+        }
+
+
+        // setup map link button
+        Button btnMapLink = findViewById(R.id.location_map_link);
+        if (btnMapLink != null) {
+            btnMapLink.setOnClickListener(v -> openLocationOnMap(restaurant.getLocationURL()));
+        }
+    }
+
+    // open location on map using locationURL
+    private void openLocationOnMap(String locationURL) {
+        if (locationURL == null || locationURL.trim().isEmpty()) {
+            Toast.makeText(this, "Location URL not available", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
+            // validate and parse URI
+            Uri locationUri = Uri.parse(locationURL.trim());
+
+
+            // try opening with maps app first
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, locationUri);
+            mapIntent.setPackage("com.google.android.apps.maps");
+
+
+            if (mapIntent.resolveActivity(getPackageManager()) != null) {
+                startActivity(mapIntent);
+            } else {
+
+                // fallback to browser if maps not available
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, locationUri);
+                if (browserIntent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(browserIntent);
+                } else {
+                    Toast.makeText(this, "No app available to view location", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+        } catch (Exception e) {
+            Toast.makeText(this, "Invalid location URL", Toast.LENGTH_SHORT).show();
+        }
     }
 }

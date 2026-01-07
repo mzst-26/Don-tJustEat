@@ -3,6 +3,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import com.example.dontjusteat.models.Restaurant;
 import com.example.dontjusteat.models.RestaurantAvailability;
+import com.example.dontjusteat.models.Table;
+import com.example.dontjusteat.models.TableAvailability;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.android.gms.tasks.TaskCompletionSource;
@@ -36,6 +38,16 @@ public class RestaurantRepository {
 
     public interface OnMenuItemsListener {
         void onSuccess(List<com.example.dontjusteat.models.MenuItem> items);
+        void onFailure(String error);
+    }
+
+    public interface OnTablesListener {
+        void onSuccess(List<Table> tables);
+        void onFailure(String error);
+    }
+
+    public interface OnTableAvailabilityListener {
+        void onSuccess(List<TableAvailability> results);
         void onFailure(String error);
     }
 
@@ -252,18 +264,20 @@ public class RestaurantRepository {
 
         db.collection("restaurants").document(restaurantId)
                 .collection("tables").document(tableId)
-                .collection("lock")
-                .whereEqualTo("status", "held")
+                .collection("locks")
                 .whereGreaterThanOrEqualTo("startTime", new Timestamp(new Date(startMs)))
                 .whereLessThan("startTime", new Timestamp(new Date(endMs)))
                 .get()
                 .addOnSuccessListener(qs -> {
-                    // list of locked start times
                     Set<Long> lockedSlotStarts = new HashSet<>();
                     // for each document in the list
                     for (QueryDocumentSnapshot doc : qs) {
-                        Timestamp ts = doc.getTimestamp("startTime");
-                        if (ts != null) lockedSlotStarts.add(ts.toDate().getTime());
+                        String status = doc.getString("status");
+                        // Treat anything that is not OPEN as locked (held/booked)
+                        if (status != null && !status.equalsIgnoreCase("OPEN")) {
+                            Timestamp ts = doc.getTimestamp("startTime");
+                            if (ts != null) lockedSlotStarts.add(ts.toDate().getTime());
+                        }
                     }
                     tcs.setResult(new TableLocks(tableId, lockedSlotStarts));
                 })
@@ -289,6 +303,126 @@ public class RestaurantRepository {
                     listener.onSuccess(items);
                 })
                 .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
+    }
+
+    // fetch all active tables for a restaurant, optionally filtered by capacity
+    public void getTablesForRestaurant(String restaurantId, OnTablesListener listener) {
+
+        db.collection("restaurants").document(restaurantId)
+                .collection("tables")
+                .whereEqualTo("active", true)
+                .get()
+                .addOnSuccessListener(qs -> {
+                    List<Table> tables = new ArrayList<>();
+
+                    for (QueryDocumentSnapshot doc : qs)
+                    {
+                        Long cap = doc.getLong("capacity");
+                        Boolean active = doc.getBoolean("active");
+                        if (cap != null && active != null && active) {
+                            Table t = new Table(doc.getId(), cap.intValue(), true);
+                            tables.add(t);
+                        }
+
+                    }
+
+                    listener.onSuccess(tables);
+
+                })
+                .addOnFailureListener(e -> listener.onFailure(msg(e, "Failed to load tables")));
+    }
+
+    // fetch availability for specific tables (not merged)
+    // each table gets its own list of available slots
+    public void getTableAvailability(
+            String restaurantId,
+            List<String> tableIds,
+            Timestamp requestedAfter,
+            int defaultDurationMinutes,
+            int defaultSlotMinutes,
+            OnTableAvailabilityListener listener
+    )
+    {
+        if (tableIds == null || tableIds.isEmpty()) {
+            listener.onSuccess(new ArrayList<>());
+            return;
+        }
+
+        long requestedMs = requestedAfter.toDate().getTime();
+        long startMs = roundUpToSlot(requestedMs, defaultSlotMinutes);
+        long endMs = endOfDayMillis(startMs);
+        long durationMs = TimeUnit.MINUTES.toMillis(defaultDurationMinutes);
+        long slotMs = TimeUnit.MINUTES.toMillis(defaultSlotMinutes);
+
+
+
+        // fetch all tables first
+        db.collection("restaurants").document(restaurantId)
+                .collection("tables")
+                .whereIn(FieldPath.documentId(), tableIds)
+                .get()
+                .addOnSuccessListener(tableSnap -> {
+                    Map<String, Table> tableMap = new HashMap<>();
+                    for (QueryDocumentSnapshot doc : tableSnap) {
+                        Long cap = doc.getLong("capacity");
+                        Boolean active = doc.getBoolean("active");
+                        if (cap != null && active != null) {
+                            Table t = new Table(doc.getId(), cap.intValue(), active);
+                            tableMap.put(doc.getId(), t);
+                        }
+                    }
+
+                    // load locks for each table
+                    List<Task<TableLocks>> lockTasks = new ArrayList<>();
+                    for (String tableId : tableIds) {
+                        lockTasks.add(loadLocksForTable(restaurantId, tableId, startMs, endMs));
+                    }
+
+                    Tasks.whenAllSuccess(lockTasks)
+                            .addOnSuccessListener(lockObjects -> {
+                                List<TableAvailability> results = new ArrayList<>();
+
+                                // compute availability per table
+                                for (String tableId : tableIds) {
+                                    Table t = tableMap.get(tableId);
+                                    if (t == null) continue;
+
+
+
+                                    Set<Long> locked = Collections.emptySet();
+                                    for (Object o : lockObjects) {
+                                        if (o instanceof TableLocks) {
+                                            TableLocks tl = (TableLocks) o;
+                                            if (tl.tableId.equals(tableId)) {
+                                                locked = (tl.lockedSlotStarts != null) ? tl.lockedSlotStarts : Collections.emptySet();
+                                                break;
+                                            }
+                                        }
+                                    }
+
+
+
+                                    // build slots for this table only
+                                    List<com.example.dontjusteat.models.Slot> tableSlots = new ArrayList<>();
+                                    for (long time = startMs; time + durationMs <= endMs; time += slotMs) {
+                                        if (!isLockedForWindow(locked, time, durationMs, slotMs)) {
+                                            com.example.dontjusteat.models.Slot s = new com.example.dontjusteat.models.Slot(
+                                                    new Timestamp(new Date(time)),
+                                                    new Timestamp(new Date(time + durationMs))
+                                            );
+                                            tableSlots.add(s);
+                                        }
+                                    }
+
+                                    results.add(new TableAvailability(t, tableSlots));
+                                }
+
+                                listener.onSuccess(results);
+                            })
+                            .addOnFailureListener(e -> listener.onFailure(msg(e, "Failed to load locks")));
+                })
+
+                .addOnFailureListener(e -> listener.onFailure(msg(e, "Failed to load tables")));
     }
 
     // small structures as helpers

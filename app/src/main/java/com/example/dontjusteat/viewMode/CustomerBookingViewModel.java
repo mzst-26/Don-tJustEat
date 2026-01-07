@@ -1,12 +1,16 @@
-package com.example.dontjusteat.viewmodel;
+package com.example.dontjusteat.viewMode;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.dontjusteat.models.RestaurantAvailability;
+import com.example.dontjusteat.models.TableAvailability;
+import com.google.firebase.Timestamp;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CustomerBookingViewModel extends ViewModel {
 
@@ -46,6 +50,41 @@ public class CustomerBookingViewModel extends ViewModel {
     private final MutableLiveData<List<RestaurantAvailability>> availabilityResults = new MutableLiveData<>();
     public LiveData<List<RestaurantAvailability>> getAvailabilityResults() {
         return availabilityResults;
+    }
+
+    // booking states that are specific to the booking
+    private final MutableLiveData<String> selectedRestaurantId = new MutableLiveData<>();
+    private final MutableLiveData<List<TableAvailability>> tableAvailability = new MutableLiveData<>();
+
+
+    // Map of tableId to selected Timestamp for that table
+    private final Map<String, Timestamp> selectedTableTimes = new HashMap<>();
+
+    public LiveData<String> getSelectedRestaurantId() { return selectedRestaurantId; }
+    public LiveData<List<TableAvailability>> getTableAvailability() { return tableAvailability; }
+
+    public void setSelectedRestaurantId(String restaurantId) {
+        selectedRestaurantId.setValue(restaurantId);
+    }
+
+    public void setTableAvailability(List<TableAvailability> results) {
+        tableAvailability.setValue(results);
+    }
+
+    public void selectTimeForTable(String tableId, Timestamp time) {
+        selectedTableTimes.put(tableId, time);
+    }
+
+    public Timestamp getSelectedTimeForTable(String tableId) {
+        return selectedTableTimes.get(tableId);
+    }
+
+    public Map<String, Timestamp> getSelectedTableTimes() {
+        return new HashMap<>(selectedTableTimes);
+    }
+
+    public void clearTableSelections() {
+        selectedTableTimes.clear();
     }
 
 }
