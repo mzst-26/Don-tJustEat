@@ -1,7 +1,12 @@
 package com.example.dontjusteat;
 
+import android.Manifest;
 import android.app.Application;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.util.Log;
+
+import androidx.core.content.ContextCompat;
 
 import com.example.dontjusteat.notifications.NotificationsManager;
 import com.google.firebase.FirebaseApp;
@@ -25,14 +30,23 @@ public class DontJustEatApplication extends Application {
             Log.e(TAG, "Failed to initialize Firebase", e);
         }
 
-        // start notifications listener if user already logged in
+        // start notifications listener if user logged in and permission granted
         try {
-            if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            if (FirebaseAuth.getInstance().getCurrentUser() != null && hasNotificationPermission()) {
                 notificationsManager = new NotificationsManager(this);
                 notificationsManager.start();
             }
         } catch (Exception e) {
             Log.e(TAG, "Failed to start notifications listener", e);
         }
+    }
+
+    // check if notification permission is granted
+    private boolean hasNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return ContextCompat.checkSelfPermission(this,
+                Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+        }
+        return true;
     }
 }

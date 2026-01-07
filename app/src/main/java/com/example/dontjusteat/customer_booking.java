@@ -23,6 +23,8 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
 
+import com.example.dontjusteat.notifications.NotificationPermissionHelper;
+import com.example.dontjusteat.notifications.NotificationsManager;
 import com.example.dontjusteat.repositories.RestaurantRepository;
 import com.example.dontjusteat.models.RestaurantAvailability;
 import com.example.dontjusteat.models.Restaurant;
@@ -61,6 +63,7 @@ public class customer_booking extends BaseActivity implements OnMapReadyCallback
 
     private static final int REQ_LOCATION = 1001;
     private FusedLocationProviderClient locationClient;
+    private NotificationsManager notificationsManager;
 
     private LinearLayout bottomSheet;
     private BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
@@ -125,6 +128,8 @@ public class customer_booking extends BaseActivity implements OnMapReadyCallback
         //load all restaurants initially
         loadAllRestaurants();
 
+        // request notification permission
+        requestNotificationPermission();
 
     }
 
@@ -539,6 +544,11 @@ public class customer_booking extends BaseActivity implements OnMapReadyCallback
             } else {
                 Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show();
             }
+        } else if (requestCode == NotificationPermissionHelper.REQUEST_CODE) {
+            boolean granted = NotificationPermissionHelper.handlePermissionResult(requestCode, grantResults);
+            if (granted) {
+                startNotificationsListener();
+            }
         }
     }
 
@@ -737,7 +747,27 @@ public class customer_booking extends BaseActivity implements OnMapReadyCallback
         if (mapView != null) {
             mapView.onDestroy();
         }
+        if (notificationsManager != null) {
+            notificationsManager.stop();
+        }
         super.onDestroy();
+    }
+
+    // request notification permission
+    private void requestNotificationPermission() {
+        if (NotificationPermissionHelper.hasPermission(this)) {
+            startNotificationsListener();
+        } else {
+            NotificationPermissionHelper.requestPermission(this);
+        }
+    }
+
+    // start listening for new notifications
+    private void startNotificationsListener() {
+        if (notificationsManager == null) {
+            notificationsManager = new NotificationsManager(this);
+            notificationsManager.start();
+        }
     }
 
 }

@@ -7,15 +7,23 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.Nullable;
 
+import com.example.dontjusteat.models.Notification;
+import com.example.dontjusteat.repositories.NotificationRepository;
+import com.google.firebase.auth.FirebaseAuth;
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 
 public class customer_my_notifications extends BaseActivity {
     LinearLayout notificationsContainer;
     TextView noNotificationText;
+
     private static class NotificationCard {
         String ID;
         String title;
@@ -23,15 +31,19 @@ public class customer_my_notifications extends BaseActivity {
         String date;
         String time;
         String status;
+        String bookingId;
+        String restaurantId;
 
 
-        NotificationCard(String ID, String titleText, String messageText, String dateText, String timeText, String statusText) {
+        NotificationCard(String ID, String titleText, String messageText, String dateText, String timeText, String statusText, String bookingId, String restaurantId) {
             this.ID = ID;
             this.message = messageText;
             this.title = titleText;
             this.date = dateText;
             this.time = timeText;
             this.status = statusText;
+            this.bookingId = bookingId;
+            this.restaurantId = restaurantId;
 
         }
     }
@@ -43,66 +55,69 @@ public class customer_my_notifications extends BaseActivity {
             return;
         }
         setContentView(R.layout.customer_my_notifications);
+        TextView title = findViewById(R.id.location_name);
+        title.setText("Notifications & Updates");
 
         //import modules
         Modules.applyWindowInsets(this, R.id.rootView);
         Modules.handleMenuNavigation(this);
         Modules.handleSimpleHeaderNavigation(this);
 
-        // Fake data for now than later I will replace it with the real data from the DB
-        List<customer_my_notifications.NotificationCard> cards = new ArrayList<>();
-
-        // Pass the list to pullNotifications
-        pullNotifications(cards);
-
         // Initialize the container and no notification text
         notificationsContainer = findViewById(R.id.content_container);
         noNotificationText = findViewById(R.id.no_notification_text);
 
-        if(cards.isEmpty()){
-            handleNoNotification (true);
-        }else {
-            handleNoNotification(false);
-            renderNotifications(cards);
-        }
+        loadNotifications();
+
     }
 
+    private void loadNotifications() {
+        String uid = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (uid == null) {
+            handleNoNotification(true);
+            return;
+        }
 
-    private void pullNotifications(List<customer_my_notifications.NotificationCard> cards) {
-
-        // add a sample notification card
-        cards.add(new customer_my_notifications.NotificationCard(
-                "12345",
-                "New Booking",
-                "We have received your booking request!",
-                "08/05/2025",
-                "19:30",
-                "Pending"
-        ));
-
-        // add a sample notification card
-        cards.add(new customer_my_notifications.NotificationCard(
-                "12346",
-                "Booking Confirmed",
-                "Your booking request has been confirmed!",
-                "08/05/2025",
-                "19:45",
-                "pending"
-        ));
-
-        // add a sample notification card
-        cards.add(new customer_my_notifications.NotificationCard(
-                "12347",
-                "Change To Booking",
-                "Your change has been submitted!",
-                "08/05/2025",
-                "19:50",
-                "pending"
-        ));
+        NotificationRepository repo = new NotificationRepository();
+        // load notifications
+        repo.getUserNotifications(uid, 50, new NotificationRepository.OnNotificationsListener() {
+            @Override
+            // render notifications
+            public void onSuccess(List<Notification> notifications) {
+                List<NotificationCard> cards = new ArrayList<>();
+                // convert notifications to cards
+                SimpleDateFormat dateFmt = new SimpleDateFormat("dd/MM/yyyy", Locale.UK);
+                SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm", Locale.UK);
 
 
+                // add cards to list
+                for (Notification n : notifications) {
+                    String id = n.getId() != null ? n.getId() : "";
+                    String title = n.getTitle() != null ? n.getTitle() : "Notification";
+                    String msg = n.getDescription() != null ? n.getDescription() : "";
+                    String status = n.getStatus() != null ? n.getStatus() : "unread";
+                    String date = n.getCreatedAt() != null ? dateFmt.format(n.getCreatedAt().toDate()) : "";
+                    String time = n.getCreatedAt() != null ? timeFmt.format(n.getCreatedAt().toDate()) : "";
+                    String bookingId = n.getBookingId();
+                    String restaurantId = n.getRestaurantId();
 
+                    cards.add(new NotificationCard(id, title, msg, date, time, status, bookingId, restaurantId));
+                }
+                // render cards
+                if (cards.isEmpty()) {
+                    handleNoNotification(true);
+                } else {
+                    handleNoNotification(false);
+                    renderNotifications(cards);
+                }
 
+            }
+
+            @Override
+            public void onFailure(String error) {
+                handleNoNotification(true);
+            }
+        });
     }
 
     private void renderNotifications(List<NotificationCard> cards) {
@@ -140,16 +155,29 @@ public class customer_my_notifications extends BaseActivity {
             notification_time.setText(cardData.time);
             // per-card click handler for mark-as-read
             markAsRead.setOnClickListener(v -> {
-                //find the card in the list and remove the cards
-                for (int i = 0; i < cards.size(); i++) {
-                    if (cards.get(i).ID.equals(cardData.ID)) {
-                        cards.remove(i);
-                        break;
-                    }
-                }
-                renderNotifications(cards);
-                handleNoNotification(cards.isEmpty());
+                String uid = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+                NotificationRepository repo = new NotificationRepository();
+                if (uid != null) {
+                    repo.updateNotificationStatus(uid, cardData.ID, "read", new NotificationRepository.OnNotificationListener() {
+                        @Override
+                        public void onSuccess(String notificationId) {
+                            cards.removeIf(c -> c.ID.equals(notificationId));
+                            renderNotifications(cards);
+                            handleNoNotification(cards.isEmpty());
+                        }
 
+                        @Override
+                        public void onFailure(String error) {
+                            cards.removeIf(c -> c.ID.equals(cardData.ID));
+                            renderNotifications(cards);
+                            handleNoNotification(cards.isEmpty());
+                        }
+                    });
+                } else {
+                    cards.removeIf(c -> c.ID.equals(cardData.ID));
+                    renderNotifications(cards);
+                    handleNoNotification(cards.isEmpty());
+                }
             });
 
 
