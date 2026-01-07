@@ -1,5 +1,6 @@
 package com.example.dontjusteat;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -14,10 +15,12 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.dontjusteat.models.Table;
 import com.example.dontjusteat.models.TableAvailability;
 import com.example.dontjusteat.models.Restaurant;
+import com.example.dontjusteat.repositories.BookingRepository;
 import com.example.dontjusteat.repositories.RestaurantRepository;
 import com.example.dontjusteat.repositories.UserProfileRepository;
 import com.example.dontjusteat.viewMode.CustomerBookingViewModel;
 import com.google.android.material.slider.Slider;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.Timestamp;
 
 import java.text.SimpleDateFormat;
@@ -34,6 +37,8 @@ public class booking_summary extends BaseActivity {
     private int partySize;
     private CustomerBookingViewModel viewModel;
     private RestaurantRepository repo;
+    private BookingRepository bookingRepo;
+    private Restaurant currentRestaurant;  // store restaurant for duration config
 
     // currently selected table
     private Table currentTable;
@@ -77,6 +82,7 @@ public class booking_summary extends BaseActivity {
 
         viewModel = new ViewModelProvider(this).get(CustomerBookingViewModel.class);
         repo = new RestaurantRepository();
+        bookingRepo = new BookingRepository();
 
         // Initialize UI
         initializeViews();
@@ -121,10 +127,12 @@ public class booking_summary extends BaseActivity {
 
     // Load tables that can fit the party size
     private void loadTablesForRestaurant() {
-        //first fetch restaurant details to get duration/slot config
+        // first fetch restaurant details to get duration/slot config
         repo.getRestaurantById(restaurantId, new RestaurantRepository.OnRestaurantFetchListener() {
             @Override
             public void onSuccess(Restaurant restaurant) {
+                // store restaurant for booking creation
+                currentRestaurant = restaurant;
                 // display restaurant data in UI
                 displayRestaurantData(restaurant);
                 // load tables with configuration
@@ -375,18 +383,132 @@ public class booking_summary extends BaseActivity {
     }
 
     private void confirmBooking() {
+        // validate selections
         if (selectedTableTimes.isEmpty()) {
             Toast.makeText(this, "Please select at least one table and time", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Pass selections to booking_confirmation for final creation
-        Intent intent = new Intent(booking_summary.this, booking_confirmation.class);
-        intent.putExtra("restaurantId", restaurantId);
-        intent.putExtra("selectedTables", new ArrayList<>(selectedTableTimes.keySet()));
-        intent.putExtra("selectedTimes", new ArrayList<>(selectedTableTimes.values()));
-        intent.putExtra("partySize", partySize);
-        startActivity(intent);
+        // get current user ID
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
+                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+
+        if (userId == null) {
+            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // validate restaurant and duration
+        if (currentRestaurant == null) {
+            Toast.makeText(this, "Restaurant data not loaded", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+
+
+        int durationMinutes = currentRestaurant.getDefaultDurationMinutes() > 0 ?
+                currentRestaurant.getDefaultDurationMinutes() : 90;
+
+        // show progress dialog
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Creating booking...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        // disable button to prevent double submission
+        confirmBookingButton.setEnabled(false);
+
+
+        // create bookings for each selected table
+        createBookingsForTables(userId, durationMinutes, progressDialog);
+    }
+
+    // create bookings for all selected tables
+    private void createBookingsForTables(String userId, int durationMinutes, ProgressDialog progressDialog) {
+        // counter to track completed bookings
+        final int totalBookings = selectedTableTimes.size();
+        final int[] completedBookings = {0};
+        final boolean[] hasError = {false};
+        final java.util.List<String> bookingIds = new java.util.ArrayList<>();
+
+
+        for (Map.Entry<String, String> entry : selectedTableTimes.entrySet()) {
+            String tableId = entry.getKey();
+            String timeStr = entry.getValue();
+
+            // get the actual timestamp for this table/time
+
+            List<com.example.dontjusteat.models.Slot> slots = tableSlots.get(tableId);
+            if (slots == null || slots.isEmpty()) {
+                handleBookingError(progressDialog, "No time slots available for table " + tableId);
+                return;
+            }
+
+
+
+             // find the matching slot by time string
+            Timestamp startTime = null;
+              for (com.example.dontjusteat.models.Slot slot : slots) {
+                String slotTimeStr = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.UK)
+                        .format(slot.startTime.toDate());
+                if (slotTimeStr.equals(timeStr)) {
+                    startTime = slot.startTime;
+                    break;
+                }
+            }
+
+            if (startTime == null) {
+                handleBookingError(progressDialog, "Invalid time selection for table " + tableId);
+                return;
+            }
+
+
+            // create booking
+            final Timestamp finalStartTime = startTime;
+            bookingRepo.createBooking(restaurantId, userId, tableId, finalStartTime,
+                    durationMinutes, partySize,
+                    new BookingRepository.OnBookingCreateListener() {
+                        @Override
+                        public void onSuccess(String bookingId) {
+                            completedBookings[0]++;
+                            bookingIds.add(bookingId);
+
+
+                            // check if all bookings are done
+                            if (completedBookings[0] == totalBookings && !hasError[0]) {
+                                progressDialog.dismiss();
+                                confirmBookingButton.setEnabled(true);
+
+                                // navigate to confirmation page with booking IDs
+                                Intent intent = new Intent(booking_summary.this, booking_confirmation.class);
+                                intent.putExtra("restaurantId", restaurantId);
+
+                                intent.putStringArrayListExtra("bookingIds", new ArrayList<>(bookingIds));
+                                startActivity(intent);
+                                finish();
+                            }
+
+
+                        }
+
+                        @Override
+                        public void onFailure(String error) {
+                            if (!hasError[0]) {
+                                hasError[0] = true;
+                                handleBookingError(progressDialog, error);
+                            }
+
+                        }
+                    });
+        }
+    }
+
+    // handle booking creation errors
+    private void handleBookingError(ProgressDialog progressDialog, String error) {
+        progressDialog.dismiss();
+
+        confirmBookingButton.setEnabled(true);
+        Toast.makeText(this, "Booking failed: " + error, Toast.LENGTH_LONG).show();
     }
 
     // load current user data

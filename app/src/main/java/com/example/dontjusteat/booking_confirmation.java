@@ -2,11 +2,9 @@ package com.example.dontjusteat;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
-
+import java.util.ArrayList;
 
 public class booking_confirmation extends BaseActivity {
 
@@ -19,6 +17,12 @@ public class booking_confirmation extends BaseActivity {
         setContentView(R.layout.booking_confirmation);
         Modules.applyWindowInsets(this, R.id.rootView);
 
+        // get booking IDs from intent
+        ArrayList<String> bookingIds = getIntent().getStringArrayListExtra("bookingIds");
+
+        // display booking reference
+        displayBookingReference(bookingIds);
+
         // Handle menu navigation
         Modules.handleMenuNavigation(this);
 
@@ -26,7 +30,23 @@ public class booking_confirmation extends BaseActivity {
         handleNotificationNavigationButton();
         //handle the my booking button
         handleViewBookingNavigationButton();
+    }
 
+    // display booking reference numbers
+    private void displayBookingReference(ArrayList<String> bookingIds) {
+        TextView bookingRefView = findViewById(R.id.booking_reference);
+
+        if (bookingRefView != null && bookingIds != null && !bookingIds.isEmpty()) {
+            // format booking IDs for display
+            if (bookingIds.size() == 1) {
+                // single booking
+                bookingRefView.setText("#" + bookingIds.get(0).substring(0, Math.min(8, bookingIds.get(0).length())));
+            } else {
+                // multiple bookings - show first one with count
+                String firstId = bookingIds.get(0).substring(0, Math.min(8, bookingIds.get(0).length()));
+                bookingRefView.setText("#" + firstId + " (+" + (bookingIds.size() - 1) + " more)");
+            }
+        }
     }
 
 
