@@ -285,13 +285,22 @@ public class my_bookings extends BaseActivity {
         // handle the buttons
         statusBtn.setOnClickListener(v -> bookingStatusUpdateHandler());
         reviewBtn.setOnClickListener(v -> leaveAReviewHandler());
-        editBtn.setOnClickListener(v -> requestAnEditHandler());
 
-        // disable cancel if already canceled
-        if ("CANCELED".equals(booking.booking_status)) {
+        // disable edit and cancel buttons for certain statuses
+        boolean shouldDisable = "CANCELED".equals(booking.booking_status) ||
+                                "CHANGE REQUEST".equals(booking.booking_status) ||
+                                "REJECTED BY STAFF".equals(booking.booking_status);
+
+        if (shouldDisable) {
+            // disable edit button
+            editBtn.setEnabled(false);
+            editBtn.setAlpha(0.5f);
+
+            // disable cancel button
             cancelBtn.setEnabled(false);
             cancelBtn.setAlpha(0.5f);
         } else {
+            editBtn.setOnClickListener(v -> requestAnEditHandler());
             cancelBtn.setOnClickListener(v -> requestCancellationHandler());
         }
 
@@ -477,6 +486,7 @@ public class my_bookings extends BaseActivity {
                             @Override public void onSuccess() {
                                 Toast.makeText(my_bookings.this, "Change requested", Toast.LENGTH_SHORT).show();
                                 editDialog.dismiss();
+                                loadBookings();
                             }
                             @Override public void onFailure(String error) {
                                 Toast.makeText(my_bookings.this, error != null ? error : "Failed", Toast.LENGTH_LONG).show();
