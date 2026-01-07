@@ -10,6 +10,8 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.dontjusteat.repositories.AdminBookingRepository;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,9 +31,8 @@ public class admin_dashboard extends BaseActivity {
         //remove this button for this page
         back_button.setVisibility(ImageView.GONE);
 
-        // Build sample data and render cards
-        List<Booking> todaysBookings = buildSampleBookings();
-        populateBookings(todaysBookings);
+        // load real bookings from firestore
+        loadBookingsFromFirestore();
 
         // handle menu navigation
         admin_modules.handleMenuNavigation(this);
@@ -63,27 +64,88 @@ public class admin_dashboard extends BaseActivity {
         }
     }
 
-    private List<Booking> buildSampleBookings() {
-        List<Booking> list = new ArrayList<>();
-        list.add(new Booking("Alice Johnson", "Table 3", "12:15 PM", "Dec 29, 2025", 2, "BK001", "Arrived", R.drawable.logo));
-        list.add(new Booking("Brian Lee", "Table 7", "12:45 PM", "Dec 29, 2025", 4, "BK002", "Seated", R.drawable.logo));
-        list.add(new Booking("Carmen Diaz", "Table 2", "1:00 PM", "Dec 29, 2025", 3, "BK003", "New Request", R.drawable.logo));
-        list.add(new Booking("David Chen", "Table 4", "1:30 PM", "Dec 29, 2025", 6, "BK004", "Requested Change", R.drawable.logo));
-        list.add(new Booking("Eva Müller", "Table 5", "2:00 PM", "Dec 29, 2025", 5, "BK005", "Canceled", R.drawable.logo));
-        return list;
+    // load urgent and today bookings from firestore
+    private void loadBookingsFromFirestore() {
+        AdminBookingRepository repo = new AdminBookingRepository();
+
+        final List<AdminBookingRepository.BookingModel> urgentHolder = new ArrayList<>();
+        final List<AdminBookingRepository.BookingModel> todayHolder = new ArrayList<>();
+        final boolean[] completed = {false, false};
+
+        repo.loadAdminBookings(new AdminBookingRepository.OnBookingsLoadListener() {
+            @Override
+            public void onUrgentLoaded(List<AdminBookingRepository.BookingModel> urgent) {
+                urgentHolder.addAll(urgent);
+                completed[0] = true;
+                if (completed[1]) {
+                    mergeAndRender(urgentHolder, todayHolder);
+                }
+            }
+
+            @Override
+            public void onTodayLoaded(List<AdminBookingRepository.BookingModel> today) {
+                todayHolder.addAll(today);
+                completed[1] = true;
+                if (completed[0]) {
+                    mergeAndRender(urgentHolder, todayHolder);
+                }
+            }
+
+            @Override
+            public void onFailure(String error) {
+                populateBookings(new ArrayList<>());
+            }
+        });
     }
+
+    private void mergeAndRender(List<AdminBookingRepository.BookingModel> urgent,
+                                List<AdminBookingRepository.BookingModel> today) {
+        List<Booking> allBookings = new ArrayList<>();
+
+        for (AdminBookingRepository.BookingModel bm : urgent) {
+            allBookings.add(bookingModelToCard(bm));
+        }
+        for (AdminBookingRepository.BookingModel bm : today) {
+            allBookings.add(bookingModelToCard(bm));
+        }
+
+        populateBookings(allBookings);
+    }
+
+    // convert repository model to UI card model
+    private Booking bookingModelToCard(AdminBookingRepository.BookingModel bm) {
+        // map status for UI display
+        String displayStatus = bm.status;
+        if (bm.status != null && bm.status.equalsIgnoreCase("PENDING")) {
+            displayStatus = "New Request";
+        } else if (bm.status != null && bm.status.equalsIgnoreCase("CHANGE REQUEST")) {
+            displayStatus = "Requested Change";
+        }
+
+        return new Booking(
+                bm.customerName,
+                bm.tableId.isEmpty() ? "Table N/A" : "Table " + bm.tableId,
+                bm.time,
+                bm.date,
+                bm.guests,
+                bm.bookingId,
+                displayStatus,
+                R.drawable.logo
+        );
+    }
+
 
     //inflate cards into the scroll content container based on data
     private void populateBookings(List<Booking> bookings) {
 
-        LinearLayout todaysContentContainer = findViewById(R.id.todays_bookings_container);
+        LinearLayout upcomingContentContainer = findViewById(R.id.todays_bookings_container);
         LinearLayout quickActionsToTakeContainer = findViewById(R.id.actions_to_take_container);
 
         LinearLayout parentQuickActionsToTakeContainer = findViewById(R.id.parent_actions_to_take_container);
 
-        if (todaysContentContainer == null) return; // in case if layout is not found
+        if (upcomingContentContainer == null) return;
 
-        todaysContentContainer.removeAllViews();
+        upcomingContentContainer.removeAllViews();
         if (quickActionsToTakeContainer != null) {
             quickActionsToTakeContainer.removeAllViews();
         }
@@ -91,57 +153,70 @@ public class admin_dashboard extends BaseActivity {
         LayoutInflater inflater = LayoutInflater.from(this);
         int quickActionsCount = 0;
 
+        // group by date for upcoming section
+        java.util.Map<String, List<Booking>> upcomingByDate = new java.util.LinkedHashMap<>();
+        List<Booking> urgentList = new ArrayList<>();
+
         for (Booking b : bookings) {
-            //determine which container to use based on status
             boolean needsQuickAction = b.status.equals("New Request") ||
                                       b.status.equals("Requested Change") ||
                                       b.status.equals("Canceled");
 
-            LinearLayout targetContainer = needsQuickAction ? quickActionsToTakeContainer : todaysContentContainer;
-
-            if (targetContainer == null) continue;
-
             if (needsQuickAction) {
+                urgentList.add(b);
                 quickActionsCount++;
-            }
-
-            View card = inflater.inflate(R.layout.admin_component_dashboard_todays_booking_card, targetContainer, false);
-
-            ImageView avatar = card.findViewById(R.id.booking_avatar);
-            TextView name = card.findViewById(R.id.booking_name);
-            TextView tableTime = card.findViewById(R.id.booking_table_time);
-            TextView status = card.findViewById(R.id.booking_status);
-
-            // Bind data
-            avatar.setImageResource(b.avatarResId);
-            name.setText(b.name);
-            tableTime.setText(b.tableLabel + " • " + b.time);
-            status.setText(b.status);
-
-            // Different click handlers based on container
-            if (needsQuickAction) {
-                //quick action cards - handle approval or the rejection
-                card.setOnClickListener(v -> {
-                    handleQuickActionClick(b);
-                });
             } else {
-                //today's booking cards - view details
-                card.setOnClickListener(v -> {
-                    handleBookingDetailsClick(b);
-                });
+                // group upcoming by date
+                upcomingByDate.computeIfAbsent(b.date, k -> new ArrayList<>()).add(b);
             }
-
-            targetContainer.addView(card);
         }
 
-        // hide parent container if there are no quick actions
+        // render urgent section
+        for (Booking b : urgentList) {
+            View card = inflater.inflate(R.layout.admin_component_dashboard_todays_booking_card, quickActionsToTakeContainer, false);
+            bindBookingCard(card, b);
+            card.setOnClickListener(v -> handleQuickActionClick(b));
+            quickActionsToTakeContainer.addView(card);
+        }
+
+        // render upcoming section with date headers
+        for (String date : upcomingByDate.keySet()) {
+            // add date header
+            View headerView = inflater.inflate(android.R.layout.simple_list_item_1, upcomingContentContainer, false);
+            TextView headerText = headerView.findViewById(android.R.id.text1);
+            headerText.setText(date);
+            headerText.setTextSize(14);
+            headerText.setTypeface(null, android.graphics.Typeface.BOLD);
+            headerText.setPadding(16, 16, 16, 8);
+            upcomingContentContainer.addView(headerView);
+
+            // add bookings for this date
+            List<Booking> dateBookings = upcomingByDate.get(date);
+            for (Booking b : dateBookings) {
+                View card = inflater.inflate(R.layout.admin_component_dashboard_todays_booking_card, upcomingContentContainer, false);
+                bindBookingCard(card, b);
+                card.setOnClickListener(v -> handleBookingDetailsClick(b));
+                upcomingContentContainer.addView(card);
+            }
+        }
+
+        // hide urgent section if empty
         if (parentQuickActionsToTakeContainer != null) {
-            if (quickActionsCount == 0) {
-                parentQuickActionsToTakeContainer.setVisibility(View.GONE);
-            } else {
-                parentQuickActionsToTakeContainer.setVisibility(View.VISIBLE);
-            }
+            parentQuickActionsToTakeContainer.setVisibility(quickActionsCount > 0 ? View.VISIBLE : View.GONE);
         }
+    }
+
+    // helper to bind booking card data
+    private void bindBookingCard(View card, Booking b) {
+        ImageView avatar = card.findViewById(R.id.booking_avatar);
+        TextView name = card.findViewById(R.id.booking_name);
+        TextView tableTime = card.findViewById(R.id.booking_table_time);
+        TextView status = card.findViewById(R.id.booking_status);
+
+        avatar.setImageResource(b.avatarResId);
+        name.setText(b.name);
+        tableTime.setText(b.tableLabel + " • " + b.time);
+        status.setText(b.status);
     }
 
     // Handle click on quick action cards (New Request, Requested Change, Canceled)
@@ -235,10 +310,6 @@ public class admin_dashboard extends BaseActivity {
         // later that I will do: Send notification to customer
         // later that I will do: Refresh the booking lists
 
-
-        // for now we just refresh the UI
-        List<Booking> updatedBookings = buildSampleBookings();
-        populateBookings(updatedBookings);
     }
 
     // Handle rejecting a booking request
@@ -252,9 +323,6 @@ public class admin_dashboard extends BaseActivity {
         // later that I will do: Refresh the booking lists
 
 
-        //For now we just refresh the UI
-        List<Booking> updatedBookings = buildSampleBookings();
-        populateBookings(updatedBookings);
     }
 
     // show booking details popup
