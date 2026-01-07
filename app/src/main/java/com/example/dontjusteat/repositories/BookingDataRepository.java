@@ -32,9 +32,16 @@ public class BookingDataRepository {
         public final String status;
         public final String bookingId;
         public final long sortTimestamp;
+        // add fields needed for edit
+        public final String restaurantId;
+        public final String tableId;
+        public final com.google.firebase.Timestamp startTime;
+        public final int durationMinutes;
 
         public BookingDisplayModel(String locationName, String address, String date, String time,
-                                   String guests, String status, String bookingId, long sortTimestamp) {
+                                   String guests, String status, String bookingId, long sortTimestamp,
+                                   String restaurantId, String tableId, com.google.firebase.Timestamp startTime,
+                                   int durationMinutes) {
             this.locationName = locationName;
             this.address = address;
             this.date = date;
@@ -43,10 +50,16 @@ public class BookingDataRepository {
             this.status = status;
             this.bookingId = bookingId;
             this.sortTimestamp = sortTimestamp;
+            this.restaurantId = restaurantId;
+            this.tableId = tableId;
+            this.startTime = startTime;
+            this.durationMinutes = durationMinutes;
         }
+
 
     }
 
+    //load user's bookings from Firestore and hydrate with restaurant details
     public void fetchUserBookings(OnBookingsLoaded callback) {
         String uid = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
         if (uid == null) {
@@ -54,8 +67,7 @@ public class BookingDataRepository {
             return;
         }
 
-
-
+        // fetch user bookings ordered by creation time
         db.collection("users")
                 .document(uid)
                 .collection("bookings")
@@ -68,10 +80,9 @@ public class BookingDataRepository {
                         return;
                     }
 
-
-
                     List<BookingDisplayModel> list = new ArrayList<>();
 
+                    // track completion to call callback once all hydrations finish
                     AtomicInteger completed = new AtomicInteger(0);
                     int total = snapshot.size();
 
@@ -101,6 +112,7 @@ public class BookingDataRepository {
 
     }
 
+    // fetch booking and restaurant docs in parallel, then map to display model
     private void hydrateBooking(DocumentSnapshot userBookingDoc, OnHydrated onHydrated, Runnable onFail) {
         String restaurantId = userBookingDoc.getString("restaurantId");
         String bookingId = userBookingDoc.getString("bookingId");
@@ -113,7 +125,7 @@ public class BookingDataRepository {
             return;
         }
 
-        // fetch booking and restaurant docs in parallel then map
+        // parallel fetch: booking details + restaurant info
         Tasks.whenAllSuccess(
                 db.collection("restaurants").document(restaurantId).collection("bookings").document(bookingId).get(),
                 db.collection("restaurants").document(restaurantId).get()
@@ -157,6 +169,10 @@ public class BookingDataRepository {
 
         String statusVal = status != null ? status : restBookingDoc != null ? restBookingDoc.getString("status") : "";
 
+        // extract booking details for edit requests
+        String tableId = restBookingDoc != null ? restBookingDoc.getString("tableId") : null;
+        Long durationLong = restBookingDoc != null ? restBookingDoc.getLong("durationMinutes") : null;
+        int durationMinutes = durationLong != null ? durationLong.intValue() : 90;
 
         return new BookingDisplayModel(
                 locationName,
@@ -166,8 +182,11 @@ public class BookingDataRepository {
                 guests,
                 statusVal != null ? statusVal : "",
                 bookingId != null ? bookingId : "",
-                sortTs
-
+                sortTs,
+                restaurantId,
+                tableId != null ? tableId : "",
+                startTs,
+                durationMinutes
         );
     }
 }
