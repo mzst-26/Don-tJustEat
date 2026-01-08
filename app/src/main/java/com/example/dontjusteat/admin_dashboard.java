@@ -103,12 +103,19 @@ public class admin_dashboard extends BaseActivity {
     private Booking bookingModelToCard(AdminBookingRepository.BookingModel bm) {
         // map status for UI display
         String displayStatus = bm.status;
-        if (bm.status != null && bm.status.equalsIgnoreCase("PENDING")) {
-            displayStatus = "New Request";
-        } else if (bm.status != null && bm.status.equalsIgnoreCase("CHANGE REQUEST")) {
-            displayStatus = "Requested Change";
-        } else if (bm.status != null && (bm.status.equalsIgnoreCase("CANCELED") || bm.status.equalsIgnoreCase("CANCELLED"))) {
-            displayStatus = "Canceled";
+        if (bm.status != null) {
+            String s = bm.status.toUpperCase();
+            if (s.equals("PENDING")) {
+                displayStatus = "PENDING";
+            } else if (s.equals("CONFIRMED")) {
+                displayStatus = "CONFIRMED";
+            } else if (s.equals("CHANGE REQUEST") || s.equals("REQUESTED CHANGE")) {
+                displayStatus = "REQUESTED CHANGE";
+            } else if (s.equals("CANCELLED BY STAFF")) {
+                displayStatus = "CANCELLED BY STAFF";
+            } else if (s.contains("CANCEL")) {
+                displayStatus = "CANCELLED";
+            }
         }
 
         return new Booking(
@@ -121,7 +128,8 @@ public class admin_dashboard extends BaseActivity {
                 displayStatus,
                 bm.restaurantId,
                 bm.customerPhone,
-                R.drawable.logo
+                R.drawable.logo,
+                bm.acknowledgedByStaff
         );
     }
 
@@ -130,12 +138,14 @@ public class admin_dashboard extends BaseActivity {
 
         LinearLayout upcomingContentContainer = findViewById(R.id.todays_bookings_container);
         LinearLayout quickActionsToTakeContainer = findViewById(R.id.actions_to_take_container);
+        LinearLayout canceledContainer = findViewById(R.id.cancelled_bookings_container);
 
         LinearLayout parentQuickActionsToTakeContainer = findViewById(R.id.parent_actions_to_take_container);
 
         if (upcomingContentContainer == null) return;
 
         upcomingContentContainer.removeAllViews();
+        canceledContainer.removeAllViews();
         if (quickActionsToTakeContainer != null) {
             quickActionsToTakeContainer.removeAllViews();
         }
@@ -146,16 +156,21 @@ public class admin_dashboard extends BaseActivity {
         // group by date for upcoming section
         java.util.Map<String, List<Booking>> upcomingByDate = new java.util.LinkedHashMap<>();
         List<Booking> urgentList = new ArrayList<>();
+        List<Booking> canceledList = new ArrayList<>();
 
         for (Booking b : bookings) {
-            boolean needsQuickAction = b.status.equals("New Request") ||
-                    b.status.equals("Requested Change") ||
-                    b.status.equals("Canceled");
+            boolean isCancel = b.status.equals("CANCELLED") || b.status.equals("CANCELLED BY STAFF");
+            boolean isUnacknowledged = !b.acknowledgedByStaff;
+            // only unacknowledged CANCELLED (by customer) go to urgent, not CANCELLED BY STAFF
+            boolean needsQuickAction = b.status.equals("PENDING") || b.status.equals("REQUESTED CHANGE") || (b.status.equals("CANCELLED") && isUnacknowledged);
 
+            if (isCancel) {
+                canceledList.add(b);
+            }
             if (needsQuickAction) {
                 urgentList.add(b);
                 quickActionsCount++;
-            } else {
+            } else if (!isCancel) {
                 // group upcoming by date
                 upcomingByDate.computeIfAbsent(b.date, k -> new ArrayList<>()).add(b);
             }
@@ -167,6 +182,51 @@ public class admin_dashboard extends BaseActivity {
             bindBookingCard(card, b);
             card.setOnClickListener(v -> handleQuickActionClick(b));
             quickActionsToTakeContainer.addView(card);
+        }
+
+        // render cancelled bookings section
+        if (!canceledList.isEmpty()) {
+            TextView header = new TextView(this);
+            header.setText("CANCELED BOOKINGS");
+            header.setTextSize(14);
+            header.setTypeface(null, android.graphics.Typeface.BOLD);
+            header.setTextColor(android.graphics.Color.RED);
+            header.setPadding(16, 16, 16, 8);
+            canceledContainer.addView(header);
+
+            View divider = new View(this);
+            divider.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    2
+            ));
+            divider.setBackgroundColor(android.graphics.Color.RED);
+            canceledContainer.addView(divider);
+
+            // group canceled by date
+            java.util.Map<String, List<Booking>> canceledByDate = new java.util.LinkedHashMap<>();
+            for (Booking b : canceledList) {
+                canceledByDate.computeIfAbsent(b.date, k -> new ArrayList<>()).add(b);
+            }
+
+            // render each date group
+            for (String date : canceledByDate.keySet()) {
+                View dateHeaderView = inflater.inflate(android.R.layout.simple_list_item_1, canceledContainer, false);
+                TextView dateHeaderText = dateHeaderView.findViewById(android.R.id.text1);
+                dateHeaderText.setText(date);
+                dateHeaderText.setTextSize(12);
+                dateHeaderText.setTypeface(null, android.graphics.Typeface.BOLD);
+                dateHeaderText.setTextColor(android.graphics.Color.RED);
+                dateHeaderText.setPadding(16, 8, 16, 4);
+                canceledContainer.addView(dateHeaderView);
+
+                List<Booking> dateBookings = canceledByDate.get(date);
+                for (Booking b : dateBookings) {
+                    View card = inflater.inflate(R.layout.admin_component_dashboard_todays_booking_card, canceledContainer, false);
+                    bindBookingCard(card, b);
+                    card.setOnClickListener(v -> handleQuickActionClick(b));
+                    canceledContainer.addView(card);
+                }
+            }
         }
 
         // render upcoming section with date headers
@@ -252,13 +312,6 @@ public class admin_dashboard extends BaseActivity {
 
         // Set data
         String requestTypeText = booking.status;
-        if (booking.status.equals("New Request")) {
-            requestTypeText = "New Booking Request";
-        } else if (booking.status.equals("Requested Change")) {
-            requestTypeText = "Booking Change Request";
-        } else if (booking.status.equals("Canceled")) {
-            requestTypeText = "Cancellation Request";
-        }
         requestType.setText(requestTypeText);
 
         avatar.setImageResource(booking.avatarResId);
@@ -266,6 +319,10 @@ public class admin_dashboard extends BaseActivity {
         String customerInfoText = "Booking ID: #" + booking.bookingId;
         if (booking.phone != null && !booking.phone.isEmpty()) {
             customerInfoText += "\nPhone: " + booking.phone;
+        }
+        // show admin name if cancelled by staff
+        if (booking.status.equals("CANCELLED BY STAFF")) {
+            customerInfoText += "\nCancelled by: Admin";
         }
         customerInfo.setText(customerInfoText);
         tableNumber.setText(booking.tableLabel);
@@ -281,19 +338,31 @@ public class admin_dashboard extends BaseActivity {
         android.widget.Button acceptButton = popupView.findViewById(R.id.popup_accept_button);
 
         //for cancellation requests only show the accept button
-        if (booking.status.equals("Canceled")) {
+        if (booking.status.equals("CANCELLED")) {
             rejectButton.setVisibility(View.GONE);
-            acceptButton.setText("Acknowledge Cancellation");
-            //make accept button full width
-            LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) acceptButton.getLayoutParams();
-            params.setMarginStart(0);
-            acceptButton.setLayoutParams(params);
+            // hide button if already acknowledged
+            if (booking.acknowledgedByStaff) {
+                acceptButton.setVisibility(View.GONE);
+            } else {
+                acceptButton.setText("Acknowledge Cancellation");
+                //make accept button full width
+                LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) acceptButton.getLayoutParams();
+                params.setMarginStart(0);
+                acceptButton.setLayoutParams(params);
+            }
+        } else if (booking.status.equals("CANCELLED BY STAFF")) {
+            // admin cancelled - show no buttons
+            rejectButton.setVisibility(View.GONE);
+            acceptButton.setVisibility(View.GONE);
         } else {
+            // PENDING or REQUESTED CHANGE - show reject/accept buttons
             rejectButton.setVisibility(View.VISIBLE);
+            rejectButton.setText("Cancel");
             rejectButton.setOnClickListener(v -> {
                 handleRejectBooking(booking);
                 dialog.dismiss();
             });
+            acceptButton.setText("Accept");
         }
 
         acceptButton.setOnClickListener(v -> {
@@ -306,11 +375,9 @@ public class admin_dashboard extends BaseActivity {
 
     //handle accepting a booking request
     private void handleAcceptBooking(Booking booking) {
-        // disable button during update
         AdminBookingRepository repo = new AdminBookingRepository();
 
-        // check if this is a cancellation (acknowledge) or a new booking (accept)
-        boolean isCancellation = booking.status.equals("Canceled");
+        boolean isCancellation = booking.status.equals("CANCELLED");
         String newStatus = isCancellation ? booking.status : "CONFIRMED";
         boolean acknowledge = isCancellation;
 
@@ -320,11 +387,11 @@ public class admin_dashboard extends BaseActivity {
                     public void onSuccess() {
                         String message = isCancellation ?
                                 "Cancellation acknowledged" :
-                                "Booking accepted: " + booking.name;
+                                "Booking confirmed: " + booking.name;
                         android.widget.Toast.makeText(admin_dashboard.this, message,
                                 android.widget.Toast.LENGTH_SHORT).show();
 
-                        // refresh booking lists
+                        // refresh immediately
                         loadBookingsFromFirestore();
                     }
 
@@ -341,22 +408,23 @@ public class admin_dashboard extends BaseActivity {
     private void handleRejectBooking(Booking booking) {
         AdminBookingRepository repo = new AdminBookingRepository();
 
-        repo.updateBookingStatus(booking.restaurantId, booking.bookingId, "REJECTED BY STAFF", false,
+        // when admin cancels, auto-acknowledge it
+        repo.updateBookingStatus(booking.restaurantId, booking.bookingId, "CANCELLED BY STAFF", true,
                 new AdminBookingRepository.OnStatusUpdateListener() {
                     @Override
                     public void onSuccess() {
                         android.widget.Toast.makeText(admin_dashboard.this,
-                                "Booking rejected: " + booking.name,
+                                "Booking cancelled: " + booking.name,
                                 android.widget.Toast.LENGTH_SHORT).show();
 
-                        // refresh booking lists
+                        // refresh immediately
                         loadBookingsFromFirestore();
                     }
 
                     @Override
                     public void onFailure(String error) {
                         android.widget.Toast.makeText(admin_dashboard.this,
-                                "Failed to reject: " + error,
+                                "Failed to update: " + error,
                                 android.widget.Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -394,6 +462,10 @@ public class admin_dashboard extends BaseActivity {
         String customerInfoText = "Booking ID: #" + booking.bookingId;
         if (booking.phone != null && !booking.phone.isEmpty()) {
             customerInfoText += "\nPhone: " + booking.phone;
+        }
+        // show admin name if cancelled by staff
+        if (booking.status.equals("CANCELLED BY STAFF")) {
+            customerInfoText += "\nCancelled by: Admin";
         }
         customerInfo.setText(customerInfoText);
         tableNumber.setText(booking.tableLabel);
@@ -503,8 +575,10 @@ public class admin_dashboard extends BaseActivity {
         String restaurantId;
         String phone;
         int avatarResId;
+        boolean acknowledgedByStaff;
+        String adminName;
 
-        Booking(String name, String tableLabel, String time, String date, int guests, String bookingId, String status, String restaurantId, String phone, int avatarResId) {
+        Booking(String name, String tableLabel, String time, String date, int guests, String bookingId, String status, String restaurantId, String phone, int avatarResId, boolean acknowledgedByStaff) {
             this.name = name;
             this.tableLabel = tableLabel;
             this.time = time;
@@ -515,6 +589,8 @@ public class admin_dashboard extends BaseActivity {
             this.restaurantId = restaurantId;
             this.phone = phone;
             this.avatarResId = avatarResId;
+            this.acknowledgedByStaff = acknowledgedByStaff;
+            this.adminName = "";
         }
     }
 }

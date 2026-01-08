@@ -33,7 +33,7 @@ public class BookingCancelRepository {
                             .collection("bookings").document(bookingId);
 
                     Map<String, Object> updates = new HashMap<>();
-                    updates.put("status", "CANCELED");
+                    updates.put("status", "CANCELLED");
                     updates.put("acknowledgedByStaff", false);
                     tx.update(bookingRef, updates);
 
@@ -44,8 +44,8 @@ public class BookingCancelRepository {
                         DocumentReference userBookRef = db.collection("users").document(uid)
                                 .collection("bookings").document(bookingId);
                         Map<String, Object> userUpdates = new HashMap<>();
-                
-                        userUpdates.put("status", "CANCELED");
+
+                        userUpdates.put("status", "CANCELLED");
                         userUpdates.put("acknowledgedByStaff", false);
                         tx.update(userBookRef, userUpdates);
 

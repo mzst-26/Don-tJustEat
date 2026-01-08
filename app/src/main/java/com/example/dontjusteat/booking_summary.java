@@ -12,17 +12,17 @@ import android.widget.Toast;
 
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.dontjusteat.models.Table;
-import com.example.dontjusteat.notifications.LocalNotificationHelper;
-import com.example.dontjusteat.models.TableAvailability;
 import com.example.dontjusteat.models.Restaurant;
+import com.example.dontjusteat.models.Table;
+import com.example.dontjusteat.models.TableAvailability;
+import com.example.dontjusteat.notifications.LocalNotificationHelper;
 import com.example.dontjusteat.repositories.BookingRepository;
 import com.example.dontjusteat.repositories.RestaurantRepository;
 import com.example.dontjusteat.repositories.UserProfileRepository;
 import com.example.dontjusteat.viewMode.CustomerBookingViewModel;
 import com.google.android.material.slider.Slider;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -43,8 +43,8 @@ public class booking_summary extends BaseActivity {
 
     // currently selected table
     private Table currentTable;
-    private List<Table> availableTables = new ArrayList<>();
-    private Map<String, List<String>> tableTimesMap = new HashMap<>(); // tableId -> list of time strings
+    private final List<Table> availableTables = new ArrayList<>();
+    private final Map<String, List<String>> tableTimesMap = new HashMap<>(); // tableId -> list of time strings
 
 
     //ui components
@@ -58,10 +58,10 @@ public class booking_summary extends BaseActivity {
     private Button selectTableButton;
 
     // track selected tables and times
-    private Map<String, String> selectedTableTimes = new HashMap<>(); // tableId -> selected time string
+    private final Map<String, String> selectedTableTimes = new HashMap<>(); // tableId -> selected time string
 
     // store slot objects for timestamp reconstruction
-    private Map<String, List<com.example.dontjusteat.models.Slot>> tableSlots = new HashMap<>();
+    private final Map<String, List<com.example.dontjusteat.models.Slot>> tableSlots = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -177,9 +177,6 @@ public class booking_summary extends BaseActivity {
                 Timestamp requestedAfter = new Timestamp(new Date(requestedMs));
 
 
-
-
-
                 int duration = 90;
                 int slotMin = 15;
 
@@ -208,7 +205,6 @@ public class booking_summary extends BaseActivity {
                                 setupTableSlider();
 
 
-
                             }
 
                             @Override
@@ -225,7 +221,6 @@ public class booking_summary extends BaseActivity {
                 Toast.makeText(booking_summary.this, "Failed to load tables: " + error, Toast.LENGTH_SHORT).show();
             }
         });
-
 
 
     }
@@ -268,7 +263,7 @@ public class booking_summary extends BaseActivity {
         updateTimeSlider();
 
 
-         //Show current selection status
+        //Show current selection status
         updateSelectionStatus();
     }
 
@@ -322,7 +317,7 @@ public class booking_summary extends BaseActivity {
 
         // check active bookings limit before adding table
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
-                        FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
 
         if (userId == null) {
             Toast.makeText(this, "Please log in to make a booking", Toast.LENGTH_SHORT).show();
@@ -340,7 +335,7 @@ public class booking_summary extends BaseActivity {
                     for (com.google.firebase.firestore.DocumentSnapshot doc : snapshot.getDocuments()) {
                         String status = doc.getString("status");
 
-                        if ("pending".equalsIgnoreCase(status)) {
+                        if ("PENDING".equalsIgnoreCase(status)) {
                             activeCount++;
                         } else if ("CONFIRMED".equalsIgnoreCase(status)) {
                             com.google.firebase.Timestamp bookingStartTime = doc.getTimestamp("startTime");
@@ -356,8 +351,8 @@ public class booking_summary extends BaseActivity {
 
                     if (currentlySelected >= maxTablesAllowed) {
                         String message = activeCount == 0 ?
-                            "You can only select up to 3 tables per booking" :
-                            "You have " + activeCount + " active booking(s). You can only have 3 active bookings at a time.";
+                                "You can only select up to 3 tables per booking" :
+                                "You have " + activeCount + " active booking(s). You can only have 3 active bookings at a time.";
                         Toast.makeText(booking_summary.this, message, Toast.LENGTH_LONG).show();
                         return;
                     }
@@ -457,7 +452,6 @@ public class booking_summary extends BaseActivity {
         }
 
 
-
         int durationMinutes = currentRestaurant.getDefaultDurationMinutes() > 0 ?
                 currentRestaurant.getDefaultDurationMinutes() : 90;
 
@@ -497,10 +491,9 @@ public class booking_summary extends BaseActivity {
             }
 
 
-
-             // find the matching slot by time string
+            // find the matching slot by time string
             Timestamp startTime = null;
-              for (com.example.dontjusteat.models.Slot slot : slots) {
+            for (com.example.dontjusteat.models.Slot slot : slots) {
                 String slotTimeStr = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.UK)
                         .format(slot.startTime.toDate());
                 if (slotTimeStr.equals(timeStr)) {
@@ -530,7 +523,8 @@ public class booking_summary extends BaseActivity {
                                 LocalNotificationHelper.notifyNow(booking_summary.this,
                                         "Booking created",
                                         "Your booking #" + bookingId.substring(0, Math.min(8, bookingId.length())) + " was created");
-                            } catch (Exception ignored) {}
+                            } catch (Exception ignored) {
+                            }
 
                             // after each booking success create a notification for the user (db)
                             try {
@@ -545,7 +539,8 @@ public class booking_summary extends BaseActivity {
                                 );
 
                                 nRepo.createNotification(userId, notif);
-                            } catch (Exception ignored) {}
+                            } catch (Exception ignored) {
+                            }
 
                             // check if all bookings are done
                             if (completedBookings[0] == totalBookings && !hasError[0]) {
@@ -606,13 +601,10 @@ public class booking_summary extends BaseActivity {
         TextView tvPhone = findViewById(R.id.phone_number);
 
 
-
         if (tvName != null) tvName.setText(name != null ? name : "N/A");
         if (tvEmail != null) tvEmail.setText(email != null ? email : "N/A");
         if (tvPhone != null) tvPhone.setText(phone != null ? phone : "");
     }
-
-
 
 
     // display restaurant data in header and location section

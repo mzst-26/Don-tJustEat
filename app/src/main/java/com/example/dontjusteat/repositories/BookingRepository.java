@@ -25,16 +25,16 @@ public class BookingRepository {
 
         // validate inputs
         if (restaurantId == null || restaurantId.isEmpty() ||
-            userId == null || userId.isEmpty() ||
-            tableId == null || tableId.isEmpty() ||
-            startTime == null || durationMinutes <= 0 || partySize <= 0) {
+                userId == null || userId.isEmpty() ||
+                tableId == null || tableId.isEmpty() ||
+                startTime == null || durationMinutes <= 0 || partySize <= 0) {
             listener.onFailure("Invalid booking data");
             return;
         }
 
         // compute end time
         long endMs = startTime.toDate().getTime() + (durationMinutes * 60 * 1000L);
-        Timestamp endTime = new Timestamp(endMs / 1000, (int)((endMs % 1000) * 1000000));
+        Timestamp endTime = new Timestamp(endMs / 1000, (int) ((endMs % 1000) * 1000000));
 
         // check for overlapping bookings first
         checkForOverlappingBookings(restaurantId, tableId, startTime, endTime)
@@ -99,7 +99,7 @@ public class BookingRepository {
 
         // create booking object
         Booking booking = new Booking(restaurantId, userId, tableId, startTime, endTime,
-                durationMinutes, partySize, "pending");
+                durationMinutes, partySize, "PENDING");
 
         // generate booking ID
         DocumentReference bookingRef = db.collection("restaurants")
@@ -121,7 +121,7 @@ public class BookingRepository {
         userBookingRef.put("bookingId", bookingId);
         userBookingRef.put("restaurantId", restaurantId);
         userBookingRef.put("startTime", startTime);
-        userBookingRef.put("status", "pending");
+        userBookingRef.put("status", "PENDING");
         userBookingRef.put("createdAt", Timestamp.now());
 
         DocumentReference userBookingDoc = db.collection("users")
@@ -150,7 +150,7 @@ public class BookingRepository {
 
         // iterate through each 15-min slot in the booking window
         for (long slotMs = startMs; slotMs < endMs; slotMs += slotIntervalMs) {
-            Timestamp slotStartTime = new Timestamp(slotMs / 1000, (int)((slotMs % 1000) * 1000000));
+            Timestamp slotStartTime = new Timestamp(slotMs / 1000, (int) ((slotMs % 1000) * 1000000));
 
             // create lock document
             Map<String, Object> lockData = new HashMap<>();
@@ -174,6 +174,7 @@ public class BookingRepository {
     // listener interface
     public interface OnBookingCreateListener {
         void onSuccess(String bookingId);
+
         void onFailure(String error);
     }
 }

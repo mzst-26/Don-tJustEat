@@ -4,82 +4,47 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.EditText;
 import android.widget.Toast;
-import android.widget.DatePicker;
 
+import com.example.dontjusteat.repositories.BookingCancelRepository;
+import com.example.dontjusteat.repositories.BookingDataRepository;
+import com.example.dontjusteat.repositories.BookingEditRepository;
+import com.example.dontjusteat.repositories.ReviewRepository;
 import com.google.android.material.slider.Slider;
+import com.google.firebase.Timestamp;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.example.dontjusteat.repositories.BookingEditRepository;
-import com.example.dontjusteat.repositories.BookingDataRepository;
-import com.example.dontjusteat.repositories.BookingCancelRepository;
-import com.example.dontjusteat.repositories.ReviewRepository;
-import com.google.firebase.Timestamp;
-
 public class my_bookings extends BaseActivity {
 
+    private static final int PICK_IMAGE_REQUEST = 1001;
+    // map bookingId to meta for edit
+    private final Map<String, BookingDataRepository.BookingDisplayModel> bookingMetaById = new HashMap<>();
+    TextView pastBookingTitle;
     private LinearLayout bookingsContainer;
     private LinearLayout latestBookingContainer;
-
-    TextView pastBookingTitle;
-
     // New fields to manage review dialog and image picking
     private Dialog reviewDialog;
     private int selectedRating = 0;
     private Uri selectedImageUri = null;
-    private static final int PICK_IMAGE_REQUEST = 1001;
-
-    // Simple data holder for the cards
-    private static class BookingCard {
-        String location;
-        String date;
-        String time;
-        String numberOfGuests;
-        String booking_status;
-        String reference_number;
-
-        String location_address;
-        int bigImageResId;
-        int smallImageResId;
-
-        long sortTimestamp;
-
-        BookingCard(String location, String date, String time, String numberOfGuests, String booking_status, String reference_number, String location_address, int bigImageResId, int smallImageResId, long sortTimestamp) {
-            this.location = location;
-            this.date = date;
-            this.time = time;
-            this.numberOfGuests = numberOfGuests;
-            this.booking_status = booking_status;
-            this.reference_number = reference_number;
-            this.location_address = location_address;
-            this.bigImageResId = bigImageResId;
-            this.smallImageResId = smallImageResId;
-            this.sortTimestamp = sortTimestamp;
-        }
-    }
-
-
-
-    // map bookingId to meta for edit
-    private final Map<String, BookingDataRepository.BookingDisplayModel> bookingMetaById = new HashMap<>();
     private String currentBookingIdForEdit = null;
-
-
+    // keep a reference of the latest booking meta to pass to edit repo
+    private BookingCard lastMostRecentCard;
+    private BookingDataRepository.BookingDisplayModel lastMostRecentMeta;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -133,7 +98,9 @@ public class my_bookings extends BaseActivity {
             cards.add(c);
             // cache for later when user taps edit
             bookingMetaById.put(m.bookingId, m);
-            if (i == 0) { lastMostRecentMeta = m; }
+            if (i == 0) {
+                lastMostRecentMeta = m;
+            }
         }
         return cards;
     }
@@ -206,10 +173,6 @@ public class my_bookings extends BaseActivity {
         }
     }
 
-    // keep a reference of the latest booking meta to pass to edit repo
-    private BookingCard lastMostRecentCard;
-    private BookingDataRepository.BookingDisplayModel lastMostRecentMeta;
-
     private void renderMostRecentCard(List<BookingCard> cards) {
         LayoutInflater inflater = LayoutInflater.from(this);
         latestBookingContainer.removeAllViews();
@@ -225,7 +188,6 @@ public class my_bookings extends BaseActivity {
             TextView textDate = cardView.findViewById(R.id.latest_booking_date);
             TextView textGuests = cardView.findViewById(R.id.latest_booking_guest_number);
             TextView locationAddress = cardView.findViewById(R.id.latest_location_address);
-
 
 
             //set the data to the views
@@ -287,9 +249,9 @@ public class my_bookings extends BaseActivity {
         reviewBtn.setOnClickListener(v -> leaveAReviewHandler());
 
         // disable edit and cancel buttons for certain statuses
-        boolean shouldDisable = "CANCELED".equals(booking.booking_status) ||
-                                "CHANGE REQUEST".equals(booking.booking_status) ||
-                                "REJECTED BY STAFF".equals(booking.booking_status);
+        boolean shouldDisable = "CANCELLED".equals(booking.booking_status) ||
+                "CHANGE REQUEST".equals(booking.booking_status) ||
+                "CANCELLED BY STAFF".equals(booking.booking_status);
 
         if (shouldDisable) {
             // disable edit button
@@ -311,7 +273,6 @@ public class my_bookings extends BaseActivity {
         // show the popup
         popUp.show();
     }
-
 
     private void bookingStatusUpdateHandler() {
         Intent intent = new Intent(this, customer_my_notifications.class);
@@ -379,13 +340,16 @@ public class my_bookings extends BaseActivity {
                 // submit to firestore
                 reviewRepo.submitReview(meta.restaurantId, meta.bookingId, selectedRating, description,
                         new ReviewRepository.OnReviewSubmitListener() {
-                            @Override public void onSuccess() {
+                            @Override
+                            public void onSuccess() {
                                 Toast.makeText(my_bookings.this, "Review submitted", Toast.LENGTH_SHORT).show();
                                 selectedRating = 0;
                                 selectedImageUri = null;
                                 reviewDialog.dismiss();
                             }
-                            @Override public void onFailure(String error) {
+
+                            @Override
+                            public void onFailure(String error) {
                                 Toast.makeText(my_bookings.this, error != null ? error : "Failed", Toast.LENGTH_LONG).show();
                             }
                         });
@@ -411,7 +375,6 @@ public class my_bookings extends BaseActivity {
         iv5.setImageResource(rating >= 5 ? R.drawable.star_solid_full : R.drawable.star_regular_empty);
     }
 
-
     private void requestAnEditHandler() {
         // open dialog for requesting an edit (frontend-only)
         Dialog editDialog = new Dialog(this);
@@ -435,7 +398,7 @@ public class my_bookings extends BaseActivity {
         dp.setMinDate(cal.getTimeInMillis());
         dp.init(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH), null);
 
-        final String[] timeSlots = new String[] { "17:00", "18:00", "19:00", "20:00", "21:00" };
+        final String[] timeSlots = new String[]{"17:00", "18:00", "19:00", "20:00", "21:00"};
         int initialTimeIndex = Math.min(timeSlots.length - 1, Math.max(0, (int) timeSlider.getValue()));
         timeTitle.setText(timeSlots[initialTimeIndex]);
 
@@ -474,21 +437,30 @@ public class my_bookings extends BaseActivity {
                 chosen.set(Calendar.MILLISECOND, 0);
                 Timestamp newStart = new Timestamp(chosen.getTime());
 
-                if (currentBookingIdForEdit == null) { Toast.makeText(this, "No booking selected", Toast.LENGTH_SHORT).show(); return; }
+                if (currentBookingIdForEdit == null) {
+                    Toast.makeText(this, "No booking selected", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 BookingDataRepository.BookingDisplayModel meta = bookingMetaById.get(currentBookingIdForEdit);
-                if (meta == null) { Toast.makeText(this, "Missing booking data", Toast.LENGTH_SHORT).show(); return; }
+                if (meta == null) {
+                    Toast.makeText(this, "Missing booking data", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
                 int newGuests = (int) guestsSlider.getValue();
 
                 BookingEditRepository repo = new BookingEditRepository();
                 repo.requestEdit(meta.restaurantId, meta.bookingId, meta.tableId, meta.startTime, meta.durationMinutes, newStart, newGuests,
                         new BookingEditRepository.OnRequestEditListener() {
-                            @Override public void onSuccess() {
+                            @Override
+                            public void onSuccess() {
                                 Toast.makeText(my_bookings.this, "Change requested", Toast.LENGTH_SHORT).show();
                                 editDialog.dismiss();
                                 loadBookings();
                             }
-                            @Override public void onFailure(String error) {
+
+                            @Override
+                            public void onFailure(String error) {
                                 Toast.makeText(my_bookings.this, error != null ? error : "Failed", Toast.LENGTH_LONG).show();
                             }
                         });
@@ -519,17 +491,20 @@ public class my_bookings extends BaseActivity {
                 .setPositiveButton("Yes", (dialog, which) -> {
                     // compute end time from start + duration
                     long endMs = meta.startTime.toDate().getTime() + (meta.durationMinutes * 60 * 1000L);
-                    Timestamp endTime = new Timestamp(endMs/1000, (int)((endMs%1000)*1000000));
+                    Timestamp endTime = new Timestamp(endMs / 1000, (int) ((endMs % 1000) * 1000000));
 
                     // call repo to cancel and release locks
                     BookingCancelRepository repo = new BookingCancelRepository();
                     repo.cancelBooking(meta.restaurantId, meta.bookingId, meta.tableId, meta.startTime, endTime,
                             new BookingCancelRepository.OnCancelListener() {
-                                @Override public void onSuccess() {
-                                    Toast.makeText(my_bookings.this, "Booking canceled", Toast.LENGTH_SHORT).show();
+                                @Override
+                                public void onSuccess() {
+                                    Toast.makeText(my_bookings.this, "Booking cancelled", Toast.LENGTH_SHORT).show();
                                     loadBookings();
                                 }
-                                @Override public void onFailure(String error) {
+
+                                @Override
+                                public void onFailure(String error) {
                                     Toast.makeText(my_bookings.this, error != null ? error : "Cancellation failed", Toast.LENGTH_LONG).show();
                                 }
                             });
@@ -538,7 +513,34 @@ public class my_bookings extends BaseActivity {
                 .show();
     }
 
+    // Simple data holder for the cards
+    private static class BookingCard {
+        String location;
+        String date;
+        String time;
+        String numberOfGuests;
+        String booking_status;
+        String reference_number;
 
+        String location_address;
+        int bigImageResId;
+        int smallImageResId;
+
+        long sortTimestamp;
+
+        BookingCard(String location, String date, String time, String numberOfGuests, String booking_status, String reference_number, String location_address, int bigImageResId, int smallImageResId, long sortTimestamp) {
+            this.location = location;
+            this.date = date;
+            this.time = time;
+            this.numberOfGuests = numberOfGuests;
+            this.booking_status = booking_status;
+            this.reference_number = reference_number;
+            this.location_address = location_address;
+            this.bigImageResId = bigImageResId;
+            this.smallImageResId = smallImageResId;
+            this.sortTimestamp = sortTimestamp;
+        }
+    }
 
 
 }

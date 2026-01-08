@@ -91,12 +91,8 @@ public class AdminBookingRepository {
                         } else {
                             BookingModel booking = mapToBookingModel(doc, "Guest", "", restaurantId);
                             if (booking != null) {
-                                // exclude acknowledged bookings from urgent
-                                if (!booking.acknowledgedByStaff && isUrgent(booking.status)) {
-                                    urgent.add(booking);
-                                } else if (isToday(booking.startTime)) {
-                                    today.add(booking);
-                                }
+                                // skip acknowledged cancellations
+                                bucketBooking(booking, urgent, today);
                             }
                             count[0]++;
                             if (count[0] == total) {
@@ -130,12 +126,8 @@ public class AdminBookingRepository {
 
                     BookingModel booking = mapToBookingModel(bookingDoc, name, phone, restaurantId);
                     if (booking != null) {
-                        // exclude acknowledged bookings from urgent
-                        if (!booking.acknowledgedByStaff && isUrgent(booking.status)) {
-                            urgent.add(booking);
-                        } else if (isToday(booking.startTime)) {
-                            today.add(booking);
-                        }
+                        // skip acknowledged cancellations
+                        bucketBooking(booking, urgent, today);
                     }
 
                     count[0]++;
@@ -148,12 +140,8 @@ public class AdminBookingRepository {
                     // if fetch fails just use guest
                     BookingModel booking = mapToBookingModel(bookingDoc, "Guest", "", restaurantId);
                     if (booking != null) {
-                        // exclude acknowledged bookings from urgent
-                        if (!booking.acknowledgedByStaff && isUrgent(booking.status)) {
-                            urgent.add(booking);
-                        } else if (isToday(booking.startTime)) {
-                            today.add(booking);
-                        }
+                        // skip acknowledged cancellations
+                        bucketBooking(booking, urgent, today);
                     }
 
                     count[0]++;
@@ -175,7 +163,8 @@ public class AdminBookingRepository {
             String tableId = doc.getString("tableId");
             Long guestsLong = doc.getLong("partySize");
             int guests = guestsLong != null ? guestsLong.intValue() : 0;
-            String status = doc.getString("status");
+            String statusRaw = doc.getString("status");
+            String status = statusRaw != null ? statusRaw.toUpperCase() : "";
             Timestamp startTs = doc.getTimestamp("startTime");
             Boolean acknowledged = doc.getBoolean("acknowledgedByStaff");
 
@@ -195,20 +184,37 @@ public class AdminBookingRepository {
         }
     }
 
+    // helper to add booking to buckets, skipping acknowledged cancellations
+    private void bucketBooking(BookingModel booking, List<BookingModel> urgent, List<BookingModel> today) {
+        if (booking == null) return;
+        boolean isCancelled = isCancelStatus(booking.status);
+        if (isCancelled && booking.acknowledgedByStaff) {
+            today.add(booking); // keep acknowledged cancels for cancelled section
+            return;
+        }
+
+        if (!booking.acknowledgedByStaff && isUrgent(booking.status)) {
+            urgent.add(booking);
+        } else {
+            today.add(booking);
+        }
+    }
+
     // simple cancel check
     private boolean isCancelStatus(String status) {
         if (status == null) return false;
-
-        String s = status.toLowerCase();
-        return s.contains("cancel");
+        String s = status.toUpperCase();
+        return s.contains("CANCEL");
     }
 
     // check if booking needs urgent action
     private boolean isUrgent(String status) {
         if (status == null) return false;
-        return isCancelStatus(status) ||
-                status.equalsIgnoreCase("CHANGE REQUEST") ||
-                status.equalsIgnoreCase("PENDING");
+        String s = status.toUpperCase();
+        return isCancelStatus(s) ||
+                s.equals("CHANGE REQUEST") ||
+                s.equals("REQUESTED CHANGE") ||
+                s.equals("PENDING");
     }
 
     // check if booking is happening today (london tz)
@@ -310,9 +316,9 @@ public class AdminBookingRepository {
         } else if (newStatus.equalsIgnoreCase("CONFIRMED")) {
             title = "Booking Confirmed";
             description = "Your booking #" + bookingId.substring(0, Math.min(8, bookingId.length())) + " has been confirmed! looking forward to seeing you soon!!!";
-        } else if (newStatus.equalsIgnoreCase("REJECTED BY STAFF")) {
-            title = "Booking Rejected";
-            description = "Unfortunately, at this moment our staff members have rejected your booking #" + bookingId.substring(0, Math.min(8, bookingId.length())) + ". Please call the restaurant if you have any questions";
+        } else if (newStatus.equalsIgnoreCase("CANCELLED BY STAFF")) {
+            title = "Booking Cancelled";
+            description = "Unfortunately, at this moment our staff members have cancelled your booking #" + bookingId.substring(0, Math.min(8, bookingId.length())) + ". Please call the restaurant if you have any questions";
         } else {
             title = "Booking Status Updated";
             description = "Your booking #" + bookingId.substring(0, Math.min(8, bookingId.length())) + " status has been updated. Please check the booking on (My Booking) page ";
@@ -332,24 +338,22 @@ public class AdminBookingRepository {
     }
 
     public void listenForUrgentActions(String restaurantId, OnUrgentListener listener) {
-        // new request, change request, cancel request
         db.collection("restaurants")
                 .document(restaurantId)
                 .collection("bookings")
-                .whereIn("status", Arrays.asList("PENDING", "CHANGE REQUEST", "CANCELED", "CANCELLED"))
+                .whereIn("status", Arrays.asList("PENDING", "CHANGE REQUEST", "REQUESTED CHANGE", "CANCELLED", "CANCELLED BY STAFF"))
                 .addSnapshotListener((qs, e) -> {
                     if (e != null || qs == null) return;
                     for (QueryDocumentSnapshot doc : qs) {
                         String status = doc.getString("status");
                         String bid = doc.getId();
                         String userId = doc.getString("userId");
+                        String s = status != null ? status.toUpperCase() : "";
                         String title = "";
-                        if (status != null && status.equalsIgnoreCase("PENDING"))
-                            title = "New booking request";
-                        else if (status != null && status.equalsIgnoreCase("CHANGE REQUEST"))
+                        if (s.equals("PENDING")) title = "New booking request";
+                        else if (s.equals("CHANGE REQUEST") || s.equals("REQUESTED CHANGE"))
                             title = "Booking change request";
-                        else if (status != null && (status.equalsIgnoreCase("CANCELED") || status.equalsIgnoreCase("CANCELLED")))
-                            title = "Cancellation request";
+                        else if (isCancelStatus(s)) title = "Cancellation request";
                         String msg = "Booking #" + bid + (userId != null ? (" from " + userId) : "");
                         listener.onUrgent(title, msg);
                     }
