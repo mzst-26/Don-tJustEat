@@ -48,6 +48,9 @@ public class admin_manage_menu extends BaseActivity {
         // initialize repository
         menuRepository = new MenuRepository();
 
+        // bind header views
+        bindHeaderInfo();
+
         // initialize image picker launcher
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -81,6 +84,55 @@ public class admin_manage_menu extends BaseActivity {
         // load data from firestore
         menuItemsData.clear();
         loadMenuFromFirestore();
+    }
+
+    private void bindHeaderInfo() {
+        // find header views
+        TextView headerTitle = findViewById(R.id.header_location_name);
+        ImageView headerImage = findViewById(R.id.right_header_image);
+
+        // fetch restaurant for this admin and update header
+        com.example.dontjusteat.repositories.AdminBookingRepository adminRepo = new com.example.dontjusteat.repositories.AdminBookingRepository();
+        adminRepo.getAdminRestaurantId(new com.example.dontjusteat.repositories.AdminBookingRepository.OnAdminRestaurantListener() {
+            @Override
+            public void onSuccess(String rid) {
+
+
+                restaurantId = rid;
+                com.example.dontjusteat.repositories.RestaurantRepository repo = new com.example.dontjusteat.repositories.RestaurantRepository();
+                repo.getRestaurantById(rid, new com.example.dontjusteat.repositories.RestaurantRepository.OnRestaurantFetchListener() {
+                    @Override
+
+                    public void onSuccess(com.example.dontjusteat.models.Restaurant r) {
+                        if (headerTitle != null && r != null && r.getName() != null) {
+                            headerTitle.setText(r.getName());
+                        }
+
+                        if (headerImage != null && r != null && r.getImageUrl() != null && !r.getImageUrl().isEmpty()) {
+                            try {
+                                com.bumptech.glide.Glide.with(admin_manage_menu.this).load(r.getImageUrl()).into(headerImage);
+                            } catch (Exception ignored) {
+                            }
+                        }
+
+
+                    }
+
+                    @Override
+                    public void onFailure(String error) {
+                        android.util.Log.e("ADMIN_MENU", "header load failed: " + error);
+                    }
+
+
+                });
+            }
+
+            @Override
+            public void onFailure(String error) {
+
+                android.util.Log.e("ADMIN_MENU", "no restaurant id for header: " + error);
+            }
+        });
     }
 
     // Display menu items in the GridLayout

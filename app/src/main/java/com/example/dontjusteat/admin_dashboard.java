@@ -8,8 +8,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import com.example.dontjusteat.repositories.AdminBookingRepository;
 
 import java.util.ArrayList;
@@ -31,6 +29,9 @@ public class admin_dashboard extends BaseActivity {
         //remove this button for this page
         back_button.setVisibility(ImageView.GONE);
 
+        // bind header info (name + image)
+        bindHeaderInfo();
+
         // load real bookings from firestore
         loadBookingsFromFirestore();
 
@@ -39,33 +40,6 @@ public class admin_dashboard extends BaseActivity {
 
         //handle manage menu button
         manageMenueButtonHandler();
-    }
-
-    // Data model for a booking
-    static class Booking {
-        String name;
-        String tableLabel;
-        String time;
-        String date;
-        int guests;
-        String bookingId;
-        String status;
-        String restaurantId;
-        String phone;
-        int avatarResId;
-
-        Booking(String name, String tableLabel, String time, String date, int guests, String bookingId, String status, String restaurantId, String phone, int avatarResId) {
-            this.name = name;
-            this.tableLabel = tableLabel;
-            this.time = time;
-            this.date = date;
-            this.guests = guests;
-            this.bookingId = bookingId;
-            this.status = status;
-            this.restaurantId = restaurantId;
-            this.phone = phone;
-            this.avatarResId = avatarResId;
-        }
     }
 
     // load urgent and today bookings from firestore
@@ -140,7 +114,6 @@ public class admin_dashboard extends BaseActivity {
         );
     }
 
-
     //inflate cards into the scroll content container based on data
     private void populateBookings(List<Booking> bookings) {
 
@@ -165,8 +138,8 @@ public class admin_dashboard extends BaseActivity {
 
         for (Booking b : bookings) {
             boolean needsQuickAction = b.status.equals("New Request") ||
-                                      b.status.equals("Requested Change") ||
-                                      b.status.equals("Canceled");
+                    b.status.equals("Requested Change") ||
+                    b.status.equals("Canceled");
 
             if (needsQuickAction) {
                 urgentList.add(b);
@@ -422,7 +395,6 @@ public class admin_dashboard extends BaseActivity {
         notesContainer.setVisibility(View.GONE);
 
 
-
         // hide the action buttons so users can only view, not modify
         if (actionButtonsContainer != null) {
             actionButtonsContainer.setVisibility(View.GONE);
@@ -433,14 +405,79 @@ public class admin_dashboard extends BaseActivity {
         dialog.show();
     }
 
+    //bind header info (name + image) from restaurant for this admin
+    private void bindHeaderInfo() {
+        TextView headerTitle = findViewById(R.id.header_location_name);
+        ImageView headerImage = findViewById(R.id.right_header_image);
+
+        // fetch restaurant for this admin and update header
+        com.example.dontjusteat.repositories.AdminBookingRepository adminRepo = new com.example.dontjusteat.repositories.AdminBookingRepository();
+        adminRepo.getAdminRestaurantId(new com.example.dontjusteat.repositories.AdminBookingRepository.OnAdminRestaurantListener() {
+            @Override
+            public void onSuccess(String rid) {
+                com.example.dontjusteat.repositories.RestaurantRepository repo = new com.example.dontjusteat.repositories.RestaurantRepository();
+                repo.getRestaurantById(rid, new com.example.dontjusteat.repositories.RestaurantRepository.OnRestaurantFetchListener() {
+                    @Override
+                    public void onSuccess(com.example.dontjusteat.models.Restaurant r) {
+                        if (headerTitle != null && r != null && r.getName() != null) {
+                            headerTitle.setText(r.getName());
+                        }
+                        if (headerImage != null && r != null && r.getImageUrl() != null && !r.getImageUrl().isEmpty()) {
+                            try {
+                                com.bumptech.glide.Glide.with(admin_dashboard.this).load(r.getImageUrl()).into(headerImage);
+                            } catch (Exception ignored) {
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(String error) {
+                        android.util.Log.e("ADMIN_DASH", "Header load failed: " + error);
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(String error) {
+                android.util.Log.e("ADMIN_DASH", "No restaurant id for header: " + error);
+            }
+        });
+    }
 
     //handle manage menu button
-    private void manageMenueButtonHandler(){
+    private void manageMenueButtonHandler() {
         Button manageMenuButton = findViewById(R.id.manage_menu_button);
         manageMenuButton.setOnClickListener(v -> {
             // navigate to the admin menu management page
             android.content.Intent intent = new android.content.Intent(this, admin_manage_menu.class);
             startActivity(intent);
         });
+    }
+
+    // Data model for a booking
+    static class Booking {
+        String name;
+        String tableLabel;
+        String time;
+        String date;
+        int guests;
+        String bookingId;
+        String status;
+        String restaurantId;
+        String phone;
+        int avatarResId;
+
+        Booking(String name, String tableLabel, String time, String date, int guests, String bookingId, String status, String restaurantId, String phone, int avatarResId) {
+            this.name = name;
+            this.tableLabel = tableLabel;
+            this.time = time;
+            this.date = date;
+            this.guests = guests;
+            this.bookingId = bookingId;
+            this.status = status;
+            this.restaurantId = restaurantId;
+            this.phone = phone;
+            this.avatarResId = avatarResId;
+        }
     }
 }
