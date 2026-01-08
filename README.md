@@ -1,5 +1,12 @@
-# DontJustEat — Android App
 
+<p align="center">
+ <img width="500" height="500" alt="logo" src="https://github.com/user-attachments/assets/866afb24-a04b-4abe-a383-cf2474e64705" />
+</p>
+
+
+
+
+# DontJustEat — Android App 
 ## Project Overview
 
 **DontJustEat** is an Android application for restaurant discovery, booking, notifications, and profile management.  
