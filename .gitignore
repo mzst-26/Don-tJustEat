@@ -48,3 +48,4 @@ proguard-rules.pro
 # Android NDK
 ndkBuild/
 local.properties
+app/google_services.json

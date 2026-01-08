@@ -17,42 +17,20 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class admin_manage_menu extends BaseActivity {
 
+    // menu items list
+    private final List<MenuItem> menuItemsData = new ArrayList<>();
     // image picker stuff
     private ActivityResultLauncher<Intent> imagePickerLauncher;
     private ImageView currentEditingImageView;
     private Uri selectedImageUri;
-
-    // menu items list
-    private final List<MenuItem> menuItemsData = new ArrayList<>();
-
-    // menu item class
-    public static class MenuItem {
-        public String itemId;
-        public String title;
-        public String description;
-        public double price;
-        public int imageResource;
-        public String imageUrl;
-
-        // empty constructor for Firebase
-        public MenuItem() {}
-
-        MenuItem(String itemId, String title, String description, double price, int imageResource) {
-            this.itemId = itemId;
-            this.title = title;
-            this.description = description;
-            this.price = price;
-            this.imageResource = imageResource;
-            this.imageUrl = null; // Will be populated when connected to databse
-        }
-    }
+    // restaurant id for this admin
+    private String restaurantId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,34 +68,15 @@ public class admin_manage_menu extends BaseActivity {
             addButton.setOnClickListener(v -> handleAddNewMenuItem()); // open add popup
         }
 
-        // load fake data once
+        // load data from firestore
         menuItemsData.clear();
-        menuItemsData.addAll(getFakeMenuData());
-        displayMenuItems(menuItemsData);
-    }
-
-    // Generate fake menu data (replace with Firebase fetch later)
-    private List<MenuItem> getFakeMenuData() {
-        List<MenuItem> items = new ArrayList<>();
-
-        items.add(new MenuItem("ITEM001", "Margherita Pizza", "Classic pizza with tomato, mozzarella, and basil", 12.99, R.drawable.restaurant_image));
-        items.add(new MenuItem("ITEM002", "Caesar Salad", "Fresh romaine lettuce with parmesan and croutons", 8.50, R.drawable.restaurant_image));
-        items.add(new MenuItem("ITEM003", "Beef Burger", "Grilled beef patty with lettuce, tomato, and cheese", 14.99, R.drawable.restaurant_image));
-        items.add(new MenuItem("ITEM004", "Pasta Carbonara", "Creamy pasta with bacon and parmesan cheese", 13.50, R.drawable.restaurant_image));
-        items.add(new MenuItem("ITEM005", "Fish & Chips", "Battered cod with crispy fries and tartar sauce", 15.99, R.drawable.restaurant_image));
-        items.add(new MenuItem("ITEM006", "Chicken Wings", "Spicy buffalo wings with ranch dressing", 10.99, R.drawable.restaurant_image));
-        items.add(new MenuItem("ITEM007", "Veggie Wrap", "Grilled vegetables wrapped in a tortilla", 9.99, R.drawable.restaurant_image));
-        items.add(new MenuItem("ITEM008", "Steak Frites", "Grilled ribeye steak with french fries", 24.99, R.drawable.restaurant_image));
-        items.add(new MenuItem("ITEM009", "Tomato Soup", "Homemade tomato soup with fresh basil", 6.50, R.drawable.restaurant_image));
-        items.add(new MenuItem("ITEM010", "Steak with nothing", "Grilled ribeye steak with nothing souse", 140.99, R.drawable.restaurant_image));
-        items.add(new MenuItem("ITEM011", "Tomato Soup but different", "Homemade tomato soup with old basil", 20.50, R.drawable.restaurant_image));
-
-        return items;
+        loadMenuFromFirestore();
     }
 
     // Display menu items in the GridLayout
     private void displayMenuItems(List<MenuItem> menuItems) {
         GridLayout container = findViewById(R.id.menu_items_container);
+        TextView emptyState = findViewById(R.id.menu_empty_state);
         if (container == null) {
             android.util.Log.e("admin_manage_menu", "GridLayout container not found!");
             return;
@@ -125,6 +84,16 @@ public class admin_manage_menu extends BaseActivity {
 
         container.removeAllViews();
         LayoutInflater inflater = LayoutInflater.from(this);
+
+        // empty state
+        if (menuItems == null || menuItems.isEmpty()) {
+            container.setVisibility(View.GONE);
+            if (emptyState != null) emptyState.setVisibility(View.VISIBLE);
+            return;
+        } else {
+            container.setVisibility(View.VISIBLE);
+            if (emptyState != null) emptyState.setVisibility(View.GONE);
+        }
 
         try {
             for (MenuItem item : menuItems) {
@@ -144,17 +113,21 @@ public class admin_manage_menu extends BaseActivity {
                 ImageView image = card.findViewById(R.id.menu_item_image);
                 TextView title = card.findViewById(R.id.menu_item_title);
 
-
-
                 // bind data to views
-                if (image != null) image.setImageResource(item.imageResource);
                 if (title != null) title.setText(item.title);
 
+                // image from url if present; fallback
+                try {
+                    if (item.imageUrl != null && !item.imageUrl.isEmpty()) {
+                        com.bumptech.glide.Glide.with(this).load(item.imageUrl).into(image);
+                    } else if (image != null) {
+                        image.setImageResource(item.imageResource != 0 ? item.imageResource : R.drawable.restaurant_image);
+                    }
+                } catch (Exception ignored) {
+                }
 
                 // Set click listener for editing/deleting
                 card.setOnClickListener(v -> handleMenuItemClick(item));
-
-
 
                 //  Add card to grid
                 container.addView(card);
@@ -189,7 +162,7 @@ public class admin_manage_menu extends BaseActivity {
 
     // generate new item id (this is temporary, later I will use Firebase generated ids)
     private String generateNewItemId() {
-        return "ITEM" + String.format("%03d", (int)(Math.random() * 1000));
+        return "ITEM" + String.format("%03d", (int) (Math.random() * 1000));
     }
 
     // build dialog (simple)
@@ -248,24 +221,33 @@ public class admin_manage_menu extends BaseActivity {
     // add mode: make fields editable
     private void configureAddMode(
             TextView nameTv, EditText nameEt, ImageView editNameIcon,
-          TextView descriptionTv, EditText descriptionEt, ImageView editDescriptionIcon,
-          TextView priceTv, EditText priceEt, ImageView editPriceIcon,
-          Button deleteButton) {
+            TextView descriptionTv, EditText descriptionEt, ImageView editDescriptionIcon,
+            TextView priceTv, EditText priceEt, ImageView editPriceIcon,
+            Button deleteButton) {
 
         // hide textviews, show edits, hide icons
         if (nameTv != null) nameTv.setVisibility(View.GONE);
-        if (nameEt != null) { nameEt.setVisibility(View.VISIBLE); nameEt.setHint("Enter item name"); }
+        if (nameEt != null) {
+            nameEt.setVisibility(View.VISIBLE);
+            nameEt.setHint("Enter item name");
+        }
         if (editNameIcon != null) editNameIcon.setVisibility(View.GONE);
 
 
         // description
         if (descriptionTv != null) descriptionTv.setVisibility(View.GONE);
-        if (descriptionEt != null) { descriptionEt.setVisibility(View.VISIBLE); descriptionEt.setHint("Enter description"); }
+        if (descriptionEt != null) {
+            descriptionEt.setVisibility(View.VISIBLE);
+            descriptionEt.setHint("Enter description");
+        }
         if (editDescriptionIcon != null) editDescriptionIcon.setVisibility(View.GONE);
 
         // price
         if (priceTv != null) priceTv.setVisibility(View.GONE);
-        if (priceEt != null) { priceEt.setVisibility(View.VISIBLE); priceEt.setHint("Enter price"); }
+        if (priceEt != null) {
+            priceEt.setVisibility(View.VISIBLE);
+            priceEt.setHint("Enter price");
+        }
         if (editPriceIcon != null) editPriceIcon.setVisibility(View.GONE);
 
         // delete button acts as cancel
@@ -274,14 +256,14 @@ public class admin_manage_menu extends BaseActivity {
 
     // fill the dialog with current item data
     private void populateDialogData(MenuItem item, ImageView itemImage, TextView nameTv,
-                                   EditText nameEt, TextView descriptionTv, EditText descriptionEt,
-                                   TextView priceTv, EditText priceEt) {
+                                    EditText nameEt, TextView descriptionTv, EditText descriptionEt,
+                                    TextView priceTv, EditText priceEt) {
         if (itemImage != null) itemImage.setImageResource(item.imageResource);
         if (nameTv != null) nameTv.setText(item.title);
         if (nameEt != null) nameEt.setText(item.title);
         if (descriptionTv != null) descriptionTv.setText(item.description);
         if (descriptionEt != null) descriptionEt.setText(item.description);
-        if (priceTv != null) priceTv.setText(String.format("$%.2f", item.price));
+        if (priceTv != null) priceTv.setText(String.format("£%.2f", item.price));
         if (priceEt != null) priceEt.setText(String.valueOf(item.price));
     }
 
@@ -361,7 +343,7 @@ public class admin_manage_menu extends BaseActivity {
     ) {
         if (saveButton == null) return;
         saveButton.setOnClickListener(v -> {
-              // Validate and collect data
+            // Validate and collect data
             String newTitle = nameEt != null ? nameEt.getText().toString().trim() : item.title;
             String newDescription = descriptionEt != null ? descriptionEt.getText().toString().trim() : item.description;
             double newPrice;
@@ -380,9 +362,18 @@ public class admin_manage_menu extends BaseActivity {
 
 
             //some toasts for empty fields
-            if (newTitle.isEmpty()) { Toast.makeText(this, "Title cannot be empty", Toast.LENGTH_SHORT).show(); return; }
-            if (newDescription.isEmpty()) { Toast.makeText(this, "Description cannot be empty", Toast.LENGTH_SHORT).show(); return; }
-            if (newPrice == 0.0 && isAddMode) { Toast.makeText(this, "Please enter a valid price", Toast.LENGTH_SHORT).show(); return; }
+            if (newTitle.isEmpty()) {
+                Toast.makeText(this, "Title cannot be empty", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (newDescription.isEmpty()) {
+                Toast.makeText(this, "Description cannot be empty", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (newPrice == 0.0 && isAddMode) {
+                Toast.makeText(this, "Please enter a valid price", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             // apply to object
             updateMenuItem(item, newTitle, newDescription, newPrice);
@@ -409,8 +400,9 @@ public class admin_manage_menu extends BaseActivity {
     private void setupDeleteOrCancelButton(Button deleteButton, Dialog dialog, MenuItem item, boolean isAddMode) {
         if (deleteButton == null) return;
         deleteButton.setOnClickListener(v -> {
-            if (isAddMode) { dialog.dismiss(); }
-            else {
+            if (isAddMode) {
+                dialog.dismiss();
+            } else {
                 deleteMenuItem(item); // use helper
                 Toast.makeText(this, "Item deleted ", Toast.LENGTH_SHORT).show();
                 refreshMenuDisplay();
@@ -446,15 +438,17 @@ public class admin_manage_menu extends BaseActivity {
     }
 
     // redraw the menu display
-    private void refreshMenuDisplay() { displayMenuItems(menuItemsData); }
-
-    // Will do later: database (firebase) methods to do later
+    private void refreshMenuDisplay() {
+        displayMenuItems(menuItemsData);
+    }
 
     private void uploadImageToFirebase(Uri imageUri, String itemId) {
         // upload the image to database storage
         // get the download url of the image
         //update the item's image url field
     }
+
+    // Will do later: database (firebase) methods to do later
 
     private void saveMenuItemToFirebase(MenuItem item) {
         // save or update menu item in Firebase Realtime Database or Firestore
@@ -469,5 +463,78 @@ public class admin_manage_menu extends BaseActivity {
     private void fetchMenuItemsFromFirebase() {
         //Fetch the menu items from database
         // I will alter replace getFakeMenuData() with this method
+    }
+
+    // load real menu from firestore for admin's restaurant
+    private void loadMenuFromFirestore() {
+        com.example.dontjusteat.repositories.AdminBookingRepository adminRepo = new com.example.dontjusteat.repositories.AdminBookingRepository();
+        adminRepo.getAdminRestaurantId(new com.example.dontjusteat.repositories.AdminBookingRepository.OnAdminRestaurantListener() {
+            @Override
+            public void onSuccess(String rid) {
+                restaurantId = rid;
+                com.example.dontjusteat.repositories.RestaurantRepository repo = new com.example.dontjusteat.repositories.RestaurantRepository();
+                repo.getMenuItemsByRestaurantId(restaurantId, new com.example.dontjusteat.repositories.RestaurantRepository.OnMenuItemsListener() {
+                    @Override
+                    public void onSuccess(List<com.example.dontjusteat.models.MenuItem> items) {
+                        // map to UI model
+                        menuItemsData.clear();
+                        if (items != null) {
+                            for (com.example.dontjusteat.models.MenuItem it : items) {
+                                MenuItem ui = new MenuItem();
+                                ui.itemId = it.getItemId();
+                                ui.title = it.getItemName();
+                                ui.description = it.getItemDes();
+                                ui.price = it.getPrice();
+                                ui.imageResource = R.drawable.restaurant_image;
+                                ui.imageUrl = it.getImageURL();
+                                menuItemsData.add(ui);
+                            }
+                        }
+                        refreshMenuDisplay();
+                    }
+
+                    @Override
+                    public void onFailure(String error) {
+                        android.util.Log.e("ADMIN_MENU", "Failed to load menu: " + error);
+                        Toast.makeText(admin_manage_menu.this, "Failed to load menu", Toast.LENGTH_SHORT).show();
+                        // show empty state
+                        menuItemsData.clear();
+                        refreshMenuDisplay();
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(String error) {
+                android.util.Log.e("ADMIN_MENU", "No restaurant id: " + error);
+                Toast.makeText(admin_manage_menu.this, "Restaurant not set for admin", Toast.LENGTH_SHORT).show();
+                // empty state
+                menuItemsData.clear();
+                refreshMenuDisplay();
+            }
+        });
+    }
+
+    // menu item class
+    public static class MenuItem {
+        public String itemId;
+        public String title;
+        public String description;
+        public double price;
+        public int imageResource;
+        public String imageUrl;
+
+        // empty constructor for Firebase
+        public MenuItem() {
+        }
+
+        MenuItem(String itemId, String title, String description, double price, int imageResource) {
+            this.itemId = itemId;
+            this.title = title;
+            this.description = description;
+            this.price = price;
+            this.imageResource = imageResource;
+            this.imageUrl = null; // Will be populated when connected to databse
+        }
     }
 }

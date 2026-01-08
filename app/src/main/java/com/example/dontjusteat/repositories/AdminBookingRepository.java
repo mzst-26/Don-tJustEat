@@ -11,44 +11,31 @@ import java.util.List;
 import java.util.TimeZone;
 
 
-
 public class AdminBookingRepository {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth auth = FirebaseAuth.getInstance();
 
-    public static class BookingModel {
-        public String bookingId;
-        public String customerName;
-        public String customerPhone;
-        public String tableId;
-        public String time;
-        public String date;
-        public int guests;
-        public String status;
-        public Timestamp startTime;
-        public boolean acknowledgedByStaff;
-        public String restaurantId;
-
-        public BookingModel(String bookingId, String customerName, String tableId, String time,
-                            String date, int guests, String status, Timestamp startTime) {
-            this.bookingId = bookingId;
-            this.customerName = customerName;
-            this.customerPhone = "";
-            this.tableId = tableId;
-            this.time = time;
-            this.date = date;
-            this.guests = guests;
-            this.status = status;
-            this.startTime = startTime;
-            this.acknowledgedByStaff = false;
-            this.restaurantId = "";
+    // fetch admin's locationId and return it (no UI work here)
+    public void getAdminRestaurantId(OnAdminRestaurantListener listener) {
+        String uid = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
+        if (uid == null) {
+            listener.onFailure("Not authenticated");
+            return;
         }
-    }
-
-    public interface OnBookingsLoadListener {
-        void onUrgentLoaded(List<BookingModel> urgent);
-        void onTodayLoaded(List<BookingModel> today);
-        void onFailure(String error);
+        db.collection("admins").document(uid).get()
+                .addOnSuccessListener(adminDoc -> {
+                    if (adminDoc == null || !adminDoc.exists()) {
+                        listener.onFailure("Admin not found");
+                        return;
+                    }
+                    String locationId = adminDoc.getString("locationId");
+                    if (locationId == null || locationId.isEmpty()) {
+                        listener.onFailure("Location not set");
+                        return;
+                    }
+                    listener.onSuccess(locationId);
+                })
+                .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
     }
 
     // fetch admin's locationId and load bookings
@@ -121,8 +108,8 @@ public class AdminBookingRepository {
     }
 
     private void getCustomerName(String userId, DocumentSnapshot bookingDoc, String restaurantId,
-                                List<BookingModel> urgent, List<BookingModel> today,
-                                OnBookingsLoadListener listener, int[] count, int total) {
+                                 List<BookingModel> urgent, List<BookingModel> today,
+                                 OnBookingsLoadListener listener, int[] count, int total) {
         // get customer name and phone from users collection using userId
         db.collection("users").document(userId).get()
                 .addOnSuccessListener(userDoc -> {
@@ -211,8 +198,8 @@ public class AdminBookingRepository {
         if (status == null) return false;
         // check if status is canceled, change request, or pending
         return status.equalsIgnoreCase("CANCELED") ||
-               status.equalsIgnoreCase("CHANGE REQUEST") ||
-               status.equalsIgnoreCase("PENDING");
+                status.equalsIgnoreCase("CHANGE REQUEST") ||
+                status.equalsIgnoreCase("PENDING");
     }
 
     // check if booking is happening today (london tz)
@@ -225,9 +212,8 @@ public class AdminBookingRepository {
 
         // compare years and days
         return now.get(Calendar.YEAR) == bookingCal.get(Calendar.YEAR) &&
-               now.get(Calendar.DAY_OF_YEAR) == bookingCal.get(Calendar.DAY_OF_YEAR);
+                now.get(Calendar.DAY_OF_YEAR) == bookingCal.get(Calendar.DAY_OF_YEAR);
     }
-
 
     private String formatTime(Timestamp ts) {
         Calendar cal = Calendar.getInstance();
@@ -237,8 +223,6 @@ public class AdminBookingRepository {
         int minute = cal.get(Calendar.MINUTE);
         return String.format("%02d:%02d", hour, minute);
     }
-
-
 
     private String formatDate(Timestamp ts) {
         Calendar cal = Calendar.getInstance();
@@ -256,7 +240,7 @@ public class AdminBookingRepository {
 
     // update booking status in firestore
     public void updateBookingStatus(String restaurantId, String bookingId, String newStatus,
-                                   boolean acknowledged, OnStatusUpdateListener listener) {
+                                    boolean acknowledged, OnStatusUpdateListener listener) {
         java.util.Map<String, Object> updates = new java.util.HashMap<>();
         updates.put("status", newStatus);
         if (acknowledged) {
@@ -306,7 +290,7 @@ public class AdminBookingRepository {
 
     // send notification to user about status change
     private void sendStatusChangeNotification(String userId, String bookingId, String restaurantId,
-                                             String newStatus, boolean acknowledged) {
+                                              String newStatus, boolean acknowledged) {
         String title;
         String description;
 
@@ -338,8 +322,54 @@ public class AdminBookingRepository {
         notifRepo.createNotification(userId, notification);
     }
 
+
+    public interface OnBookingsLoadListener {
+        void onUrgentLoaded(List<BookingModel> urgent);
+
+        void onTodayLoaded(List<BookingModel> today);
+
+        void onFailure(String error);
+    }
+
+    // simple callback to return admin's restaurant/location id
+    public interface OnAdminRestaurantListener {
+        void onSuccess(String restaurantId);
+
+        void onFailure(String error);
+    }
+
     public interface OnStatusUpdateListener {
         void onSuccess();
+
         void onFailure(String error);
+    }
+
+    public static class BookingModel {
+        public String bookingId;
+        public String customerName;
+        public String customerPhone;
+        public String tableId;
+        public String time;
+        public String date;
+        public int guests;
+        public String status;
+        public Timestamp startTime;
+        public boolean acknowledgedByStaff;
+        public String restaurantId;
+
+        public BookingModel(String bookingId, String customerName, String tableId, String time,
+                            String date, int guests, String status, Timestamp startTime) {
+            this.bookingId = bookingId;
+            this.customerName = customerName;
+            this.customerPhone = "";
+            this.tableId = tableId;
+            this.time = time;
+            this.date = date;
+            this.guests = guests;
+            this.status = status;
+            this.startTime = startTime;
+            this.acknowledgedByStaff = false;
+            this.restaurantId = "";
+        }
     }
 }
