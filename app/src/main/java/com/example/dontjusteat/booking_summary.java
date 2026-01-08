@@ -13,6 +13,7 @@ import android.widget.Toast;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.dontjusteat.models.Table;
+import com.example.dontjusteat.notifications.LocalNotificationHelper;
 import com.example.dontjusteat.models.TableAvailability;
 import com.example.dontjusteat.models.Restaurant;
 import com.example.dontjusteat.repositories.BookingRepository;
@@ -524,7 +525,14 @@ public class booking_summary extends BaseActivity {
                             completedBookings[0]++;
                             bookingIds.add(bookingId);
 
-                            // after each booking success create a notification for the user
+                            // instant local notification with vibration when user creates booking
+                            try {
+                                LocalNotificationHelper.notifyNow(booking_summary.this,
+                                        "Booking created",
+                                        "Your booking #" + bookingId.substring(0, Math.min(8, bookingId.length())) + " was created");
+                            } catch (Exception ignored) {}
+
+                            // after each booking success create a notification for the user (db)
                             try {
                                 com.example.dontjusteat.repositories.NotificationRepository nRepo = new com.example.dontjusteat.repositories.NotificationRepository();
                                 com.example.dontjusteat.models.Notification notif = new com.example.dontjusteat.models.Notification(
