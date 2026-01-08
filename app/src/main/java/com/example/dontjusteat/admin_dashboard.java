@@ -277,6 +277,21 @@ public class admin_dashboard extends BaseActivity {
         name.setText(b.name);
         tableTime.setText(b.tableLabel + " • " + b.time);
         status.setText(b.status);
+
+        // color status for clarity
+        String s = b.status != null ? b.status.toUpperCase() : "";
+        if (s.equals("CANCELLED") || s.equals("CANCELLED BY STAFF")) {
+            status.setTextColor(android.graphics.Color.RED);
+
+        } else if (s.equals("CONFIRMED")) {
+
+            status.setTextColor(android.graphics.Color.parseColor("#2E7D32")); // green
+        } else if (s.equals("PENDING") || s.equals("REQUESTED CHANGE")) {
+            
+            status.setTextColor(android.graphics.Color.parseColor("#F57C00")); // orange
+        } else {
+            status.setTextColor(android.graphics.Color.BLACK);
+        }
     }
 
     // Handle click on quick action cards (New Request, Requested Change, Canceled)
