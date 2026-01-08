@@ -18,47 +18,6 @@ public class BookingDataRepository {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth auth = FirebaseAuth.getInstance();
 
-    public interface OnBookingsLoaded {
-        void onSuccess(List<BookingDisplayModel> bookings);
-        void onFailure();
-    }
-
-    public static class BookingDisplayModel {
-        public final String locationName;
-        public final String address;
-        public final String date;
-        public final String time;
-        public final String guests;
-        public final String status;
-        public final String bookingId;
-        public final long sortTimestamp;
-        // add fields needed for edit
-        public final String restaurantId;
-        public final String tableId;
-        public final com.google.firebase.Timestamp startTime;
-        public final int durationMinutes;
-
-        public BookingDisplayModel(String locationName, String address, String date, String time,
-                                   String guests, String status, String bookingId, long sortTimestamp,
-                                   String restaurantId, String tableId, com.google.firebase.Timestamp startTime,
-                                   int durationMinutes) {
-            this.locationName = locationName;
-            this.address = address;
-            this.date = date;
-            this.time = time;
-            this.guests = guests;
-            this.status = status;
-            this.bookingId = bookingId;
-            this.sortTimestamp = sortTimestamp;
-            this.restaurantId = restaurantId;
-            this.tableId = tableId;
-            this.startTime = startTime;
-            this.durationMinutes = durationMinutes;
-        }
-
-
-    }
-
     //load user's bookings from Firestore and hydrate with restaurant details
     public void fetchUserBookings(OnBookingsLoaded callback) {
         String uid = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
@@ -87,8 +46,6 @@ public class BookingDataRepository {
                     int total = snapshot.size();
 
 
-
-
                     for (DocumentSnapshot userDoc : snapshot.getDocuments()) {
                         hydrateBooking(userDoc, model -> {
                             if (model != null) list.add(model);
@@ -98,18 +55,13 @@ public class BookingDataRepository {
                         }, () -> {
                             if (completed.incrementAndGet() == total) {
                                 callback.onSuccess(list);
-                            }else {
+                            } else {
                                 //
                             }
                         });
                     }
                 })
                 .addOnFailureListener(e -> callback.onFailure());
-    }
-
-    private interface OnHydrated {
-        void done(BookingDisplayModel model);
-
     }
 
     // fetch booking and restaurant docs in parallel, then map to display model
@@ -119,30 +71,32 @@ public class BookingDataRepository {
         Timestamp startTimeTs = userBookingDoc.getTimestamp("startTime");
         Timestamp createdAtTs = userBookingDoc.getTimestamp("createdAt");
         String status = userBookingDoc.getString("status");
+        String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
 
         if (restaurantId == null || bookingId == null) {
             onHydrated.done(null);
             return;
         }
 
-        // parallel fetch: booking details + restaurant info
+        // parallel fetch: booking details + restaurant info + user profile
         Tasks.whenAllSuccess(
                 db.collection("restaurants").document(restaurantId).collection("bookings").document(bookingId).get(),
-                db.collection("restaurants").document(restaurantId).get()
+                db.collection("restaurants").document(restaurantId).get(),
+                userId != null ? db.collection("users").document(userId).get() : Tasks.forResult(null)
         ).addOnSuccessListener(results -> {
             DocumentSnapshot restBookingDoc = results.size() > 0 ? (DocumentSnapshot) results.get(0) : null;
             DocumentSnapshot restaurantDoc = results.size() > 1 ? (DocumentSnapshot) results.get(1) : null;
-            BookingDisplayModel model = mapToModel(userBookingDoc, restBookingDoc, restaurantDoc, restaurantId, bookingId, startTimeTs, createdAtTs, status);
+            DocumentSnapshot userDoc = results.size() > 2 ? (DocumentSnapshot) results.get(2) : null;
+            BookingDisplayModel model = mapToModel(userBookingDoc, restBookingDoc, restaurantDoc, userDoc, restaurantId, bookingId, startTimeTs, createdAtTs, status);
             onHydrated.done(model);
         }).addOnFailureListener(e -> onFail.run());
     }
 
-    private BookingDisplayModel mapToModel(DocumentSnapshot userBookingDoc, DocumentSnapshot restBookingDoc, DocumentSnapshot restaurantDoc,
+    private BookingDisplayModel mapToModel(DocumentSnapshot userBookingDoc, DocumentSnapshot restBookingDoc, DocumentSnapshot restaurantDoc, DocumentSnapshot userDoc,
                                            String restaurantId, String bookingId, Timestamp startTimeTs,
                                            Timestamp createdAtTs, String status) {
         SimpleDateFormat dateFmt = new SimpleDateFormat("dd/MM/yyyy", Locale.UK);
         SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm", Locale.UK);
-
 
 
         Timestamp startTs = startTimeTs != null ? startTimeTs : restBookingDoc != null ? restBookingDoc.getTimestamp("startTime") : null;
@@ -159,7 +113,8 @@ public class BookingDataRepository {
         if (locationName == null || locationName.isEmpty()) {
             locationName = restBookingDoc != null ? restBookingDoc.getString("restaurantName") : null;
         }
-        if (locationName == null || locationName.isEmpty()) locationName = restaurantId != null ? restaurantId : "";
+        if (locationName == null || locationName.isEmpty())
+            locationName = restaurantId != null ? restaurantId : "";
 
         String locationAddress = restaurantDoc != null ? restaurantDoc.getString("address") : null;
         if (locationAddress == null || locationAddress.isEmpty()) {
@@ -174,6 +129,18 @@ public class BookingDataRepository {
         Long durationLong = restBookingDoc != null ? restBookingDoc.getLong("durationMinutes") : null;
         int durationMinutes = durationLong != null ? durationLong.intValue() : 90;
 
+        // extract restaurant image URL
+        String restaurantImageUrl = restaurantDoc != null ? restaurantDoc.getString("imageUrl") : null;
+        if (restaurantImageUrl == null || restaurantImageUrl.isEmpty()) {
+            restaurantImageUrl = "";
+        }
+
+        // extract user profile URL from user document (users/{userId})
+        String userProfileUrl = userDoc != null ? userDoc.getString("photoUrl") : null;
+        if (userProfileUrl == null || userProfileUrl.isEmpty()) {
+            userProfileUrl = "";
+        }
+
         return new BookingDisplayModel(
                 locationName,
                 locationAddress,
@@ -186,7 +153,31 @@ public class BookingDataRepository {
                 restaurantId,
                 tableId != null ? tableId : "",
                 startTs,
-                durationMinutes
+                durationMinutes,
+                restaurantImageUrl,
+                userProfileUrl
         );
+    }
+
+    public interface OnBookingsLoaded {
+        void onSuccess(List<BookingDisplayModel> bookings);
+
+        void onFailure();
+    }
+
+    private interface OnHydrated {
+        void done(BookingDisplayModel model);
+
+    }
+
+    /**
+     * @param restaurantId       add fields needed for edit
+     * @param restaurantImageUrl image URLs
+     */
+    public record BookingDisplayModel(String locationName, String address, String date, String time,
+                                      String guests, String status, String bookingId,
+                                      long sortTimestamp, String restaurantId, String tableId,
+                                      Timestamp startTime, int durationMinutes,
+                                      String restaurantImageUrl, String userProfileUrl) {
     }
 }

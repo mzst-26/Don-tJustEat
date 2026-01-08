@@ -92,12 +92,13 @@ public class my_bookings extends BaseActivity {
         for (int i = 0; i < list.size(); i++) {
             BookingDataRepository.BookingDisplayModel m = list.get(i);
             BookingCard c = new BookingCard(
-                    m.locationName, m.date, m.time, m.guests, m.status, m.bookingId,
-                    m.address, R.drawable.restaurant_image, R.drawable.restaurant_image, m.sortTimestamp
+                    m.locationName(), m.date(), m.time(), m.guests(), m.status(), m.bookingId(),
+                    m.address(), R.drawable.restaurant_image, R.drawable.restaurant_image, m.sortTimestamp(),
+                    m.restaurantImageUrl(), m.userProfileUrl()
             );
             cards.add(c);
             // cache for later when user taps edit
-            bookingMetaById.put(m.bookingId, m);
+            bookingMetaById.put(m.bookingId(), m);
             if (i == 0) {
                 lastMostRecentMeta = m;
             }
@@ -138,7 +139,9 @@ public class my_bookings extends BaseActivity {
                 "",
                 0,
                 0,
-                System.currentTimeMillis()
+                System.currentTimeMillis(),
+                "",
+                ""
         ));
         renderCards(cards, true);
         latestBookingContainer.removeAllViews();
@@ -161,10 +164,40 @@ public class my_bookings extends BaseActivity {
             TextView txtTime = cardView.findViewById(R.id.text_date);
 
             // set data and click listener
-            imgSmall.setImageResource(cardData.smallImageResId);
-            imgBig.setImageResource(cardData.bigImageResId);
+            // load user profile image (small circle) - use same approach as customer_profile
+            if (imgSmall != null) {
+                com.bumptech.glide.Glide.with(this)
+                        .load(cardData.userProfileUrl)
+                        .placeholder(R.drawable.profile_floating_disc)
+                        .error(R.drawable.profile_floating_disc)
+                        .circleCrop()
+                        .into(imgSmall);
+            }
+            // load restaurant image (big)
+            if (cardData.restaurantImageUrl != null && !cardData.restaurantImageUrl.isEmpty()) {
+                com.bumptech.glide.Glide.with(this).load(cardData.restaurantImageUrl).into(imgBig);
+            } else {
+                imgBig.setImageResource(cardData.bigImageResId);
+            }
             txtLocation.setText(cardData.location != null ? cardData.location : "");
             txtTime.setText(cardData.date + (cardData.time.isEmpty() ? "" : ("  " + cardData.time)));
+
+            // set status with color
+            TextView txtStatus = cardView.findViewById(R.id.text_status);
+            if (txtStatus != null) {
+                txtStatus.setText(cardData.booking_status != null ? cardData.booking_status : "");
+
+                // set status color based on status
+                if (cardData.booking_status != null) {
+                    if (cardData.booking_status.equals("CANCELLED") || cardData.booking_status.equals("CANCELLED BY STAFF")) {
+                        txtStatus.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+                    } else if (cardData.booking_status.equals("CONFIRMED")) {
+                        txtStatus.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+                    } else if (cardData.booking_status.equals("PENDING")) {
+                        txtStatus.setTextColor(getResources().getColor(android.R.color.holo_orange_dark));
+                    }
+                }
+            }
             if (!isListEmpty) {
                 cardView.setOnClickListener(v -> popUpHandler(cardData));
             }
@@ -192,7 +225,30 @@ public class my_bookings extends BaseActivity {
 
             //set the data to the views
             txtReference.setText(cardData.reference_number);
-            imgLocation.setImageResource(cardData.bigImageResId);
+
+            // set status with color
+            TextView txtStatus = cardView.findViewById(R.id.latest_booking_status);
+            if (txtStatus != null) {
+                txtStatus.setText(cardData.booking_status != null ? cardData.booking_status : "");
+
+                // set status color based on status
+                if (cardData.booking_status != null) {
+                    if (cardData.booking_status.equals("CANCELLED") || cardData.booking_status.equals("CANCELLED BY STAFF")) {
+                        txtStatus.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+                    } else if (cardData.booking_status.equals("CONFIRMED")) {
+                        txtStatus.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+                    } else if (cardData.booking_status.equals("PENDING")) {
+                        txtStatus.setTextColor(getResources().getColor(android.R.color.holo_orange_dark));
+                    }
+                }
+            }
+
+            // load restaurant image from URL
+            if (cardData.restaurantImageUrl != null && !cardData.restaurantImageUrl.isEmpty()) {
+                com.bumptech.glide.Glide.with(this).load(cardData.restaurantImageUrl).into(imgLocation);
+            } else {
+                imgLocation.setImageResource(cardData.bigImageResId);
+            }
             textLocationName.setText(cardData.location);
             textTime.setText(cardData.time);
             textDate.setText(cardData.date);
@@ -289,7 +345,7 @@ public class my_bookings extends BaseActivity {
         }
 
         ReviewRepository reviewRepo = new ReviewRepository();
-        reviewRepo.checkIfReviewed(meta.restaurantId, meta.bookingId, alreadyReviewed -> {
+        reviewRepo.checkIfReviewed(meta.restaurantId(), meta.bookingId(), alreadyReviewed -> {
             if (alreadyReviewed) {
                 Toast.makeText(this, "You already reviewed this booking", Toast.LENGTH_SHORT).show();
                 return;
@@ -338,7 +394,7 @@ public class my_bookings extends BaseActivity {
                 String description = etDescription.getText() != null ? etDescription.getText().toString() : "";
 
                 // submit to firestore
-                reviewRepo.submitReview(meta.restaurantId, meta.bookingId, selectedRating, description,
+                reviewRepo.submitReview(meta.restaurantId(), meta.bookingId(), selectedRating, description,
                         new ReviewRepository.OnReviewSubmitListener() {
                             @Override
                             public void onSuccess() {
@@ -450,7 +506,7 @@ public class my_bookings extends BaseActivity {
                 int newGuests = (int) guestsSlider.getValue();
 
                 BookingEditRepository repo = new BookingEditRepository();
-                repo.requestEdit(meta.restaurantId, meta.bookingId, meta.tableId, meta.startTime, meta.durationMinutes, newStart, newGuests,
+                repo.requestEdit(meta.restaurantId(), meta.bookingId(), meta.tableId(), meta.startTime(), meta.durationMinutes(), newStart, newGuests,
                         new BookingEditRepository.OnRequestEditListener() {
                             @Override
                             public void onSuccess() {
@@ -490,12 +546,12 @@ public class my_bookings extends BaseActivity {
                 .setMessage("Are you sure you want to cancel this booking?")
                 .setPositiveButton("Yes", (dialog, which) -> {
                     // compute end time from start + duration
-                    long endMs = meta.startTime.toDate().getTime() + (meta.durationMinutes * 60 * 1000L);
+                    long endMs = meta.startTime().toDate().getTime() + (meta.durationMinutes() * 60 * 1000L);
                     Timestamp endTime = new Timestamp(endMs / 1000, (int) ((endMs % 1000) * 1000000));
 
                     // call repo to cancel and release locks
                     BookingCancelRepository repo = new BookingCancelRepository();
-                    repo.cancelBooking(meta.restaurantId, meta.bookingId, meta.tableId, meta.startTime, endTime,
+                    repo.cancelBooking(meta.restaurantId(), meta.bookingId(), meta.tableId(), meta.startTime(), endTime,
                             new BookingCancelRepository.OnCancelListener() {
                                 @Override
                                 public void onSuccess() {
@@ -525,10 +581,12 @@ public class my_bookings extends BaseActivity {
         String location_address;
         int bigImageResId;
         int smallImageResId;
+        String restaurantImageUrl;
+        String userProfileUrl;
 
         long sortTimestamp;
 
-        BookingCard(String location, String date, String time, String numberOfGuests, String booking_status, String reference_number, String location_address, int bigImageResId, int smallImageResId, long sortTimestamp) {
+        BookingCard(String location, String date, String time, String numberOfGuests, String booking_status, String reference_number, String location_address, int bigImageResId, int smallImageResId, long sortTimestamp, String restaurantImageUrl, String userProfileUrl) {
             this.location = location;
             this.date = date;
             this.time = time;
@@ -539,6 +597,8 @@ public class my_bookings extends BaseActivity {
             this.bigImageResId = bigImageResId;
             this.smallImageResId = smallImageResId;
             this.sortTimestamp = sortTimestamp;
+            this.restaurantImageUrl = restaurantImageUrl;
+            this.userProfileUrl = userProfileUrl;
         }
     }
 
