@@ -18,6 +18,8 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 
+import com.example.dontjusteat.repositories.MenuRepository;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +33,8 @@ public class admin_manage_menu extends BaseActivity {
     private Uri selectedImageUri;
     // restaurant id for this admin
     private String restaurantId;
+    // repository for menu operations
+    private MenuRepository menuRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +45,9 @@ public class admin_manage_menu extends BaseActivity {
         }
         setContentView(R.layout.admin_manage_menu);
 
+        // initialize repository
+        menuRepository = new MenuRepository();
+
         // initialize image picker launcher
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -48,11 +55,14 @@ public class admin_manage_menu extends BaseActivity {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                         // Get selected image URI
                         selectedImageUri = result.getData().getData();
+                        android.util.Log.d("ADMIN_MENU", "Image selected - URI: " + selectedImageUri);
                         if (currentEditingImageView != null && selectedImageUri != null) {
                             // Display selected image in the popup
                             currentEditingImageView.setImageURI(selectedImageUri);
-                            Toast.makeText(this, "Image selected (not saved yet)", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "Image selected", Toast.LENGTH_SHORT).show();
                         }
+                    } else {
+                        android.util.Log.d("ADMIN_MENU", "Image selection cancelled or failed");
                     }
                 }
         );
@@ -196,8 +206,9 @@ public class admin_manage_menu extends BaseActivity {
         // Fill the dialog with item data
         populateDialogData(item, itemImage, nameTv, nameEt, descriptionTv, descriptionEt, priceTv, priceEt);
 
-        // Setup image  picker reference
+        // Setup image picker reference
         currentEditingImageView = itemImage;
+        android.util.Log.d("ADMIN_MENU", "Dialog opened - resetting selectedImageUri (was: " + selectedImageUri + ")");
         selectedImageUri = null;
 
         if (isAddMode) {
@@ -258,7 +269,14 @@ public class admin_manage_menu extends BaseActivity {
     private void populateDialogData(MenuItem item, ImageView itemImage, TextView nameTv,
                                     EditText nameEt, TextView descriptionTv, EditText descriptionEt,
                                     TextView priceTv, EditText priceEt) {
-        if (itemImage != null) itemImage.setImageResource(item.imageResource);
+        // load image with Glide if URL exists, otherwise use resource
+        if (itemImage != null) {
+            if (item.imageUrl != null && !item.imageUrl.isEmpty()) {
+                com.bumptech.glide.Glide.with(this).load(item.imageUrl).into(itemImage);
+            } else {
+                itemImage.setImageResource(item.imageResource != 0 ? item.imageResource : R.drawable.restaurant_image);
+            }
+        }
         if (nameTv != null) nameTv.setText(item.title);
         if (nameEt != null) nameEt.setText(item.title);
         if (descriptionTv != null) descriptionTv.setText(item.description);
@@ -375,24 +393,54 @@ public class admin_manage_menu extends BaseActivity {
                 return;
             }
 
-            // apply to object
-            updateMenuItem(item, newTitle, newDescription, newPrice);
+            // update item data
+            item.title = newTitle;
+            item.description = newDescription;
+            item.price = newPrice;
 
             // add to list if new
             if (isAddMode) {
-                menuItemsData.add(item); // later: push to Firebase
+                menuItemsData.add(item);
             }
 
-            //Update item
-            updateMenuItem(item, newTitle, newDescription, newPrice);
+            // save using repository
+            android.util.Log.d("ADMIN_MENU", "=== SAVE CLICKED ===");
+            android.util.Log.d("ADMIN_MENU", "restaurantId: " + restaurantId);
+            android.util.Log.d("ADMIN_MENU", "selectedImageUri: " + selectedImageUri);
+            android.util.Log.d("ADMIN_MENU", "item.imageUrl: " + item.imageUrl);
+            android.util.Log.d("ADMIN_MENU", "item.itemId: " + item.itemId);
 
-            // Save to database
-            saveMenuItemChanges(item);
+            if (restaurantId == null || restaurantId.isEmpty()) {
+                Toast.makeText(this, "Error: Restaurant ID is missing!", Toast.LENGTH_LONG).show();
+                android.util.Log.e("ADMIN_MENU", "Cannot save - restaurantId is null or empty!");
+                return;
+            }
 
-            Toast.makeText(this, "Changes saved", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Saving...", Toast.LENGTH_SHORT).show();
+            menuRepository.saveMenuItemWithImage(
+                    restaurantId,
+                    item.itemId,
+                    newTitle,
+                    newDescription,
+                    newPrice,
+                    selectedImageUri,
+                    item.imageUrl,
+                    new MenuRepository.OnMenuItemSaveListener() {
+                        @Override
+                        public void onSuccess() {
+                            Toast.makeText(admin_manage_menu.this, "Menu item saved successfully", Toast.LENGTH_SHORT).show();
+                            selectedImageUri = null;
+                            // reload from firestore to get fresh image URLs
+                            loadMenuFromFirestore();
+                            dialog.dismiss();
+                        }
 
-            refreshMenuDisplay();
-            dialog.dismiss();
+                        @Override
+                        public void onFailure(String error) {
+                            Toast.makeText(admin_manage_menu.this, "Save failed: " + error, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+            );
         });
     }
 
@@ -403,38 +451,40 @@ public class admin_manage_menu extends BaseActivity {
             if (isAddMode) {
                 dialog.dismiss();
             } else {
-                deleteMenuItem(item); // use helper
-                Toast.makeText(this, "Item deleted ", Toast.LENGTH_SHORT).show();
+                deleteMenuItem(item);
+                Toast.makeText(this, "Item deleted", Toast.LENGTH_SHORT).show();
                 refreshMenuDisplay();
                 dialog.dismiss();
             }
         });
     }
 
-    // update item data
-    private void updateMenuItem(MenuItem item, String title, String description, double price) {
-        item.title = title;
-        item.description = description;
-        item.price = price;
-        if (selectedImageUri != null) {
-            // Will do for  firebase: upload selectedImageUri then set item imageUrl
-        }
-    }
-
-    // save menu item changes
-    private void saveMenuItemChanges(MenuItem item) {
-        // to do later: implement Firebase save
-    }
-
     // delete menu item
     private void deleteMenuItem(MenuItem item) {
+        // remove from local list
         for (int i = 0; i < menuItemsData.size(); i++) {
             if (menuItemsData.get(i).itemId.equals(item.itemId)) {
                 menuItemsData.remove(i);
                 break;
             }
         }
-        // will do for firebase connection: deleteMenuItemFromFirebase(item.itemId)
+
+        // delete from firestore using repository
+        if (restaurantId != null && item.itemId != null) {
+            menuRepository.deleteMenuItem(restaurantId, item.itemId, new MenuRepository.OnMenuItemDeleteListener() {
+                @Override
+                public void onSuccess() {
+                    android.util.Log.d("ADMIN_MENU", "Menu item deleted successfully");
+                }
+
+
+                @Override
+                public void onFailure(String error) {
+                    android.util.Log.e("ADMIN_MENU", "Failed to delete: " + error);
+                }
+
+            });
+        }
     }
 
     // redraw the menu display
@@ -442,28 +492,6 @@ public class admin_manage_menu extends BaseActivity {
         displayMenuItems(menuItemsData);
     }
 
-    private void uploadImageToFirebase(Uri imageUri, String itemId) {
-        // upload the image to database storage
-        // get the download url of the image
-        //update the item's image url field
-    }
-
-    // Will do later: database (firebase) methods to do later
-
-    private void saveMenuItemToFirebase(MenuItem item) {
-        // save or update menu item in Firebase Realtime Database or Firestore
-        // use item.itemId as document/key ID
-    }
-
-    private void deleteMenuItemFromFirebase(String itemId) {
-        // delete menu item from the database
-        // also delete associated image from Storage
-    }
-
-    private void fetchMenuItemsFromFirebase() {
-        //Fetch the menu items from database
-        // I will alter replace getFakeMenuData() with this method
-    }
 
     // load real menu from firestore for admin's restaurant
     private void loadMenuFromFirestore() {
