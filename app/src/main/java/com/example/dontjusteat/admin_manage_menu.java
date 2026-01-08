@@ -403,6 +403,9 @@ public class admin_manage_menu extends BaseActivity {
                 menuItemsData.add(item);
             }
 
+            // show loading
+            android.app.Dialog loading = LoadingOverlay.show(this);
+
             // save using repository
             android.util.Log.d("ADMIN_MENU", "=== SAVE CLICKED ===");
             android.util.Log.d("ADMIN_MENU", "restaurantId: " + restaurantId);
@@ -428,15 +431,16 @@ public class admin_manage_menu extends BaseActivity {
                     new MenuRepository.OnMenuItemSaveListener() {
                         @Override
                         public void onSuccess() {
+                            LoadingOverlay.hide(loading);
                             Toast.makeText(admin_manage_menu.this, "Menu item saved successfully", Toast.LENGTH_SHORT).show();
                             selectedImageUri = null;
-                            // reload from firestore to get fresh image URLs
                             loadMenuFromFirestore();
                             dialog.dismiss();
                         }
 
                         @Override
                         public void onFailure(String error) {
+                            LoadingOverlay.hide(loading);
                             Toast.makeText(admin_manage_menu.this, "Save failed: " + error, Toast.LENGTH_SHORT).show();
                         }
                     }
@@ -469,21 +473,25 @@ public class admin_manage_menu extends BaseActivity {
             }
         }
 
-        // delete from firestore using repository
+        android.app.Dialog loading = LoadingOverlay.show(this);
+
         if (restaurantId != null && item.itemId != null) {
             menuRepository.deleteMenuItem(restaurantId, item.itemId, new MenuRepository.OnMenuItemDeleteListener() {
                 @Override
                 public void onSuccess() {
+                    LoadingOverlay.hide(loading);
                     android.util.Log.d("ADMIN_MENU", "Menu item deleted successfully");
                 }
 
-
                 @Override
                 public void onFailure(String error) {
+                    LoadingOverlay.hide(loading);
                     android.util.Log.e("ADMIN_MENU", "Failed to delete: " + error);
                 }
 
             });
+        } else {
+            LoadingOverlay.hide(loading);
         }
     }
 
