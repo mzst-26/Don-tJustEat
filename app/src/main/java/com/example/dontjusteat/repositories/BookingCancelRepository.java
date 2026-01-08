@@ -14,18 +14,9 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 
-
 public class BookingCancelRepository {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth auth = FirebaseAuth.getInstance();
-
-    public interface OnCancelListener {
-        void onSuccess();
-        void onFailure(String error);
-    }
-
-
-
 
     public void cancelBooking(@NonNull String restaurantId,
                               @NonNull String bookingId,
@@ -36,35 +27,37 @@ public class BookingCancelRepository {
                               @NonNull OnCancelListener listener) {
 
 
-
         // atomic update: status + release locks
         db.runTransaction((Transaction.Function<Void>) tx -> {
-            DocumentReference bookingRef = db.collection("restaurants").document(restaurantId)
-                    .collection("bookings").document(bookingId);
+                    DocumentReference bookingRef = db.collection("restaurants").document(restaurantId)
+                            .collection("bookings").document(bookingId);
 
-            Map<String,Object> updates = new HashMap<>();
-            updates.put("status", "CANCELED");
-            tx.update(bookingRef, updates);
-
-
-
-            // sync user side
-            String uid = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
-            if (uid != null) {
-                DocumentReference userBookRef = db.collection("users").document(uid)
-                        .collection("bookings").document(bookingId);
-                tx.update(userBookRef, "status", "CANCELED");
-
-            }
+                    Map<String, Object> updates = new HashMap<>();
+                    updates.put("status", "CANCELED");
+                    updates.put("acknowledgedByStaff", false);
+                    tx.update(bookingRef, updates);
 
 
-            // free up the time slots
-            releaseLocks(tx, restaurantId, tableId, startTime, endTime);
-            return null;
-        }).addOnSuccessListener(aVoid -> listener.onSuccess())
-          .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
+                    // sync user side
+                    String uid = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
+                    if (uid != null) {
+                        DocumentReference userBookRef = db.collection("users").document(uid)
+                                .collection("bookings").document(bookingId);
+                        Map<String, Object> userUpdates = new HashMap<>();
+                
+                        userUpdates.put("status", "CANCELED");
+                        userUpdates.put("acknowledgedByStaff", false);
+                        tx.update(userBookRef, userUpdates);
+
+                    }
+
+
+                    // free up the time slots
+                    releaseLocks(tx, restaurantId, tableId, startTime, endTime);
+                    return null;
+                }).addOnSuccessListener(aVoid -> listener.onSuccess())
+                .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
     }
-
 
     private void releaseLocks(Transaction tx, String restaurantId, String tableId, Timestamp startTime, Timestamp endTime) {
         long slotMs = TimeUnit.MINUTES.toMillis(15);
@@ -77,10 +70,16 @@ public class BookingCancelRepository {
             DocumentReference ref = db.collection("restaurants").document(restaurantId)
                     .collection("tables").document(tableId)
                     .collection("locks").document(lockId);
-            Map<String,Object> data = new HashMap<>();
+            Map<String, Object> data = new HashMap<>();
             data.put("status", "OPEN");
             tx.set(ref, data, SetOptions.merge());
         }
     }
-}
 
+
+    public interface OnCancelListener {
+        void onSuccess();
+
+        void onFailure(String error);
+    }
+}

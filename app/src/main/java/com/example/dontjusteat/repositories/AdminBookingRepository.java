@@ -4,8 +4,10 @@ import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
@@ -162,14 +164,14 @@ public class AdminBookingRepository {
                 });
     }
 
+    // convert booking doc to model (used by fetch logic)
     private BookingModel mapToBookingModel(DocumentSnapshot doc, String customerName, String customerPhone, String restaurantId) {
         try {
             String bookingId = doc.getId();
             if (customerName == null || customerName.isEmpty()) {
                 customerName = "Guest";
             }
-
-            // get table and party size
+            // extract fields
             String tableId = doc.getString("tableId");
             Long guestsLong = doc.getLong("partySize");
             int guests = guestsLong != null ? guestsLong.intValue() : 0;
@@ -178,26 +180,33 @@ public class AdminBookingRepository {
             Boolean acknowledged = doc.getBoolean("acknowledgedByStaff");
 
             if (startTs == null) return null;
-
             // format time and date
             String time = formatTime(startTs);
             String date = formatDate(startTs);
-
+            // create booking model
             BookingModel booking = new BookingModel(bookingId, customerName, tableId != null ? tableId : "", time, date, guests, status, startTs);
             booking.acknowledgedByStaff = acknowledged != null && acknowledged;
             booking.restaurantId = restaurantId;
             booking.customerPhone = customerPhone != null ? customerPhone : "";
             return booking;
+
         } catch (Exception e) {
             return null;
         }
     }
 
+    // simple cancel check
+    private boolean isCancelStatus(String status) {
+        if (status == null) return false;
+
+        String s = status.toLowerCase();
+        return s.contains("cancel");
+    }
+
     // check if booking needs urgent action
     private boolean isUrgent(String status) {
         if (status == null) return false;
-        // check if status is canceled, change request, or pending
-        return status.equalsIgnoreCase("CANCELED") ||
+        return isCancelStatus(status) ||
                 status.equalsIgnoreCase("CHANGE REQUEST") ||
                 status.equalsIgnoreCase("PENDING");
     }
@@ -322,6 +331,30 @@ public class AdminBookingRepository {
         notifRepo.createNotification(userId, notification);
     }
 
+    public void listenForUrgentActions(String restaurantId, OnUrgentListener listener) {
+        // new request, change request, cancel request
+        db.collection("restaurants")
+                .document(restaurantId)
+                .collection("bookings")
+                .whereIn("status", Arrays.asList("PENDING", "CHANGE REQUEST", "CANCELED", "CANCELLED"))
+                .addSnapshotListener((qs, e) -> {
+                    if (e != null || qs == null) return;
+                    for (QueryDocumentSnapshot doc : qs) {
+                        String status = doc.getString("status");
+                        String bid = doc.getId();
+                        String userId = doc.getString("userId");
+                        String title = "";
+                        if (status != null && status.equalsIgnoreCase("PENDING"))
+                            title = "New booking request";
+                        else if (status != null && status.equalsIgnoreCase("CHANGE REQUEST"))
+                            title = "Booking change request";
+                        else if (status != null && (status.equalsIgnoreCase("CANCELED") || status.equalsIgnoreCase("CANCELLED")))
+                            title = "Cancellation request";
+                        String msg = "Booking #" + bid + (userId != null ? (" from " + userId) : "");
+                        listener.onUrgent(title, msg);
+                    }
+                });
+    }
 
     public interface OnBookingsLoadListener {
         void onUrgentLoaded(List<BookingModel> urgent);
@@ -342,6 +375,10 @@ public class AdminBookingRepository {
         void onSuccess();
 
         void onFailure(String error);
+    }
+
+    public interface OnUrgentListener {
+        void onUrgent(String title, String message);
     }
 
     public static class BookingModel {

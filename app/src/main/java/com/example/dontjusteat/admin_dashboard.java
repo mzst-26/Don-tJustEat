@@ -8,12 +8,18 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.dontjusteat.notifications.LocalNotificationHelper;
 import com.example.dontjusteat.repositories.AdminBookingRepository;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class admin_dashboard extends BaseActivity {
+    private final Set<String> notifiedUrgents = new HashSet<>();
+    private final com.example.dontjusteat.repositories.AdminBookingRepository adminRepoUrgent = new com.example.dontjusteat.repositories.AdminBookingRepository();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -34,6 +40,9 @@ public class admin_dashboard extends BaseActivity {
 
         // load real bookings from firestore
         loadBookingsFromFirestore();
+
+        // start urgent listener
+        startUrgentListener();
 
         // handle menu navigation
         admin_modules.handleMenuNavigation(this);
@@ -98,6 +107,8 @@ public class admin_dashboard extends BaseActivity {
             displayStatus = "New Request";
         } else if (bm.status != null && bm.status.equalsIgnoreCase("CHANGE REQUEST")) {
             displayStatus = "Requested Change";
+        } else if (bm.status != null && (bm.status.equalsIgnoreCase("CANCELED") || bm.status.equalsIgnoreCase("CANCELLED"))) {
+            displayStatus = "Canceled";
         }
 
         return new Booking(
@@ -451,6 +462,32 @@ public class admin_dashboard extends BaseActivity {
             // navigate to the admin menu management page
             android.content.Intent intent = new android.content.Intent(this, admin_manage_menu.class);
             startActivity(intent);
+        });
+    }
+
+    private void startUrgentListener() {
+        com.example.dontjusteat.repositories.AdminBookingRepository repo = new com.example.dontjusteat.repositories.AdminBookingRepository();
+        repo.getAdminRestaurantId(new com.example.dontjusteat.repositories.AdminBookingRepository.OnAdminRestaurantListener() {
+            @Override
+
+            // start listening for urgent bookings
+            public void onSuccess(String rid) {
+
+                // listen for urgent bookings and push local notification
+                adminRepoUrgent.listenForUrgentActions(rid, (title, msg) -> {
+                    String key = title + msg;
+                    // avoid duplicate notifications
+                    if (!notifiedUrgents.contains(key)) {
+                        notifiedUrgents.add(key);
+                        LocalNotificationHelper.notifyNow(admin_dashboard.this, title, msg);
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(String error) {
+                android.util.Log.e("ADMIN_DASH", "Urgent listener failed: " + error);
+            }
         });
     }
 

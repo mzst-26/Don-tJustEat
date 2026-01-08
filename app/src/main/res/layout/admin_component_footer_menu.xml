@@ -1,15 +1,13 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_gravity="bottom">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:gravity="center"
-        >
+        android:orientation="vertical">
         <!-- Divider under header -->
         <View
             android:id="@+id/divider_header"
@@ -21,19 +19,17 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="55dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
             android:background="@color/white"
-            >
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
             <!--home icon container -->
             <LinearLayout
+                android:id="@+id/navigate_to_booking"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:id="@+id/navigate_to_booking"
-                android:orientation="vertical"
-                >
+                android:orientation="vertical">
                 <!--Home icon -->
                 <ImageView
                     android:id="@+id/navigate_to_booking_button"
@@ -47,57 +43,23 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
                     android:text="Home"
                     android:textColor="@color/black"
-                    android:textSize="10sp"
-                    android:gravity="center"
-                    android:layout_gravity="center"
-                    />
-
-            </LinearLayout>
-
-
-            <!--notification icon container -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:id="@+id/notification"
-                >
-                <!--notification icon -->
-                <ImageView
-                    android:id="@+id/navigate_to_notification_button"
-                    android:layout_width="26dp"
-                    android:layout_height="26dp"
-                    android:background="@drawable/notification_inactive"
-                    android:clickable="true"
-                    android:focusable="true" />
-
-                <!--menu guid -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Notifications"
-                    android:textColor="@color/black"
-                    android:textSize="10sp"
-                    android:gravity="center"
-                    android:layout_gravity="center"
-                    />
+                    android:textSize="10sp" />
 
             </LinearLayout>
 
 
             <!--profile icon container -->
             <LinearLayout
+                android:id="@+id/navigate_to_customer_profile"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:orientation="vertical"
-                android:id="@+id/navigate_to_customer_profile"
-                >
+                android:orientation="vertical">
                 <!--profile icon -->
                 <ImageView
                     android:id="@+id/navigate_to_customer_profile_button"
@@ -105,18 +67,16 @@
                     android:layout_height="26dp"
                     android:background="@drawable/profile_inactive"
                     android:clickable="true"
-                    android:focusable="true"
-                    />
+                    android:focusable="true" />
                 <!--menu guid -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
                     android:text="Profile"
                     android:textColor="@color/black"
-                    android:textSize="10sp"
-                    android:gravity="center"
-                    android:layout_gravity="center"
-                    />
+                    android:textSize="10sp" />
 
             </LinearLayout>
 
