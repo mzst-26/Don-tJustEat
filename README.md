@@ -4,13 +4,9 @@
 </p>
 
 
-
-
-## Preview
+## Muted Preview
 <div align="center">
-  <video width="500" controls>
-    <source src="https://github.com/user-attachments/assets/4e987cfe-6854-4a6d-bbac-397382574fd6" type="video/mp4">
-  </video>
+ <video src="https://github.com/user-attachments/assets/4e987cfe-6854-4a6d-bbac-397382574fd6"></video>
 </div>
 
 ## Presentation With Audio
